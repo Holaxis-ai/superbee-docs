@@ -1,0 +1,20 @@
+{
+  "deterministicIds": true,
+  "deterministicIDSeed": "superbee-docs-diagrams-v1",
+  "fontFamily": "Atkinson Hyperlegible",
+  "securityLevel": "strict",
+  "theme": "base",
+  "themeVariables": {
+    "background": "#fffdf7",
+    "primaryColor": "#fff3bf",
+    "primaryBorderColor": "#5f4b00",
+    "primaryTextColor": "#211b00",
+    "lineColor": "#365f54",
+    "secondaryColor": "#dff4eb",
+    "tertiaryColor": "#f4f1e9"
+  },
+  "flowchart": {
+    "htmlLabels": false,
+    "curve": "basis"
+  }
+}

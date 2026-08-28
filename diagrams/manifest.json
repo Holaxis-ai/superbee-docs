@@ -1,0 +1,17 @@
+{
+  "schema": "https://getsuperbee.com/schemas/docs-diagrams/v1",
+  "renderer": "superbee-docs-mermaid-v1+mermaid@11.17.2+puppeteer@25.9.0+atkinson-hyperlegible@5.3.0",
+  "diagrams": [
+    {
+      "id": "superbee-system-context",
+      "title": "Superbee system context",
+      "description": "How humans, agents, Superbee, shared bundles, package distribution, and public publication relate.",
+      "source": "diagrams/sources/superbee-system-context.mmd",
+      "publishedSource": "visuals/sources/superbee-system-context.mmd",
+      "documentId": "architecture/superbee-system-context",
+      "viewId": "views-registry/superbee-system-context",
+      "entry": "views/superbee-system-context.html",
+      "access": "none"
+    }
+  ]
+}

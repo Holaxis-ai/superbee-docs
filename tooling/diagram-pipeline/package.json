@@ -1,0 +1,20 @@
+{
+  "name": "@superbee-docs/diagram-pipeline",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Extraction-ready source-bound diagram compiler for Superbee documentation sites.",
+  "exports": "./src/index.mjs",
+  "bin": {
+    "superbee-docs-diagrams": "./cli.mjs"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "@fontsource/atkinson-hyperlegible": "5.3.0",
+    "mermaid": "11.17.2",
+    "puppeteer": "25.9.0",
+    "yaml": "2.9.0"
+  }
+}

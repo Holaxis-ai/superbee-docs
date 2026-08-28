@@ -1,0 +1,17 @@
+{
+  "schema": "https://getsuperbee.com/schemas/portal-config/v1",
+  "bundle": ".superbee",
+  "output": "dist",
+  "audience": "public",
+  "exposure": "complete-publication-bundle",
+  "title": "Superbee documentation",
+  "description": "Source-grounded guidance for using, understanding, and evolving Superbee.",
+  "views": [
+    {
+      "id": "views-registry/superbee-system-context",
+      "entry": "views/superbee-system-context.html",
+      "access": "none",
+      "entrySha256": "sha256:e60f1a6d209b3725b9906cceceee0737bb84579ffeec5b569e506f97ccc62b06"
+    }
+  ]
+}

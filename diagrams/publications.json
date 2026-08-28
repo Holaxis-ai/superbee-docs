@@ -1,0 +1,11 @@
+{
+  "schema": "https://getsuperbee.com/schemas/docs-diagram-publications/v1",
+  "diagrams": [
+    {
+      "id": "superbee-system-context",
+      "publishedSource": "visuals/sources/superbee-system-context.mmd",
+      "viewId": "views-registry/superbee-system-context",
+      "entry": "views/superbee-system-context.html"
+    }
+  ]
+}
