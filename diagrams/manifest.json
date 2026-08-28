@@ -1,6 +1,6 @@
 {
   "schema": "https://getsuperbee.com/schemas/docs-diagrams/v1",
-  "renderer": "@mermaid-js/mermaid-cli@11.16.0",
+  "renderer": "superbee-docs-mermaid-v1+mermaid@11.17.2+puppeteer@25.9.0+atkinson-hyperlegible@5.3.0",
   "diagrams": [
     {
       "id": "superbee-system-context",
@@ -15,4 +15,3 @@
     }
   ]
 }
-

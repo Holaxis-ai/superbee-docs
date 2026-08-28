@@ -11,7 +11,7 @@ async function fixture(source = "flowchart LR\n  accTitle: Example\n  accDescr: 
   await writeFile(join(root, "diagrams/example.mmd"), source);
   await writeFile(join(root, "diagrams/manifest.json"), JSON.stringify({
     schema: "https://getsuperbee.com/schemas/docs-diagrams/v1",
-    renderer: "@mermaid-js/mermaid-cli@11.16.0",
+    renderer: "superbee-docs-mermaid-v1+mermaid@11.17.2+puppeteer@25.9.0+atkinson-hyperlegible@5.3.0",
     diagrams: [{
       id: "example", title: "Example", description: "Example diagram.", source: "diagrams/example.mmd",
       publishedSource: "visuals/sources/example.mmd", documentId: "architecture/example",
@@ -26,8 +26,8 @@ const accessibleSvg = `<svg xmlns="http://www.w3.org/2000/svg" aria-labelledby="
 test("compiler produces deterministic, self-contained accessible HTML", async () => {
   const root = await fixture();
   let rendererCss;
-  const runner = async ({ outputPath, cssPath }) => {
-    rendererCss = await readFile(cssPath, "utf8");
+  const runner = async ({ outputPath, fontCss }) => {
+    rendererCss = fontCss;
     await writeFile(outputPath, accessibleSvg);
   };
   const first = await compileAll({ root, manifestPath: "diagrams/manifest.json", outputDir: join(root, "first"), runner });
@@ -38,6 +38,8 @@ test("compiler produces deterministic, self-contained accessible HTML", async ()
   assert.match(html, /@font-face\{font-family:'Atkinson Hyperlegible';src:url\(data:font\/woff2;base64,/);
   assert.match(html, /svg\{display:block;min-width:44rem;max-width:none/);
   assert.match(rendererCss, /data:font\/woff2;base64,/);
+  assert.match(html, /Copyright 2020 Braille Institute of America, Inc\./);
+  assert.match(html, /SIL OPEN FONT LICENSE Version 1\.1/);
   assert.doesNotMatch(html, /<script\b/i);
 });
 
@@ -107,5 +109,16 @@ test("compiler rejects executable renderer output", async () => {
       runner: async ({ outputPath }) => writeFile(outputPath, `<svg><title>x</title><desc>x</desc><script>alert(1)</script></svg>`),
     }),
     /executable markup/,
+  );
+});
+
+test("compiler rejects empty rendered accessibility text", async () => {
+  const root = await fixture("flowchart LR\n  accTitle: Example\n  accDescr {\n  }\n  A --> B\n");
+  await assert.rejects(
+    compileAll({
+      root, manifestPath: "diagrams/manifest.json", outputDir: join(root, "out"),
+      runner: async ({ outputPath }) => writeFile(outputPath, `<svg><title>Example</title><desc> &#160; </desc></svg>`),
+    }),
+    /lacks an accessible title or description/,
   );
 });

@@ -109,7 +109,7 @@ async function writePortalConfig(rows, previousRows) {
     ...(config.views ?? []).filter((row) => !managed.has(row.id)),
     ...rows.map((row) => ({ id: row.viewId, entry: row.entry, access: row.access, entrySha256: row.entrySha256 })),
   ].sort((a, b) => a.id.localeCompare(b.id));
-  await writeJson(path, config);
+  return writeJson(path, config);
 }
 
 const output = await mkdtemp(resolve(tmpdir(), "superbee-docs-diagram-apply-"));
@@ -128,11 +128,11 @@ try {
   const currentKeys = new Set(currentRecords.flatMap(publicationKeys));
   const staleKeys = new Set(previous.diagrams.flatMap(publicationKeys).filter((key) => !currentKeys.has(key)));
   for (const key of staleKeys) changes.push(await removeManaged(key));
-  await writePortalConfig(built.rows, previous.diagrams);
-  await writeJson(publicationStatePath, {
+  changes.push({ key: "portal.config.json", changed: await writePortalConfig(built.rows, previous.diagrams) });
+  changes.push({ key: "diagrams/publications.json", changed: await writeJson(publicationStatePath, {
     schema: "https://getsuperbee.com/schemas/docs-diagram-publications/v1",
     diagrams: currentRecords,
-  });
+  }) });
   console.log(`diagram_apply: complete\ndiagrams: ${built.rows.length}\nchanged: ${changes.filter((row) => row.changed).length}`);
   for (const row of built.rows) console.log(`- ${row.id}: ${row.entrySha256}`);
 } finally {

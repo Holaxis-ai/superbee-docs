@@ -1,16 +1,17 @@
 import { createHash } from "node:crypto";
-import { execFile } from "node:child_process";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { promisify } from "node:util";
+import puppeteer from "puppeteer";
 import { parse as parseYaml } from "yaml";
 
-const execFileAsync = promisify(execFile);
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const mermaidConfig = resolve(packageRoot, "mermaid.config.json");
+const mermaidScript = fileURLToPath(import.meta.resolve("mermaid/dist/mermaid.min.js"));
 const pinnedFont = fileURLToPath(import.meta.resolve("@fontsource/atkinson-hyperlegible/files/atkinson-hyperlegible-latin-400-normal.woff2"));
+const pinnedFontLicense = resolve(packageRoot, "FONT-LICENSE.txt");
+const rendererIdentity = "superbee-docs-mermaid-v1+mermaid@11.17.2+puppeteer@25.9.0+atkinson-hyperlegible@5.3.0";
 
 function sha256(bytes) {
   return `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
@@ -63,7 +64,7 @@ export async function loadManifest(root, manifestPath) {
     throw new Error("diagram manifest schema must be docs-diagrams/v1");
   }
   const renderer = requiredString(parsed.renderer, "renderer");
-  if (renderer !== "@mermaid-js/mermaid-cli@11.16.0") throw new Error(`unsupported pinned renderer '${renderer}'`);
+  if (renderer !== rendererIdentity) throw new Error(`unsupported pinned renderer '${renderer}'`);
   if (!Array.isArray(parsed.diagrams) || parsed.diagrams.length === 0) throw new Error("manifest requires at least one diagram");
   const diagrams = parsed.diagrams.map(validateDiagram);
   if (new Set(diagrams.map((row) => row.id)).size !== diagrams.length) throw new Error("diagram ids must be unique");
@@ -90,7 +91,19 @@ function admittedSvg(raw, id) {
   if (/\b(?:href|src)\s*=\s*["'](?!#)[^"']+/i.test(svg)) {
     throw new Error(`diagram '${id}' SVG contains an external resource`);
   }
-  if (!/<title\b/i.test(svg) || !/<desc\b/i.test(svg)) {
+  const accessibleText = (tag) => {
+    const match = svg.match(new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)</${tag}>`, "i"));
+    if (!match) return "";
+    return match[1]
+      .replace(/<[^>]*>/g, "")
+      .replace(/&#x([0-9a-f]+);/gi, (_, value) => String.fromCodePoint(Number.parseInt(value, 16)))
+      .replace(/&#([0-9]+);/g, (_, value) => String.fromCodePoint(Number.parseInt(value, 10)))
+      .replace(/&(amp|lt|gt|quot|apos|nbsp);/gi, (_, name) => ({
+        amp: "&", lt: "<", gt: ">", quot: "\"", apos: "'", nbsp: " ",
+      })[name.toLowerCase()])
+      .replace(/[\s\u00a0\u200b-\u200d\u2060\ufeff]/gu, "");
+  };
+  if (!accessibleText("title") || !accessibleText("desc")) {
     throw new Error(`diagram '${id}' rendered SVG lacks an accessible title or description`);
   }
   return svg;
@@ -100,7 +113,7 @@ function fontFace(font) {
   return `@font-face{font-family:'Atkinson Hyperlegible';src:url(data:font/woff2;base64,${font.toString("base64")}) format('woff2');font-style:normal;font-weight:400;font-display:block}`;
 }
 
-function wrapView(diagram, svg, font) {
+function wrapView(diagram, svg, font, license) {
   const title = escapeHtml(diagram.title);
   const description = escapeHtml(diagram.description);
   const documentId = escapeHtml(diagram.documentId);
@@ -117,7 +130,7 @@ function wrapView(diagram, svg, font) {
     *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 'Atkinson Hyperlegible',sans-serif}
     main{max-width:1200px;margin:auto;padding:clamp(1rem,4vw,3rem)}header{margin-bottom:1.5rem}h1{font-size:clamp(1.7rem,4vw,3rem);line-height:1.05;margin:.2rem 0 .7rem}
     header p{max-width:70ch;color:var(--muted)}.diagram{border:1px solid var(--line);border-radius:1rem;background:#fff;padding:clamp(.5rem,2vw,1.5rem);overflow:auto}
-    svg{display:block;min-width:44rem;max-width:none;height:auto;margin:auto}.source{font-size:.82rem;color:var(--muted);overflow-wrap:anywhere}
+    svg{display:block;min-width:44rem;max-width:none;height:auto;margin:auto}.source,footer{font-size:.82rem;color:var(--muted);overflow-wrap:anywhere}footer{margin-top:1.5rem}footer pre{white-space:pre-wrap}
     @media print{body{background:#fff}.diagram{border:0;padding:0}}
   </style>
 </head>
@@ -125,20 +138,40 @@ function wrapView(diagram, svg, font) {
   <main>
     <header><p class="source">Source document: <code>${documentId}</code></p><h1>${title}</h1><p>${description}</p></header>
     <section class="diagram" aria-label="${title}">${svg}</section>
+    <footer><details><summary>Atkinson Hyperlegible font license</summary><pre>${escapeHtml(license)}</pre></details></footer>
   </main>
 </body>
 </html>
 `;
 }
 
-async function defaultMermaidRunner({ sourcePath, outputPath, cssPath }) {
-  await execFileAsync("mmdc", [
-    "--input", sourcePath,
-    "--output", outputPath,
-    "--configFile", mermaidConfig,
-    "--cssFile", cssPath,
-    "--backgroundColor", "transparent",
-  ], { maxBuffer: 4 * 1024 * 1024 });
+async function defaultMermaidRunner({ sourcePath, outputPath, fontCss }) {
+  const [source, config] = await Promise.all([
+    readFile(sourcePath, "utf8"),
+    readFile(mermaidConfig, "utf8").then(JSON.parse),
+  ]);
+  const browser = await puppeteer.launch({ headless: "shell" });
+  try {
+    const page = await browser.newPage();
+    await page.setViewport({ width: 800, height: 600, deviceScaleFactor: 1 });
+    await page.setContent("<!doctype html><html><head></head><body><main id=container></main></body></html>");
+    await page.addStyleTag({ content: fontCss });
+    const fontLoaded = await page.evaluate(async () => {
+      const faces = await document.fonts.load("16px 'Atkinson Hyperlegible'");
+      await document.fonts.ready;
+      return faces.length > 0 && document.fonts.check("16px 'Atkinson Hyperlegible'");
+    });
+    if (!fontLoaded) throw new Error("pinned Atkinson Hyperlegible font did not load");
+    await page.addScriptTag({ path: mermaidScript });
+    const svg = await page.evaluate(async ({ definition, mermaidConfig: browserConfig }) => {
+      globalThis.mermaid.initialize({ startOnLoad: false, ...browserConfig });
+      const rendered = await globalThis.mermaid.render("my-svg", definition, document.querySelector("#container"));
+      return rendered.svg;
+    }, { definition: source, mermaidConfig: config });
+    await writeFile(outputPath, svg, "utf8");
+  } finally {
+    await browser.close();
+  }
 }
 
 export function expectedViewMarkdown(diagram) {
@@ -171,7 +204,7 @@ export async function compileAll({ root, manifestPath, outputDir, runner = defau
   const absoluteRoot = resolve(root);
   const manifest = await loadManifest(absoluteRoot, manifestPath);
   const absoluteOutput = resolve(outputDir);
-  const font = await readFile(pinnedFont);
+  const [font, license] = await Promise.all([readFile(pinnedFont), readFile(pinnedFontLicense, "utf8")]);
   await mkdir(absoluteOutput, { recursive: true });
   const rows = [];
   for (const diagram of manifest.diagrams) {
@@ -181,11 +214,10 @@ export async function compileAll({ root, manifestPath, outputDir, runner = defau
     const work = await mkdtemp(resolve(tmpdir(), "superbee-docs-diagram-"));
     try {
       const svgPath = resolve(work, `${diagram.id}.svg`);
-      const cssPath = resolve(work, "renderer.css");
-      await writeFile(cssPath, fontFace(font), "utf8");
-      await runner({ sourcePath, outputPath: svgPath, cssPath, diagram });
+      const fontCss = fontFace(font);
+      await runner({ sourcePath, outputPath: svgPath, fontCss, diagram });
       const svg = admittedSvg(await readFile(svgPath, "utf8"), diagram.id);
-      const html = wrapView(diagram, svg, font);
+      const html = wrapView(diagram, svg, font, license);
       const htmlPath = resolve(absoluteOutput, `${diagram.id}.html`);
       await writeFile(htmlPath, html, "utf8");
       rows.push({
