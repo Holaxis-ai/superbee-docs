@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdir, readdir, rm, stat } from "node:fs/promises";
+import { cp, mkdir, readdir, rm, stat } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
@@ -10,7 +10,7 @@ const sourceRoot = resolve(root, ".deps/source");
 const packs = resolve(root, ".deps/packs");
 const pins = {
   superbee: { repository: "https://github.com/Holaxis-ai/superbee.git", commit: "070426446c00bc1f04ae54007930ce726fec913c" },
-  portal: { repository: "https://github.com/Holaxis-ai/superbee-portal.git", commit: "7cca9350ca86a438c76dc0ec863b6323081ad226" },
+  portal: { repository: "https://github.com/Holaxis-ai/superbee-portal.git", commit: "580ee9978ca8673466c4925da886ba1138d3ed53" },
 };
 
 async function run(command, args, cwd = root) {
@@ -47,9 +47,18 @@ await run("npm", ["pack", resolve(superbee, "packages/cli"), "--pack-destination
 const superbeePack = resolve(packs, (await readdir(packs)).find((name) => name.startsWith("superbee-") && name.endsWith(".tgz")));
 const portal = await exactCheckout("portal", pins.portal);
 await run("npm", ["ci", "--legacy-peer-deps"], portal);
-await run("npm", ["install", "--no-save", "--package-lock=false", "--force", superbeePack], portal);
+// npm does not materialize an explicit tarball that only satisfies an unpublished peer in this
+// workspace. Stage the exact packed public package, then copy that package into the build-only
+// checkout without modifying its package metadata or lockfile.
+const buildPeers = resolve(root, ".deps/build-peers");
+await rm(buildPeers, { recursive: true, force: true });
+await mkdir(buildPeers, { recursive: true });
+await run("npm", ["install", "--prefix", buildPeers, "--no-save", "--package-lock=false", "--legacy-peer-deps", superbeePack]);
+await cp(resolve(buildPeers, "node_modules/superbee"), resolve(portal, "node_modules/superbee"), { recursive: true });
 await run("npm", ["run", "build"], portal);
 await run("npm", ["pack", portal, "--pack-destination", packs]);
+await run("npm", ["pack", resolve(portal, "packages/portal-docs"), "--pack-destination", packs]);
+await run("npm", ["pack", resolve(portal, "packages/docs-tooling"), "--pack-destination", packs]);
 
 const packageFiles = (await readdir(packs)).filter((name) => name.endsWith(".tgz")).map((name) => resolve(packs, name));
 await run("npm", ["install", "--no-save", "--package-lock=false", "--legacy-peer-deps", ...packageFiles]);

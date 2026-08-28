@@ -42,7 +42,7 @@ test("release update is idempotent, advances stable identities, and preserves im
   try {
     await mkdir(path.join(root, ".superbee"), { recursive: true });
     await writeFile(path.join(root, ".superbee", "index.md"), "---\nokf_version: '0.2'\n---\n# Test bundle\n");
-    await writeFile(path.join(root, "portal.config.json"), JSON.stringify({ presentation: { versionLabel: "Latest", navigation: [{ label: "Releases", documents: ["releases/current"] }] } }));
+    await writeFile(path.join(root, "portal.config.json"), JSON.stringify({ documentation: { versionLabel: "Latest", navigation: [{ label: "Releases", documents: ["releases/current"] }] } }));
     const firstManifest = path.join(root, "first.json");
     await writeFile(firstManifest, JSON.stringify(input("1.2.3")));
     const first = JSON.parse((await invoke(root, "update", ["--manifest", firstManifest])).stdout);

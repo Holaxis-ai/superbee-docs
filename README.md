@@ -7,7 +7,7 @@ tooling that publishes it as a human site.
 verified product evidence
   -> public .superbee bundle
   -> superbee/publication
-  -> superbee-portal
+  -> superbee-portal + @superbee/portal-docs + @superbee/docs-tooling
   -> docs.getsuperbee.com
 ```
 
@@ -77,8 +77,9 @@ npm run diagram:check   # prove checked-in source/View/admission agreement
 npm run portal:preview  # inspect the exact Portal artifact locally
 ```
 
-The reusable compilation boundary lives under `tooling/diagram-pipeline/`; the thin bundle adapter
-lives under `scripts/`. Diagram source uses directive-free flowchart syntax without font overrides
-and printable ASCII in v1. Browser layout geometry may differ slightly across operating systems, so
+The reusable compilation boundary comes from the pinned packed `@superbee/docs-tooling` package;
+the thin consumer-owned bundle adapter lives under `scripts/`. Diagram source uses directive-free
+flowchart syntax without font overrides and printable ASCII in v1. Browser layout geometry may
+differ slightly across operating systems, so
 checks re-render for safety and accessibility while source-bound projection metadata detects drift;
 Portal separately pins the exact committed View bytes.

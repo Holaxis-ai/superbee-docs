@@ -39,9 +39,9 @@ Diagram source uses directive-free flowchart syntax without font overrides and p
 v1. This keeps renderer inputs bounded and every layout glyph inside the pinned embedded
 font; unsupported syntax or characters fail before rendering.
 
-The extraction-ready package under `tooling/diagram-pipeline/` owns only validation and
-source-bound source-to-HTML compilation. It must not import Superbee, Portal, deployment code, or
-this site's content. `scripts/apply-diagrams.mjs` is the thin site-specific Superbee adapter.
+The pinned packed `@superbee/docs-tooling` package owns validation and source-bound source-to-HTML
+compilation. It must not import deployment code or this site's content.
+`scripts/apply-diagrams.mjs` is the thin site-specific Superbee adapter.
 
 ## Working agreement
 

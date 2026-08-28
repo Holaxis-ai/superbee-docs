@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { compileAll, expectedViewMarkdown, validatePublicationOwnership } from "../tooling/diagram-pipeline/src/index.mjs";
+import { compileAll, expectedViewMarkdown, validatePublicationOwnership } from "@superbee/docs-tooling";
 
 const execFileAsync = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -107,8 +107,8 @@ async function writePortalConfig(rows, previousRows) {
   const path = resolve(root, "portal.config.json");
   const config = JSON.parse(await readFile(path, "utf8"));
   const managed = new Set([...previousRows, ...rows].map((row) => row.viewId));
-  config.views = [
-    ...(config.views ?? []).filter((row) => !managed.has(row.id)),
+  config.portal.views = [
+    ...(config.portal.views ?? []).filter((row) => !managed.has(row.id)),
     ...rows.map((row) => ({ id: row.viewId, entry: row.entry, access: row.access, entrySha256: row.entrySha256 })),
   ].sort((a, b) => a.id.localeCompare(b.id));
   return writeJson(path, config);
