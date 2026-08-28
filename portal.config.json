@@ -9,7 +9,11 @@
   "presentation": {
     "profile": "documentation",
     "productName": "Superbee",
+    "siteUrl": "https://docs.getsuperbee.com",
     "home": "learn/start-here",
+    "brandMark": {
+      "blob": "assets/superbee-mark.png"
+    },
     "versionLabel": "0.1.3",
     "repositoryUrl": "https://github.com/Holaxis-ai/superbee",
     "navigation": [
@@ -42,14 +46,13 @@
       {
         "label": "Releases and migrations",
         "documents": [
-          "sources/superbee-release-0.1.3"
+          "releases/0.1.3"
         ]
       },
       {
         "label": "Architecture and contributing",
         "documents": [
-          "architecture/superbee-system-context",
-          "design/docs-operating-model"
+          "architecture/superbee-system-context"
         ]
       }
     ]
