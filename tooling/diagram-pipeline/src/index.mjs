@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { lstat, mkdir, mkdtemp, readFile, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -23,13 +23,24 @@ function escapeHtml(value) {
   })[character]);
 }
 
-function inside(root, candidate, label) {
-  const absolute = resolve(root, candidate);
-  const rel = relative(root, absolute);
-  if (rel === "" || rel.startsWith("..") || resolve(root, rel) !== absolute) {
-    throw new Error(`${label} must resolve beneath the repository root`);
+async function regularFileInside(root, candidate, label) {
+  const absoluteRoot = resolve(root);
+  const absolute = resolve(absoluteRoot, candidate);
+  const lexical = relative(absoluteRoot, absolute);
+  if (lexical === "" || lexical.startsWith("..") || resolve(absoluteRoot, lexical) !== absolute) {
+    throw new Error(`${label} must be a regular file beneath the real repository root`);
   }
-  return absolute;
+  const [realRoot, realCandidate, candidateStat] = await Promise.all([
+    realpath(absoluteRoot),
+    realpath(absolute),
+    lstat(absolute),
+  ]);
+  const rel = relative(realRoot, realCandidate);
+  if (candidateStat.isSymbolicLink() || !candidateStat.isFile()
+    || rel === "" || rel.startsWith("..") || resolve(realRoot, rel) !== realCandidate) {
+    throw new Error(`${label} must be a regular file beneath the real repository root`);
+  }
+  return realCandidate;
 }
 
 function requiredString(value, label) {
@@ -69,7 +80,7 @@ function validateDiagram(row, index) {
 }
 
 export async function loadManifest(root, manifestPath) {
-  const path = inside(root, manifestPath, "manifest path");
+  const path = await regularFileInside(root, manifestPath, "manifest path");
   const parsed = JSON.parse(await readFile(path, "utf8"));
   if (parsed.schema !== "https://getsuperbee.com/schemas/docs-diagrams/v1") {
     throw new Error("diagram manifest schema must be docs-diagrams/v1");
@@ -85,6 +96,14 @@ export async function loadManifest(root, manifestPath) {
 function assertAccessibleMermaid(source, id) {
   if (!/^\s*accTitle:\s*\S.+$/m.test(source)) throw new Error(`diagram '${id}' requires accTitle`);
   if (!/^\s*accDescr(?:\s*:\s*\S.+|\s*\{)/m.test(source)) throw new Error(`diagram '${id}' requires accDescr`);
+}
+
+function assertDeterministicMermaid(source, id) {
+  const firstLine = source.split(/\r?\n/u).find((line) => line.trim() !== "")?.trim() ?? "";
+  if (!/^flowchart(?:\s+(?:TB|TD|BT|RL|LR))?$/u.test(firstLine)
+    || /%%\{/u.test(source) || /font\s*-\s*family\s*:/iu.test(source)) {
+    throw new Error(`diagram '${id}' must use directive-free flowchart syntax in v1`);
+  }
 }
 
 function assertPinnedGlyphCoverage(value, id, label) {
@@ -249,8 +268,9 @@ export async function compileAll({ root, manifestPath, outputDir, runner = defau
   await mkdir(absoluteOutput, { recursive: true });
   const rows = [];
   for (const diagram of manifest.diagrams) {
-    const sourcePath = inside(absoluteRoot, diagram.source, `diagram '${diagram.id}' source`);
+    const sourcePath = await regularFileInside(absoluteRoot, diagram.source, `diagram '${diagram.id}' source`);
     const source = await readFile(sourcePath, "utf8");
+    assertDeterministicMermaid(source, diagram.id);
     assertAccessibleMermaid(source, diagram.id);
     assertPinnedGlyphCoverage(source, diagram.id, "source");
     const work = await mkdtemp(resolve(tmpdir(), "superbee-docs-diagram-"));
@@ -308,9 +328,11 @@ export async function checkAgreement({ root, manifestPath, runner = defaultMerma
     const admissions = new Map((portal.views ?? []).map((row) => [row.id, row]));
     const rows = [];
     for (const diagram of built.rows) {
-      const publishedSource = inside(resolve(absoluteRoot, ".superbee"), diagram.publishedSource, `diagram '${diagram.id}' published source`);
-      const publishedHtml = inside(resolve(absoluteRoot, ".superbee"), diagram.entry, `diagram '${diagram.id}' published View`);
-      const registrationPath = inside(resolve(absoluteRoot, ".superbee"), `${diagram.viewId}.md`, `diagram '${diagram.id}' registration`);
+      const [publishedSource, publishedHtml, registrationPath] = await Promise.all([
+        regularFileInside(resolve(absoluteRoot, ".superbee"), diagram.publishedSource, `diagram '${diagram.id}' published source`),
+        regularFileInside(resolve(absoluteRoot, ".superbee"), diagram.entry, `diagram '${diagram.id}' published View`),
+        regularFileInside(resolve(absoluteRoot, ".superbee"), `${diagram.viewId}.md`, `diagram '${diagram.id}' registration`),
+      ]);
       const [sourceBytes, publishedSourceBytes, builtHtml, publishedHtmlBytes, registrationBytes] = await Promise.all([
         readFile(diagram.sourcePath), readFile(publishedSource), readFile(diagram.htmlPath), readFile(publishedHtml), readFile(registrationPath, "utf8"),
       ]);

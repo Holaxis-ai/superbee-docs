@@ -30,6 +30,8 @@ async function exactCheckout(name, pin) {
   }
   const observed = await run("git", ["rev-parse", "HEAD"], target);
   if (observed !== pin.commit) throw new Error(`${name} dependency is ${observed}; remove .deps/source/${name} and rerun`);
+  const dirty = await run("git", ["status", "--porcelain=v1", "--untracked-files=all"], target);
+  if (dirty !== "") throw new Error(`${name} dependency checkout is dirty; remove .deps/source/${name} and rerun`);
   return target;
 }
 
@@ -52,4 +54,3 @@ await run("npm", ["pack", portal, "--pack-destination", packs]);
 const packageFiles = (await readdir(packs)).filter((name) => name.endsWith(".tgz")).map((name) => resolve(packs, name));
 await run("npm", ["install", "--no-save", "--package-lock=false", "--legacy-peer-deps", ...packageFiles]);
 console.log(`tools_bootstrap: complete\nsuperbee: ${pins.superbee.commit}\nportal: ${pins.portal.commit}`);
-

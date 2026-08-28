@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { copyFile, mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdtemp, mkdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -148,16 +148,50 @@ test("manifest rejects publication paths outside diagram ownership", async () =>
   );
 });
 
-test("default renderer pins effective fonts across Mermaid overrides", { timeout: 30000 }, async (context) => {
+test("compiler rejects nondeterministic Mermaid modes and directives", async (context) => {
   const cases = [
     ["init override", "%%{init: {\"fontFamily\": \"Arial\"}}%%\nflowchart LR\n  accTitle: Example\n  accDescr: Example flow\n  A --> B\n"],
     ["journey defaults", "journey\n  accTitle: Example\n  accDescr: Example journey\n  title Example\n  section Work\n    Review docs: 5: Human\n"],
+    ["implicit git commit id", "gitGraph\n  accTitle: Example\n  accDescr: Example history\n  commit\n"],
+    ["clock-dependent Gantt marker", "gantt\n  accTitle: Example\n  accDescr: Example schedule\n  title Example\n  section Work\n  Task: 2026-01-01, 1d\n"],
+    ["font override", "flowchart LR\n  accTitle: Example\n  accDescr: Example flow\n  A --> B\n  classDef override font-family:Arial\n  class A override\n"],
   ];
   for (const [name, source] of cases) {
     await context.test(name, async () => {
       const root = await fixture(source);
-      const built = await compileAll({ root, manifestPath: "diagrams/manifest.json", outputDir: join(root, "out") });
-      assert.match(await readFile(built.rows[0].htmlPath, "utf8"), /svg text,svg tspan,svg foreignObject \*\{font-family:'Atkinson Hyperlegible' !important\}/);
+      let rendered = false;
+      await assert.rejects(
+        compileAll({
+          root, manifestPath: "diagrams/manifest.json", outputDir: join(root, "out"),
+          runner: async () => { rendered = true; },
+        }),
+        /must use directive-free flowchart syntax in v1/,
+      );
+      assert.equal(rendered, false);
     });
   }
+});
+
+test("compiler rejects source symlinks before rendering", async () => {
+  const root = await fixture();
+  const externalRoot = await mkdtemp(join(tmpdir(), "diagram-pipeline-external-"));
+  const externalSource = join(externalRoot, "private.mmd");
+  await writeFile(externalSource, "flowchart LR\n  accTitle: Private\n  accDescr: Private flow\n  A --> B\n");
+  await rm(join(root, "diagrams/example.mmd"));
+  await symlink(externalSource, join(root, "diagrams/example.mmd"));
+  let rendered = false;
+  await assert.rejects(
+    compileAll({
+      root, manifestPath: "diagrams/manifest.json", outputDir: join(root, "out"),
+      runner: async () => { rendered = true; },
+    }),
+    /must be a regular file beneath the real repository root/,
+  );
+  assert.equal(rendered, false);
+});
+
+test("default renderer uses pinned fonts for flowcharts", { timeout: 30000 }, async () => {
+  const root = await fixture();
+  const built = await compileAll({ root, manifestPath: "diagrams/manifest.json", outputDir: join(root, "out") });
+  assert.match(await readFile(built.rows[0].htmlPath, "utf8"), /svg text,svg tspan,svg foreignObject \*\{font-family:'Atkinson Hyperlegible' !important\}/);
 });

@@ -34,8 +34,9 @@ self-contained accessible HTML into the public bundle, maintains its `access: no
 registration, and updates the exact Portal admission digest. `diagram:check` recompiles without
 mutating and rejects any source, View, registration, or admission drift.
 
-Diagram source is printable ASCII in v1. This keeps every layout glyph inside the pinned embedded
-font; unsupported characters fail before rendering instead of falling back to a system font.
+Diagram source uses directive-free flowchart syntax without font overrides and printable ASCII in
+v1. This keeps renderer inputs deterministic and every layout glyph inside the pinned embedded
+font; unsupported syntax or characters fail before rendering.
 
 The extraction-ready package under `tooling/diagram-pipeline/` owns only validation and
 deterministic source-to-HTML compilation. It must not import Superbee, Portal, deployment code, or
