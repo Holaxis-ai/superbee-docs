@@ -77,9 +77,10 @@ npm run diagram:check   # prove checked-in source/View/admission agreement
 npm run portal:preview  # inspect the exact Portal artifact locally
 ```
 
-The reusable compilation boundary comes from the pinned packed `@superbee/docs-tooling` package;
-the thin consumer-owned bundle adapter lives under `scripts/`. Diagram source uses directive-free
-flowchart syntax without font overrides and printable ASCII in v1. Browser layout geometry may
+The pinned packed `@superbee/docs-tooling` package owns both reusable compilation and the explicit,
+namespace-bounded `superbee-docs diagram apply` publication conductor; this repository owns its
+source, manifest, configuration, and receipt. Diagram source uses directive-free flowchart syntax
+without font overrides and printable ASCII in v1. Browser layout geometry may
 differ slightly across operating systems, so
 checks re-render for safety and accessibility while source-bound projection metadata detects drift;
 Portal separately pins the exact committed View bytes.
