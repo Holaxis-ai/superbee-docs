@@ -11,7 +11,7 @@
       "id": "views-registry/superbee-system-context",
       "entry": "views/superbee-system-context.html",
       "access": "none",
-      "entrySha256": "sha256:917643661963178e6cd8fabc3ec86bdfa513c3001684fd299cae3b6678d2271a"
+      "entrySha256": "sha256:98e525c3ffa8218dc2b1a9e0c921bd1b3b9cf12cfb2db20814e9965bceebd0d5"
     }
   ]
 }

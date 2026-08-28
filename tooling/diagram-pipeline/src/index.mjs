@@ -142,6 +142,10 @@ function fontFace(font) {
   return `@font-face{font-family:'Atkinson Hyperlegible';src:url(data:font/woff2;base64,${font.toString("base64")}) format('woff2');font-style:normal;font-weight:400;font-display:block}`;
 }
 
+function pinnedTextCss() {
+  return "svg text,svg tspan,svg foreignObject *{font-family:'Atkinson Hyperlegible' !important}";
+}
+
 function wrapView(diagram, svg, font, license) {
   const title = escapeHtml(diagram.title);
   const description = escapeHtml(diagram.description);
@@ -155,6 +159,7 @@ function wrapView(diagram, svg, font, license) {
   <title>${title}</title>
   <style>
     ${fontFace(font)}
+    ${pinnedTextCss()}
     :root{color-scheme:light;--paper:#fffdf7;--ink:#211b00;--muted:#5e635f;--line:#d9d2bd;--accent:#176b53}
     *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 'Atkinson Hyperlegible',sans-serif}
     main{max-width:1200px;margin:auto;padding:clamp(1rem,4vw,3rem)}header{margin-bottom:1.5rem}h1{font-size:clamp(1.7rem,4vw,3rem);line-height:1.05;margin:.2rem 0 .7rem}
@@ -184,7 +189,7 @@ async function defaultMermaidRunner({ sourcePath, outputPath, fontCss }) {
     const page = await browser.newPage();
     await page.setViewport({ width: 800, height: 600, deviceScaleFactor: 1 });
     await page.setContent("<!doctype html><html><head></head><body><main id=container></main></body></html>");
-    await page.addStyleTag({ content: fontCss });
+    await page.addStyleTag({ content: `${fontCss}${pinnedTextCss()}` });
     const fontLoaded = await page.evaluate(async () => {
       const faces = await document.fonts.load("16px 'Atkinson Hyperlegible'");
       await document.fonts.ready;
@@ -192,12 +197,19 @@ async function defaultMermaidRunner({ sourcePath, outputPath, fontCss }) {
     });
     if (!fontLoaded) throw new Error("pinned Atkinson Hyperlegible font did not load");
     await page.addScriptTag({ path: mermaidScript });
-    const svg = await page.evaluate(async ({ definition, mermaidConfig: browserConfig }) => {
+    const rendered = await page.evaluate(async ({ definition, mermaidConfig: browserConfig }) => {
       globalThis.mermaid.initialize({ startOnLoad: false, ...browserConfig });
-      const rendered = await globalThis.mermaid.render("my-svg", definition, document.querySelector("#container"));
-      return rendered.svg;
+      const container = document.querySelector("#container");
+      const result = await globalThis.mermaid.render("my-svg", definition, container);
+      container.innerHTML = result.svg;
+      const fontFamilies = Array.from(container.querySelectorAll("svg text,svg tspan,svg foreignObject *"))
+        .filter((element) => element.textContent.trim() !== "")
+        .map((element) => getComputedStyle(element).fontFamily);
+      return { svg: result.svg, fontFamilies };
     }, { definition: source, mermaidConfig: config });
-    await writeFile(outputPath, svg, "utf8");
+    const unpinned = rendered.fontFamilies.find((family) => family.split(",")[0].trim().replace(/^["']|["']$/g, "") !== "Atkinson Hyperlegible");
+    if (unpinned) throw new Error(`renderer used unpinned font '${unpinned}'`);
+    await writeFile(outputPath, rendered.svg, "utf8");
   } finally {
     await browser.close();
   }

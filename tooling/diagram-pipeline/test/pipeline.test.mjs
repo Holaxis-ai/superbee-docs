@@ -147,3 +147,17 @@ test("manifest rejects publication paths outside diagram ownership", async () =>
     /viewId must be 'views-registry\/example'/,
   );
 });
+
+test("default renderer pins effective fonts across Mermaid overrides", { timeout: 30000 }, async (context) => {
+  const cases = [
+    ["init override", "%%{init: {\"fontFamily\": \"Arial\"}}%%\nflowchart LR\n  accTitle: Example\n  accDescr: Example flow\n  A --> B\n"],
+    ["journey defaults", "journey\n  accTitle: Example\n  accDescr: Example journey\n  title Example\n  section Work\n    Review docs: 5: Human\n"],
+  ];
+  for (const [name, source] of cases) {
+    await context.test(name, async () => {
+      const root = await fixture(source);
+      const built = await compileAll({ root, manifestPath: "diagrams/manifest.json", outputDir: join(root, "out") });
+      assert.match(await readFile(built.rows[0].htmlPath, "utf8"), /svg text,svg tspan,svg foreignObject \*\{font-family:'Atkinson Hyperlegible' !important\}/);
+    });
+  }
+});
