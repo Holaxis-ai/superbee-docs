@@ -43,6 +43,9 @@ The pinned packed `@superbee/docs-tooling` package owns validation and source-bo
 compilation. It must not import deployment code or this site's content.
 Its explicit `superbee-docs diagram apply` conductor is the only diagram publication adapter; this
 repository supplies the source, manifest, docs-site configuration, and resulting receipt.
+If it reports an interrupted apply, run its exact `superbee-docs diagram rollback` recovery command
+before retrying or changing dependency pins. Never commit `*.apply-intent.json`: the ignored journal
+contains local paths and exact recovery preimages.
 
 ## Working agreement
 

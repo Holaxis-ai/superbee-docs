@@ -26,7 +26,9 @@ npm run check
 
 The bootstrap command builds the exact pinned Superbee publication and Portal commits into local
 development packages. This temporary step disappears once compatible releases are available from
-npm.
+npm. Before changing either exact pin, confirm that no `*.apply-intent.json` transaction journal is
+pending; finish or roll back that operation with the package version that created it first. Journals
+contain local paths and exact recovery preimages and are intentionally ignored by Git.
 
 ## Release documentation
 
@@ -84,3 +86,7 @@ without font overrides and printable ASCII in v1. Browser layout geometry may
 differ slightly across operating systems, so
 checks re-render for safety and accessibility while source-bound projection metadata detects drift;
 Portal separately pins the exact committed View bytes.
+
+If `diagram:build` reports an interrupted apply, run the exact `superbee-docs diagram rollback`
+command it returns before retrying. Apply never removes stale publications merely because the local
+receipt no longer lists them; pruning is a separate, explicitly authorized lifecycle operation.
