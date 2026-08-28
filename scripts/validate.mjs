@@ -35,4 +35,3 @@ for (const field of ["malformed", "unresolved_links", "registry_warnings", "dang
   if ((status[field] ?? 0) !== 0) throw new Error(`bundle ${field} must be zero (observed ${status[field]})`);
 }
 console.log(`public_bundle: valid\ndocs: ${status.docs}\nmalformed: ${status.malformed}\nunresolved_links: ${status.unresolved_links}`);
-

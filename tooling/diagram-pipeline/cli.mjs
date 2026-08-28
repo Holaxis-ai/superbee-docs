@@ -30,4 +30,3 @@ try {
   console.error(`diagram_error: ${error instanceof Error ? error.message : String(error)}`);
   process.exitCode = 1;
 }
-
