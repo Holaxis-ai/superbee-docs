@@ -7,5 +7,5 @@ description: >-
 entry: views/superbee-system-context.html
 access: none
 ---
-This registered View is the deterministic visual projection of
+This registered View is the source-bound exact visual projection of
 [the architecture source](../architecture/superbee-system-context.md).

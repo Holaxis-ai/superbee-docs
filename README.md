@@ -30,8 +30,8 @@ npm.
 
 ## Diagrams
 
-Mermaid does not execute inside Superbee Markdown. Diagram source is compiled deterministically into
-an admitted, self-contained View:
+Mermaid does not execute inside Superbee Markdown. Diagram source is compiled into a source-bound,
+self-contained View whose exact committed bytes Portal admits:
 
 ```bash
 npm run diagram:build   # apply source -> public bundle View
@@ -41,5 +41,6 @@ npm run portal:preview  # inspect the exact Portal artifact locally
 
 The reusable compilation boundary lives under `tooling/diagram-pipeline/`; the thin bundle adapter
 lives under `scripts/`. Diagram source uses directive-free flowchart syntax without font overrides
-and printable ASCII in v1 so renderer inputs stay deterministic and every rendered glyph comes from
-the pinned embedded font rather than a platform fallback.
+and printable ASCII in v1. Browser layout geometry may differ slightly across operating systems, so
+checks re-render for safety and accessibility while source-bound projection metadata detects drift;
+Portal separately pins the exact committed View bytes.

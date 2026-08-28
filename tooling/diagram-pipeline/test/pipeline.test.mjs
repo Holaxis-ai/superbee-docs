@@ -23,7 +23,7 @@ async function fixture(source = "flowchart LR\n  accTitle: Example\n  accDescr: 
 
 const accessibleSvg = `<svg xmlns="http://www.w3.org/2000/svg" aria-labelledby="title desc"><title id="title">Example</title><desc id="desc">Example flow</desc><path d="M0 0L1 1"/></svg>`;
 
-test("compiler produces deterministic, self-contained accessible HTML", async () => {
+test("compiler produces source-bound, self-contained accessible HTML", async () => {
   const root = await fixture();
   let rendererCss;
   const runner = async ({ outputPath, fontCss }) => {
@@ -35,6 +35,8 @@ test("compiler produces deterministic, self-contained accessible HTML", async ()
   assert.equal(first.rows[0].entrySha256, second.rows[0].entrySha256);
   const html = await readFile(first.rows[0].htmlPath, "utf8");
   assert.match(html, /Source document: <code>architecture\/example<\/code>/);
+  assert.match(html, /<meta name="superbee-diagram-renderer" content="superbee-docs-mermaid-v1/);
+  assert.match(html, /<meta name="superbee-diagram-projection" content="sha256:[a-f0-9]{64}">/);
   assert.match(html, /@font-face\{font-family:'Atkinson Hyperlegible';src:url\(data:font\/woff2;base64,/);
   assert.match(html, /svg\{display:block;min-width:44rem;max-width:none/);
   assert.match(rendererCss, /data:font\/woff2;base64,/);
@@ -61,6 +63,33 @@ async function publishFixture(root, runner) {
   }));
   return row;
 }
+
+test("agreement accepts platform-specific renderer geometry", async () => {
+  const root = await fixture();
+  const publishedRunner = async ({ outputPath }) => writeFile(outputPath, accessibleSvg);
+  await publishFixture(root, publishedRunner);
+  const otherPlatformRunner = async ({ outputPath }) => writeFile(
+    outputPath,
+    accessibleSvg.replace('d="M0 0L1 1"', 'd="M0 0L1.25 1"'),
+  );
+  const result = await checkAgreement({ root, manifestPath: "diagrams/manifest.json", runner: otherPlatformRunner });
+  assert.equal(result.count, 1);
+  assert.equal(result.rows[0].verified, true);
+});
+
+test("agreement rejects stale source-bound View provenance", async () => {
+  const root = await fixture();
+  const runner = async ({ outputPath }) => writeFile(outputPath, accessibleSvg);
+  await publishFixture(root, runner);
+  const manifestPath = join(root, "diagrams/manifest.json");
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  manifest.diagrams[0].title = "Changed title";
+  await writeFile(manifestPath, JSON.stringify(manifest));
+  await assert.rejects(
+    checkAgreement({ root, manifestPath: "diagrams/manifest.json", runner }),
+    /published View provenance is stale/,
+  );
+});
 
 test("agreement rejects registration metadata and body drift", async () => {
   const root = await fixture();

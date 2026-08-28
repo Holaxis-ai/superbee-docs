@@ -165,7 +165,19 @@ function pinnedTextCss() {
   return "svg text,svg tspan,svg foreignObject *{font-family:'Atkinson Hyperlegible' !important}";
 }
 
-function wrapView(diagram, svg, font, license) {
+function projectionDigest(diagram, sourceSha256) {
+  return sha256(JSON.stringify({
+    schema: "superbee-docs-diagram-projection/v1",
+    renderer: rendererIdentity,
+    sourceSha256,
+    id: diagram.id,
+    title: diagram.title,
+    description: diagram.description,
+    documentId: diagram.documentId,
+  }));
+}
+
+function wrapView(diagram, svg, font, license, projectionSha256) {
   const title = escapeHtml(diagram.title);
   const description = escapeHtml(diagram.description);
   const documentId = escapeHtml(diagram.documentId);
@@ -174,6 +186,8 @@ function wrapView(diagram, svg, font, license) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="superbee-diagram-renderer" content="${escapeHtml(rendererIdentity)}">
+  <meta name="superbee-diagram-projection" content="${escapeHtml(projectionSha256)}">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; font-src data:; img-src data:">
   <title>${title}</title>
   <style>
@@ -245,7 +259,7 @@ description: ${JSON.stringify(diagram.description)}
 entry: ${diagram.entry}
 access: none
 ---
-This registered View is the deterministic visual projection of
+This registered View is the source-bound exact visual projection of
 [the architecture source](../${diagram.documentId}.md).
 `;
 }
@@ -259,7 +273,7 @@ function expectedRegistration(diagram) {
       entry: diagram.entry,
       access: diagram.access,
     },
-    body: `This registered View is the deterministic visual projection of\n[the architecture source](../${diagram.documentId}.md).`,
+    body: `This registered View is the source-bound exact visual projection of\n[the architecture source](../${diagram.documentId}.md).`,
   };
 }
 
@@ -273,6 +287,8 @@ export async function compileAll({ root, manifestPath, outputDir, runner = defau
   for (const diagram of manifest.diagrams) {
     const sourcePath = await regularFileInside(absoluteRoot, diagram.source, `diagram '${diagram.id}' source`);
     const source = await readFile(sourcePath, "utf8");
+    const sourceSha256 = sha256(source);
+    const projectionSha256 = projectionDigest(diagram, sourceSha256);
     assertDeterministicMermaid(source, diagram.id);
     assertAccessibleMermaid(source, diagram.id);
     assertPinnedGlyphCoverage(source, diagram.id, "source");
@@ -282,14 +298,15 @@ export async function compileAll({ root, manifestPath, outputDir, runner = defau
       const fontCss = fontFace(font);
       await runner({ sourcePath, outputPath: svgPath, fontCss, diagram });
       const svg = admittedSvg(await readFile(svgPath, "utf8"), diagram.id);
-      const html = wrapView(diagram, svg, font, license);
+      const html = wrapView(diagram, svg, font, license, projectionSha256);
       const htmlPath = resolve(absoluteOutput, `${diagram.id}.html`);
       await writeFile(htmlPath, html, "utf8");
       rows.push({
         ...diagram,
         sourcePath,
         htmlPath,
-        sourceSha256: sha256(source),
+        sourceSha256,
+        projectionSha256,
         entrySha256: sha256(html),
       });
     } finally {
@@ -321,7 +338,11 @@ export async function checkAgreement({ root, manifestPath, runner = defaultMerma
   const work = await mkdtemp(resolve(tmpdir(), "superbee-docs-diagram-check-"));
   try {
     const built = await compileAll({ root: absoluteRoot, manifestPath, outputDir: work, runner });
-    const portal = JSON.parse(await readFile(resolve(absoluteRoot, "portal.config.json"), "utf8"));
+    const [portal, font, license] = await Promise.all([
+      readFile(resolve(absoluteRoot, "portal.config.json"), "utf8").then(JSON.parse),
+      readFile(pinnedFont),
+      readFile(pinnedFontLicense, "utf8"),
+    ]);
     const publicationState = JSON.parse(await readFile(resolve(absoluteRoot, "diagrams/publications.json"), "utf8"));
     const expectedPublications = built.rows.map(({ id, publishedSource, viewId, entry }) => ({ id, publishedSource, viewId, entry })).sort((a, b) => a.id.localeCompare(b.id));
     if (publicationState.schema !== "https://getsuperbee.com/schemas/docs-diagram-publications/v1"
@@ -336,21 +357,26 @@ export async function checkAgreement({ root, manifestPath, runner = defaultMerma
         regularFileInside(resolve(absoluteRoot, ".superbee"), diagram.entry, `diagram '${diagram.id}' published View`),
         regularFileInside(resolve(absoluteRoot, ".superbee"), `${diagram.viewId}.md`, `diagram '${diagram.id}' registration`),
       ]);
-      const [sourceBytes, publishedSourceBytes, builtHtml, publishedHtmlBytes, registrationBytes] = await Promise.all([
-        readFile(diagram.sourcePath), readFile(publishedSource), readFile(diagram.htmlPath), readFile(publishedHtml), readFile(registrationPath, "utf8"),
+      const [sourceBytes, publishedSourceBytes, publishedHtmlBytes, registrationBytes] = await Promise.all([
+        readFile(diagram.sourcePath), readFile(publishedSource), readFile(publishedHtml), readFile(registrationPath, "utf8"),
       ]);
       if (!sourceBytes.equals(publishedSourceBytes)) throw new Error(`diagram '${diagram.id}' published source is stale`);
-      if (!builtHtml.equals(publishedHtmlBytes)) throw new Error(`diagram '${diagram.id}' generated View is stale`);
+      const publishedSvg = admittedSvg(publishedHtmlBytes.toString("utf8"), diagram.id);
+      const expectedPublishedHtml = wrapView(diagram, publishedSvg, font, license, diagram.projectionSha256);
+      if (!publishedHtmlBytes.equals(Buffer.from(expectedPublishedHtml))) {
+        throw new Error(`diagram '${diagram.id}' published View provenance is stale`);
+      }
       const registration = parseFrontmatter(registrationBytes);
       const expected = expectedRegistration(diagram);
       if (!sameRecord(registration.fields, expected.fields) || registration.body !== expected.body) {
         throw new Error(`diagram '${diagram.id}' registration is stale`);
       }
       const admission = admissions.get(diagram.viewId);
-      if (!admission || admission.entry !== diagram.entry || admission.access !== diagram.access || admission.entrySha256 !== diagram.entrySha256) {
+      const publishedEntrySha256 = sha256(publishedHtmlBytes);
+      if (!admission || admission.entry !== diagram.entry || admission.access !== diagram.access || admission.entrySha256 !== publishedEntrySha256) {
         throw new Error(`diagram '${diagram.id}' Portal admission is stale`);
       }
-      rows.push({ id: diagram.id, source: diagram.sourceSha256, view: diagram.entrySha256, verified: true });
+      rows.push({ id: diagram.id, source: diagram.sourceSha256, view: publishedEntrySha256, verified: true });
     }
     return { schema: "superbee-docs-diagram-check/v1", count: rows.length, rows };
   } finally {

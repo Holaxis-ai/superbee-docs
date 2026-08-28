@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "description": "Extraction-ready deterministic diagram compiler for Superbee documentation sites.",
+  "description": "Extraction-ready source-bound diagram compiler for Superbee documentation sites.",
   "exports": "./src/index.mjs",
   "bin": {
     "superbee-docs-diagrams": "./cli.mjs"
