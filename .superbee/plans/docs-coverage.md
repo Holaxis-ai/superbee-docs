@@ -22,10 +22,10 @@ workflow before broad generation.
 
 | Priority | Page | Mode | Primary audience | Status | Governing evidence |
 | --- | --- | --- | --- | --- | --- |
-| P0 | Start here | Structural navigation | Evaluator and first-time user | current | Product statement; expansion remains planned in this slice |
+| P0 | Start here | Structural navigation | Evaluator and first-time user | current | Product statement and current verified journeys |
 | P0 | What Superbee is | Explanation | Evaluator | planned | Product source, current Skill, representative bundles |
-| P0 | Install and set up Superbee | Tutorial | First-time user | planned | Packed package, CLI help, installed-host probes |
-| P0 | Create your first durable workspace | Tutorial | First-time user | planned | Bundle resolution, init, home, document/open behavior |
+| P0 | Install and set up Superbee | Tutorial | First-time user | current | `superbee@0.1.3`, CLI help, isolated setup plans |
+| P0 | Create your first durable workspace | Tutorial | First-time user | current | `superbee@0.1.3` disposable init, write/read, discovery, home, status, and tagged doc-open behavior |
 | P0 | Bundles, documents, and relationships | Explanation | New and active user | planned | OKF semantics and core tests |
 | P0 | Preserve context between sessions | How-to | Active user | planned | Context-note recipe and session behavior |
 | P0 | Understand reusable domain structure | Explanation | Active user and agent | planned | Kinds, recipes, validation, and current Skill |
