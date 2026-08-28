@@ -67,6 +67,12 @@ test("release update is idempotent, advances stable identities, and preserves im
     assert.deepEqual(await readFile(path.join(root, ".superbee", "sources", "current-release.md")), await readFile(path.join(root, ".superbee", "sources", "superbee-release-1.2.4.md")));
     await invoke(root, "check");
 
+    await writeFile(path.join(root, ".superbee", "releases", "current.md"), oldRelease);
+    await assert.rejects(invoke(root, "check"), /semantically identical/);
+    const resumed = JSON.parse((await invoke(root, "update", ["--manifest", nextManifest])).stdout);
+    assert.deepEqual(resumed.changed, ["releases/current"]);
+    await invoke(root, "check");
+
     await mkdir(path.join(root, ".superbee", "guides"), { recursive: true });
     await writeFile(path.join(root, ".superbee", "guides", "stale.md"), "---\ntype: Guide\n---\nVerified against superbee@1.2.3.\n");
     await assert.rejects(invoke(root, "check"), /hardcoded Superbee package version/);
