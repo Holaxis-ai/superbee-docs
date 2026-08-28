@@ -20,4 +20,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run tools:bootstrap
+      - run: node tooling/diagram-pipeline/cli.mjs build --root . --manifest diagrams/manifest.json --output .tmp/ci-diagrams
       - run: npm run check
+      - if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: linux-diagram-render
+          path: .tmp/ci-diagrams
