@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "superbee-docs",
+  "account_id": "33f5fc8b856c08fe05cbb6c277e625f2",
+  "compatibility_date": "2026-08-28",
+  "workers_dev": true,
+  "preview_urls": true,
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  }
+}

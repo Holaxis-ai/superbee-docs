@@ -18,7 +18,13 @@
     "portal:check": "superbee-portal check --config portal.config.json --json",
     "portal:build": "superbee-portal build --config portal.config.json --json",
     "portal:preview": "superbee-portal preview --config portal.config.json --json",
+    "cloudflare:check": "wrangler deploy --dry-run",
+    "cloudflare:preview": "wrangler versions upload",
+    "cloudflare:deploy": "wrangler deploy",
     "test": "node --test tooling/diagram-pipeline/test/*.test.mjs",
-    "check": "npm run diagram:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm test"
+    "check": "npm run diagram:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run cloudflare:check && npm test"
+  },
+  "devDependencies": {
+    "wrangler": "4.127.1"
   }
 }

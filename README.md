@@ -28,6 +28,26 @@ The bootstrap command builds the exact pinned Superbee publication and Portal co
 development packages. This temporary step disappears once compatible releases are available from
 npm.
 
+## Deployment
+
+Portal builds the public site into `dist`. Cloudflare Workers Static Assets serves that directory
+without a Worker script. Validate the generated deployment locally before uploading it:
+
+```bash
+npm run portal:build
+npm run cloudflare:check
+```
+
+Cloudflare Workers Builds uses these commands:
+
+```text
+Build:   npm ci && npm run tools:bootstrap && npm run portal:build
+Deploy:  npx wrangler deploy
+Preview: npx wrangler versions upload
+```
+
+`main` is the production branch. Other branches upload isolated Worker versions with preview URLs.
+
 ## Diagrams
 
 Mermaid does not execute inside Superbee Markdown. Diagram source is compiled into a source-bound,
