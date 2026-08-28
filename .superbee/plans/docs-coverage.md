@@ -23,15 +23,15 @@ workflow before broad generation.
 | Priority | Page | Mode | Primary audience | Status | Governing evidence |
 | --- | --- | --- | --- | --- | --- |
 | P0 | Start here | Structural navigation | Evaluator and first-time user | current | Product statement and current verified journeys |
-| P0 | What Superbee is | Explanation | Evaluator | planned | Product source, current Skill, representative bundles |
+| P0 | What Superbee is | Explanation | Evaluator | current | `superbee@0.1.3`, current Skill, product source |
 | P0 | Install and set up Superbee | Tutorial | First-time user | current | `superbee@0.1.3`, CLI help, isolated setup plans |
 | P0 | Create your first durable workspace | Tutorial | First-time user | current | `superbee@0.1.3` disposable init, write/read, discovery, home, status, and tagged doc-open behavior |
-| P0 | Bundles, documents, and relationships | Explanation | New and active user | planned | OKF semantics and core tests |
+| P0 | Bundles, documents, and relationships | Explanation | New and active user | current | `superbee@0.1.3` help, OKF semantics, product source |
 | P0 | Preserve context between sessions | How-to | Active user | planned | Context-note recipe and session behavior |
 | P0 | Understand reusable domain structure | Explanation | Active user and agent | planned | Kinds, recipes, validation, and current Skill |
 | P0 | Model recurring domain concepts | How-to | Active user and agent | planned | Kinds, recipes, validation, and current Skill |
 | P0 | Show documents and Views to a human | How-to | Active user and agent | planned | CLI open, MCP Apps, View runtime, host probes |
-| P0 | CLI reference | Reference | Active user and integrator | planned | Generated help and installed package |
+| P0 | CLI overview | Reference | Active user and integrator | current | Generated `superbee@0.1.3` help and installed package |
 | P0 | Troubleshoot setup and bundle resolution | How-to | First-time user and integrator | planned | Setup conductor, resolution tests, known failures |
 | P0 | Current release | Reference | Existing user | planned | npm/GitHub release receipts |
 | P0 | Migrate or upgrade safely | How-to | Existing user | planned | Release receipts and migration probes |
