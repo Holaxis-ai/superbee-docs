@@ -1,11 +1,23 @@
 {
-  "schema": "https://getsuperbee.com/schemas/docs-diagram-publications/v1",
+  "schema": "https://getsuperbee.com/schemas/docs-diagram-publications/v2",
+  "producer": {
+    "package": "@superbee/docs-tooling",
+    "version": "0.1.0"
+  },
+  "renderer": "superbee-docs-mermaid-v1+mermaid@11.17.2+puppeteer@25.9.0+atkinson-hyperlegible@5.3.0",
+  "manifestSha256": "sha256:71024e10c17e49418dc2f66471784809db5820c1302b5b1d12489ebb924ca3e3",
   "diagrams": [
     {
       "id": "superbee-system-context",
       "publishedSource": "visuals/sources/superbee-system-context.mmd",
       "viewId": "views-registry/superbee-system-context",
-      "entry": "views/superbee-system-context.html"
+      "entry": "views/superbee-system-context.html",
+      "access": "none",
+      "sourceSha256": "sha256:af9fb2fa0e9bf4babc1b75daa4bc2804c53fc4c6bbe51baa3ee67a6fe1c413a3",
+      "projectionSha256": "sha256:e8db656541bb3f9f458d037adafabc8184e4ffa933eaceb15b5e6ec63cb86317",
+      "entrySha256": "sha256:e60f1a6d209b3725b9906cceceee0737bb84579ffeec5b569e506f97ccc62b06",
+      "registrationSha256": "sha256:42a8a4a54f685276e75585223ddeacda02c552e38d0d61b0adfca31ecab3df70"
     }
-  ]
+  ],
+  "receiptDigest": "sha256:ad1afd7e6a3802d7cdc1771ea533bd785132351032b3aae214c6485b576f86d7"
 }

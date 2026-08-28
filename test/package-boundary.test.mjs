@@ -9,11 +9,10 @@ const json = async (file) => JSON.parse(await readFile(file, "utf8"));
 const sha256 = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
 
 test("consumer uses only public packed package surfaces and nested versioned config", async () => {
-  const [consumer, config, diagram, adapter] = await Promise.all([
+  const [consumer, config, diagram] = await Promise.all([
     json("package.json"),
     json("portal.config.json"),
     json("diagrams/manifest.json"),
-    readFile("scripts/apply-diagrams.mjs", "utf8"),
   ]);
   assert.equal(consumer.workspaces, undefined);
   assert.equal(config.schema, "https://getsuperbee.com/schemas/docs-site/v1");
@@ -25,9 +24,8 @@ test("consumer uses only public packed package surfaces and nested versioned con
   assert.match(import.meta.resolve("@superbee/docs-tooling"), /\/node_modules\/@superbee\/docs-tooling\//);
   assert.match(import.meta.resolve("@superbee/portal-docs"), /\/node_modules\/@superbee\/portal-docs\//);
   assert.match(import.meta.resolve("superbee-portal"), /\/node_modules\/superbee-portal\//);
-  assert.match(adapter, /from "@superbee\/docs-tooling"/);
-  assert.match(adapter, /config\.portal\.views/);
-  assert.doesNotMatch(adapter, /tooling\/diagram-pipeline|@superbee\/docs-tooling\/src|superbee-portal\/src/);
+  assert.equal(consumer.scripts["diagram:build"], "superbee-docs diagram apply --root . --config portal.config.json");
+  await assert.rejects(readFile("scripts/apply-diagrams.mjs"), (error) => error.code === "ENOENT");
 });
 
 test("built site preserves documentation, explorer, View, and profile agreement", async () => {
