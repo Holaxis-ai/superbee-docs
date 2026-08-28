@@ -14,10 +14,11 @@ Choose the path that matches what you need:
 
 - **Evaluate the product:** understand the [system context](../architecture/superbee-system-context.md)
   and the boundary between agents, Superbee, user-owned bundles, and public presentation.
+- **Start using it:** [install and set up Superbee](../get-started/install-and-setup.md), then
+  [create your first durable workspace](../get-started/first-durable-workspace.md).
 - **Understand or contribute:** inspect the [documentation operating model](../design/docs-operating-model.md),
   [site experience contract](../design/site-experience-contract.md), and
   [coverage plan](../plans/docs-coverage.md).
 
-The verified installation and first-workspace tutorial is the next delivery slice and is not yet
-published here. This is an intentionally small foundation: pages are added only when their behavior
-is verified against public product evidence and their place in a real reader journey is clear.
+This is an intentionally small foundation: pages are added only when their behavior is verified
+against public product evidence and their place in a real reader journey is clear.
