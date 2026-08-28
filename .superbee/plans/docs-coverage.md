@@ -33,7 +33,7 @@ workflow before broad generation.
 | P0 | Show documents and Views to a human | How-to | Active user and agent | planned | CLI open, MCP Apps, View runtime, host probes |
 | P0 | CLI overview | Reference | Active user and integrator | current | Generated `superbee@0.1.3` help and installed package |
 | P0 | Troubleshoot setup and bundle resolution | How-to | First-time user and integrator | planned | Setup conductor, resolution tests, known failures |
-| P0 | Current release | Reference | Existing user | planned | npm/GitHub release receipts |
+| P0 | Current release | Reference | Existing user | current | npm/GitHub release receipts |
 | P0 | Migrate or upgrade safely | How-to | Existing user | planned | Release receipts and migration probes |
 | P0 | System context | Explanation | All technical readers | current | Pinned Superbee and Portal source; Diagram is its visual representation |
 
