@@ -10,6 +10,14 @@ Superbee gives humans and AI agents a shared, user-owned knowledge environment: 
 documents, ordinary links, reusable domain conventions, and human Views. The CLI is designed for
 agents; the bundle remains readable without Superbee.
 
-Start by understanding the [system context](../architecture/superbee-system-context.md). The next
-documentation slices will add installation, first-bundle, modeling, presentation, reference, and
-release journeys as they are verified against exact product evidence.
+Choose the path that matches what you need:
+
+- **Evaluate the product:** understand the [system context](../architecture/superbee-system-context.md)
+  and the boundary between agents, Superbee, user-owned bundles, and public presentation.
+- **Understand or contribute:** inspect the [documentation operating model](../design/docs-operating-model.md),
+  [site experience contract](../design/site-experience-contract.md), and
+  [coverage plan](../plans/docs-coverage.md).
+
+The verified installation and first-workspace tutorial is the next delivery slice and is not yet
+published here. This is an intentionally small foundation: pages are added only when their behavior
+is verified against public product evidence and their place in a real reader journey is clear.
