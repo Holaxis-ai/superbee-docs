@@ -4,4 +4,5 @@ node_modules/
 dist/
 *.tgz
 *-receipt.json
+*.apply-intent.json
 .DS_Store

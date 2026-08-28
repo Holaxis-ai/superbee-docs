@@ -4,9 +4,6 @@
   "private": true,
   "type": "module",
   "description": "Public, source-grounded documentation for Superbee.",
-  "workspaces": [
-    "tooling/diagram-pipeline"
-  ],
   "engines": {
     "node": ">=22.12.0"
   },
@@ -14,16 +11,17 @@
     "tools:bootstrap": "node scripts/bootstrap-tools.mjs",
     "docs:release": "node scripts/release-docs.mjs update",
     "docs:release:check": "node scripts/release-docs.mjs check",
-    "diagram:build": "node scripts/apply-diagrams.mjs",
-    "diagram:check": "node tooling/diagram-pipeline/cli.mjs check --root . --manifest diagrams/manifest.json",
+    "diagram:build": "superbee-docs diagram apply --root . --config portal.config.json",
+    "diagram:rollback": "superbee-docs diagram rollback --root . --config portal.config.json",
+    "diagram:check": "superbee-docs diagram check --root . --config portal.config.json",
     "bundle:check": "node scripts/validate.mjs",
-    "portal:check": "superbee-portal check --config portal.config.json --json",
-    "portal:build": "superbee-portal build --config portal.config.json --json",
-    "portal:preview": "superbee-portal preview --config portal.config.json --json",
+    "portal:check": "superbee-docs check --config portal.config.json",
+    "portal:build": "superbee-docs build --config portal.config.json",
+    "portal:preview": "superbee-docs preview --config portal.config.json",
     "cloudflare:check": "wrangler deploy --dry-run",
     "cloudflare:preview": "wrangler versions upload",
     "cloudflare:deploy": "wrangler deploy",
-    "test": "node --test test/*.test.mjs tooling/diagram-pipeline/test/*.test.mjs",
+    "test": "node --test test/*.test.mjs",
     "check": "npm run diagram:check && npm run docs:release:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run cloudflare:check && npm test"
   },
   "devDependencies": {

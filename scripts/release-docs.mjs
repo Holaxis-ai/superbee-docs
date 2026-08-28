@@ -305,10 +305,10 @@ async function check(options) {
     }
   }
   const config = JSON.parse(await readFile(resolve(options.root, "portal.config.json"), "utf8"));
-  const releaseIds = config.presentation?.navigation?.flatMap((section) => section.documents ?? []).filter((id) => id.startsWith("releases/")) ?? [];
+  const releaseIds = config.documentation?.navigation?.flatMap((section) => section.documents ?? []).filter((id) => id.startsWith("releases/")) ?? [];
   if (!releaseIds.includes("releases/current")) throw new Error("Portal navigation must include releases/current");
   if (releaseIds.some((id) => /^releases\/\d+\.\d+\.\d+/.test(id))) throw new Error("Portal navigation must not pin a versioned release document");
-  if (/\d+\.\d+\.\d+/.test(String(config.presentation?.versionLabel ?? ""))) throw new Error("Portal versionLabel must not pin the npm package version");
+  if (/\d+\.\d+\.\d+/.test(String(config.documentation?.versionLabel ?? ""))) throw new Error("Portal versionLabel must not pin the npm package version");
 
   const bundle = resolve(options.root, ".superbee");
   const allowed = /^(?:releases|sources|migrations|evidence)\//;

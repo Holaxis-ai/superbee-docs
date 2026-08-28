@@ -7,7 +7,7 @@ tooling that publishes it as a human site.
 verified product evidence
   -> public .superbee bundle
   -> superbee/publication
-  -> superbee-portal
+  -> superbee-portal + @superbee/portal-docs + @superbee/docs-tooling
   -> docs.getsuperbee.com
 ```
 
@@ -26,7 +26,9 @@ npm run check
 
 The bootstrap command builds the exact pinned Superbee publication and Portal commits into local
 development packages. This temporary step disappears once compatible releases are available from
-npm.
+npm. Before changing either exact pin, confirm that no `*.apply-intent.json` transaction journal is
+pending; finish or roll back that operation with the package version that created it first. Journals
+contain local paths and exact recovery preimages and are intentionally ignored by Git.
 
 ## Release documentation
 
@@ -77,8 +79,15 @@ npm run diagram:check   # prove checked-in source/View/admission agreement
 npm run portal:preview  # inspect the exact Portal artifact locally
 ```
 
-The reusable compilation boundary lives under `tooling/diagram-pipeline/`; the thin bundle adapter
-lives under `scripts/`. Diagram source uses directive-free flowchart syntax without font overrides
-and printable ASCII in v1. Browser layout geometry may differ slightly across operating systems, so
+The pinned packed `@superbee/docs-tooling` package owns both reusable compilation and the explicit,
+namespace-bounded `superbee-docs diagram apply` publication conductor; this repository owns its
+source, manifest, configuration, and receipt. Diagram source uses directive-free flowchart syntax
+without font overrides and printable ASCII in v1. Browser layout geometry may
+differ slightly across operating systems, so
 checks re-render for safety and accessibility while source-bound projection metadata detects drift;
 Portal separately pins the exact committed View bytes.
+
+If `diagram:build` reports an interrupted apply, run `npm run diagram:rollback` before retrying.
+That repository command supplies the required root and config arguments. Apply never removes stale
+publications merely because the local receipt no longer lists them; pruning is a separate,
+explicitly authorized lifecycle operation.
