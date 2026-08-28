@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { copyFile, mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { compileAll } from "../src/index.mjs";
+import { checkAgreement, compileAll, expectedViewMarkdown } from "../src/index.mjs";
 
 async function fixture(source = "flowchart LR\n  accTitle: Example\n  accDescr: Example flow\n  A --> B\n") {
   const root = await mkdtemp(join(tmpdir(), "diagram-pipeline-test-"));
@@ -25,13 +25,70 @@ const accessibleSvg = `<svg xmlns="http://www.w3.org/2000/svg" aria-labelledby="
 
 test("compiler produces deterministic, self-contained accessible HTML", async () => {
   const root = await fixture();
-  const runner = async ({ outputPath }) => writeFile(outputPath, accessibleSvg);
+  let rendererCss;
+  const runner = async ({ outputPath, cssPath }) => {
+    rendererCss = await readFile(cssPath, "utf8");
+    await writeFile(outputPath, accessibleSvg);
+  };
   const first = await compileAll({ root, manifestPath: "diagrams/manifest.json", outputDir: join(root, "first"), runner });
   const second = await compileAll({ root, manifestPath: "diagrams/manifest.json", outputDir: join(root, "second"), runner });
   assert.equal(first.rows[0].entrySha256, second.rows[0].entrySha256);
   const html = await readFile(first.rows[0].htmlPath, "utf8");
   assert.match(html, /Source document: <code>architecture\/example<\/code>/);
+  assert.match(html, /@font-face\{font-family:'Atkinson Hyperlegible';src:url\(data:font\/woff2;base64,/);
+  assert.match(html, /svg\{display:block;min-width:44rem;max-width:none/);
+  assert.match(rendererCss, /data:font\/woff2;base64,/);
   assert.doesNotMatch(html, /<script\b/i);
+});
+
+async function publishFixture(root, runner) {
+  const built = await compileAll({ root, manifestPath: "diagrams/manifest.json", outputDir: join(root, "built"), runner });
+  const row = built.rows[0];
+  await mkdir(join(root, ".superbee/visuals/sources"), { recursive: true });
+  await mkdir(join(root, ".superbee/views"), { recursive: true });
+  await mkdir(join(root, ".superbee/views-registry"), { recursive: true });
+  await copyFile(row.sourcePath, join(root, ".superbee", row.publishedSource));
+  await copyFile(row.htmlPath, join(root, ".superbee", row.entry));
+  await writeFile(join(root, ".superbee", `${row.viewId}.md`), expectedViewMarkdown(row));
+  await writeFile(join(root, "portal.config.json"), JSON.stringify({
+    views: [{ id: row.viewId, entry: row.entry, access: row.access, entrySha256: row.entrySha256 }],
+  }));
+  await writeFile(join(root, "diagrams/publications.json"), JSON.stringify({
+    schema: "https://getsuperbee.com/schemas/docs-diagram-publications/v1",
+    diagrams: [{ id: row.id, publishedSource: row.publishedSource, viewId: row.viewId, entry: row.entry }],
+  }));
+  return row;
+}
+
+test("agreement rejects registration metadata and body drift", async () => {
+  const root = await fixture();
+  const runner = async ({ outputPath }) => writeFile(outputPath, accessibleSvg);
+  const row = await publishFixture(root, runner);
+  const registrationPath = join(root, ".superbee", `${row.viewId}.md`);
+  await writeFile(registrationPath, expectedViewMarkdown({ ...row, title: "Wrong title" }));
+  await assert.rejects(
+    checkAgreement({ root, manifestPath: "diagrams/manifest.json", runner }),
+    /registration is stale/,
+  );
+  await writeFile(registrationPath, `${expectedViewMarkdown(row)}Unexpected extra body.\n`);
+  await assert.rejects(
+    checkAgreement({ root, manifestPath: "diagrams/manifest.json", runner }),
+    /registration is stale/,
+  );
+});
+
+test("agreement rejects stale managed publication ownership", async () => {
+  const root = await fixture();
+  const runner = async ({ outputPath }) => writeFile(outputPath, accessibleSvg);
+  await publishFixture(root, runner);
+  const statePath = join(root, "diagrams/publications.json");
+  const state = JSON.parse(await readFile(statePath, "utf8"));
+  state.diagrams[0].entry = "views/previous-example.html";
+  await writeFile(statePath, JSON.stringify(state));
+  await assert.rejects(
+    checkAgreement({ root, manifestPath: "diagrams/manifest.json", runner }),
+    /publication state is stale/,
+  );
 });
 
 test("compiler rejects Mermaid without an accessible description", async () => {
@@ -52,4 +109,3 @@ test("compiler rejects executable renderer output", async () => {
     /executable markup/,
   );
 });
-

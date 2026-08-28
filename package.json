@@ -22,4 +22,3 @@
     "check": "npm run diagram:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm test"
   }
 }
-

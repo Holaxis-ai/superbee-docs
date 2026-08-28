@@ -5,10 +5,12 @@ import { tmpdir } from "node:os";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { parse as parseYaml } from "yaml";
 
 const execFileAsync = promisify(execFile);
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const mermaidConfig = resolve(packageRoot, "mermaid.config.json");
+const pinnedFont = fileURLToPath(import.meta.resolve("@fontsource/atkinson-hyperlegible/files/atkinson-hyperlegible-latin-400-normal.woff2"));
 
 function sha256(bytes) {
   return `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
@@ -94,7 +96,11 @@ function admittedSvg(raw, id) {
   return svg;
 }
 
-function wrapView(diagram, svg) {
+function fontFace(font) {
+  return `@font-face{font-family:'Atkinson Hyperlegible';src:url(data:font/woff2;base64,${font.toString("base64")}) format('woff2');font-style:normal;font-weight:400;font-display:block}`;
+}
+
+function wrapView(diagram, svg, font) {
   const title = escapeHtml(diagram.title);
   const description = escapeHtml(diagram.description);
   const documentId = escapeHtml(diagram.documentId);
@@ -103,14 +109,15 @@ function wrapView(diagram, svg) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; font-src data:; img-src data:">
   <title>${title}</title>
   <style>
+    ${fontFace(font)}
     :root{color-scheme:light;--paper:#fffdf7;--ink:#211b00;--muted:#5e635f;--line:#d9d2bd;--accent:#176b53}
-    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 Inter,ui-sans-serif,system-ui,sans-serif}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 'Atkinson Hyperlegible',sans-serif}
     main{max-width:1200px;margin:auto;padding:clamp(1rem,4vw,3rem)}header{margin-bottom:1.5rem}h1{font-size:clamp(1.7rem,4vw,3rem);line-height:1.05;margin:.2rem 0 .7rem}
     header p{max-width:70ch;color:var(--muted)}.diagram{border:1px solid var(--line);border-radius:1rem;background:#fff;padding:clamp(.5rem,2vw,1.5rem);overflow:auto}
-    svg{display:block;max-width:100%;height:auto;margin:auto}.source{font-size:.82rem;color:var(--muted);overflow-wrap:anywhere}
+    svg{display:block;min-width:44rem;max-width:none;height:auto;margin:auto}.source{font-size:.82rem;color:var(--muted);overflow-wrap:anywhere}
     @media print{body{background:#fff}.diagram{border:0;padding:0}}
   </style>
 </head>
@@ -124,11 +131,12 @@ function wrapView(diagram, svg) {
 `;
 }
 
-async function defaultMermaidRunner({ sourcePath, outputPath }) {
+async function defaultMermaidRunner({ sourcePath, outputPath, cssPath }) {
   await execFileAsync("mmdc", [
     "--input", sourcePath,
     "--output", outputPath,
     "--configFile", mermaidConfig,
+    "--cssFile", cssPath,
     "--backgroundColor", "transparent",
   ], { maxBuffer: 4 * 1024 * 1024 });
 }
@@ -146,10 +154,24 @@ This registered View is the deterministic visual projection of
 `;
 }
 
+function expectedRegistration(diagram) {
+  return {
+    fields: {
+      type: "View",
+      title: diagram.title,
+      description: diagram.description,
+      entry: diagram.entry,
+      access: diagram.access,
+    },
+    body: `This registered View is the deterministic visual projection of\n[the architecture source](../${diagram.documentId}.md).`,
+  };
+}
+
 export async function compileAll({ root, manifestPath, outputDir, runner = defaultMermaidRunner }) {
   const absoluteRoot = resolve(root);
   const manifest = await loadManifest(absoluteRoot, manifestPath);
   const absoluteOutput = resolve(outputDir);
+  const font = await readFile(pinnedFont);
   await mkdir(absoluteOutput, { recursive: true });
   const rows = [];
   for (const diagram of manifest.diagrams) {
@@ -159,9 +181,11 @@ export async function compileAll({ root, manifestPath, outputDir, runner = defau
     const work = await mkdtemp(resolve(tmpdir(), "superbee-docs-diagram-"));
     try {
       const svgPath = resolve(work, `${diagram.id}.svg`);
-      await runner({ sourcePath, outputPath: svgPath, diagram });
+      const cssPath = resolve(work, "renderer.css");
+      await writeFile(cssPath, fontFace(font), "utf8");
+      await runner({ sourcePath, outputPath: svgPath, cssPath, diagram });
       const svg = admittedSvg(await readFile(svgPath, "utf8"), diagram.id);
-      const html = wrapView(diagram, svg);
+      const html = wrapView(diagram, svg, font);
       const htmlPath = resolve(absoluteOutput, `${diagram.id}.html`);
       await writeFile(htmlPath, html, "utf8");
       rows.push({
@@ -182,16 +206,17 @@ export async function compileAll({ root, manifestPath, outputDir, runner = defau
 
 function parseFrontmatter(raw) {
   const match = raw.match(/^---\n([\s\S]*?)\n---(?:\n|$)/);
-  if (!match) return {};
-  const fields = {};
-  for (const line of match[1].split("\n")) {
-    const field = line.match(/^([A-Za-z][A-Za-z0-9_-]*):\s*(.*)$/);
-    if (!field) continue;
-    let value = field[2].trim();
-    try { value = JSON.parse(value); } catch {}
-    fields[field[1]] = value;
-  }
-  return fields;
+  if (!match) return { fields: {}, body: raw.trim() };
+  const fields = parseYaml(match[1]);
+  if (!fields || typeof fields !== "object" || Array.isArray(fields)) return { fields: {}, body: raw.slice(match[0].length).trim() };
+  return { fields, body: raw.slice(match[0].length).trim() };
+}
+
+function sameRecord(actual, expected) {
+  const actualKeys = Object.keys(actual).sort();
+  const expectedKeys = Object.keys(expected).sort();
+  return JSON.stringify(actualKeys) === JSON.stringify(expectedKeys)
+    && expectedKeys.every((key) => actual[key] === expected[key]);
 }
 
 export async function checkAgreement({ root, manifestPath, runner = defaultMermaidRunner }) {
@@ -200,6 +225,12 @@ export async function checkAgreement({ root, manifestPath, runner = defaultMerma
   try {
     const built = await compileAll({ root: absoluteRoot, manifestPath, outputDir: work, runner });
     const portal = JSON.parse(await readFile(resolve(absoluteRoot, "portal.config.json"), "utf8"));
+    const publicationState = JSON.parse(await readFile(resolve(absoluteRoot, "diagrams/publications.json"), "utf8"));
+    const expectedPublications = built.rows.map(({ id, publishedSource, viewId, entry }) => ({ id, publishedSource, viewId, entry })).sort((a, b) => a.id.localeCompare(b.id));
+    if (publicationState.schema !== "https://getsuperbee.com/schemas/docs-diagram-publications/v1"
+      || JSON.stringify(publicationState.diagrams) !== JSON.stringify(expectedPublications)) {
+      throw new Error("diagram publication state is stale");
+    }
     const admissions = new Map((portal.views ?? []).map((row) => [row.id, row]));
     const rows = [];
     for (const diagram of built.rows) {
@@ -212,8 +243,9 @@ export async function checkAgreement({ root, manifestPath, runner = defaultMerma
       if (!sourceBytes.equals(publishedSourceBytes)) throw new Error(`diagram '${diagram.id}' published source is stale`);
       if (!builtHtml.equals(publishedHtmlBytes)) throw new Error(`diagram '${diagram.id}' generated View is stale`);
       const registration = parseFrontmatter(registrationBytes);
-      for (const [field, expected] of Object.entries({ type: "View", entry: diagram.entry, access: diagram.access })) {
-        if (registration[field] !== expected) throw new Error(`diagram '${diagram.id}' registration ${field} is stale`);
+      const expected = expectedRegistration(diagram);
+      if (!sameRecord(registration.fields, expected.fields) || registration.body !== expected.body) {
+        throw new Error(`diagram '${diagram.id}' registration is stale`);
       }
       const admission = admissions.get(diagram.viewId);
       if (!admission || admission.entry !== diagram.entry || admission.access !== diagram.access || admission.entrySha256 !== diagram.entrySha256) {
