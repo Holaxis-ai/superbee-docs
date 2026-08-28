@@ -1,0 +1,28 @@
+flowchart TB
+  accTitle: Superbee system context
+  accDescr {
+    A human works through an AI agent host. The host invokes the locally installed Superbee CLI,
+    which reads and writes a user-owned bundle. Git and GitHub may share that bundle. The npm
+    registry distributes the CLI. Superbee publication captures a read-only snapshot that Portal
+    turns into a public site for humans.
+  }
+
+  human["Human<br/>directs work and reviews knowledge"]
+  host["AI agent host<br/>Codex, Claude, OpenCode, or another harness"]
+  cli["Superbee CLI<br/>agent-facing local tool"]
+  bundle[("Superbee bundle<br/>user-owned Markdown and blobs")]
+  git["Git / GitHub<br/>optional sharing and review"]
+  npm["npm registry<br/>CLI distribution"]
+  publication["superbee/publication<br/>exact read-only snapshot"]
+  portal["Superbee Portal<br/>human publication adapter"]
+  site["Public documentation site<br/>inspectable bundle and Views"]
+
+  human -->|"directs work through"| host
+  host -->|"invokes structured commands"| cli
+  npm -->|"distributes the installed package"| cli
+  cli -->|"reads and writes"| bundle
+  bundle -->|"may be shared and reviewed through"| git
+  bundle -->|"is captured by"| publication
+  publication -->|"is presented by"| portal
+  portal -->|"publishes"| site
+  human -->|"reads and inspects"| site

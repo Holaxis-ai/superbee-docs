@@ -1,0 +1,228 @@
+import { createHash } from "node:crypto";
+import { execFile } from "node:child_process";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { dirname, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
+const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const mermaidConfig = resolve(packageRoot, "mermaid.config.json");
+
+function sha256(bytes) {
+  return `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
+}
+
+function escapeHtml(value) {
+  return String(value).replace(/[&<>"']/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  })[character]);
+}
+
+function inside(root, candidate, label) {
+  const absolute = resolve(root, candidate);
+  const rel = relative(root, absolute);
+  if (rel === "" || rel.startsWith("..") || resolve(root, rel) !== absolute) {
+    throw new Error(`${label} must resolve beneath the repository root`);
+  }
+  return absolute;
+}
+
+function requiredString(value, label) {
+  if (typeof value !== "string" || value.trim() === "") throw new Error(`${label} must be a non-empty string`);
+  return value.trim();
+}
+
+function validateDiagram(row, index) {
+  const id = requiredString(row?.id, `diagrams[${index}].id`);
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) throw new Error(`diagram id '${id}' is not a stable slug`);
+  const access = requiredString(row.access, `diagrams[${index}].access`);
+  if (access !== "none") throw new Error(`diagram '${id}' must use access 'none' in v1`);
+  const entry = requiredString(row.entry, `diagrams[${index}].entry`);
+  if (!entry.startsWith("views/") || !entry.endsWith(".html")) throw new Error(`diagram '${id}' entry must be views/*.html`);
+  return {
+    id,
+    title: requiredString(row.title, `diagrams[${index}].title`),
+    description: requiredString(row.description, `diagrams[${index}].description`),
+    source: requiredString(row.source, `diagrams[${index}].source`),
+    publishedSource: requiredString(row.publishedSource, `diagrams[${index}].publishedSource`),
+    documentId: requiredString(row.documentId, `diagrams[${index}].documentId`),
+    viewId: requiredString(row.viewId, `diagrams[${index}].viewId`),
+    entry,
+    access,
+  };
+}
+
+export async function loadManifest(root, manifestPath) {
+  const path = inside(root, manifestPath, "manifest path");
+  const parsed = JSON.parse(await readFile(path, "utf8"));
+  if (parsed.schema !== "https://getsuperbee.com/schemas/docs-diagrams/v1") {
+    throw new Error("diagram manifest schema must be docs-diagrams/v1");
+  }
+  const renderer = requiredString(parsed.renderer, "renderer");
+  if (renderer !== "@mermaid-js/mermaid-cli@11.16.0") throw new Error(`unsupported pinned renderer '${renderer}'`);
+  if (!Array.isArray(parsed.diagrams) || parsed.diagrams.length === 0) throw new Error("manifest requires at least one diagram");
+  const diagrams = parsed.diagrams.map(validateDiagram);
+  if (new Set(diagrams.map((row) => row.id)).size !== diagrams.length) throw new Error("diagram ids must be unique");
+  return { renderer, diagrams };
+}
+
+function assertAccessibleMermaid(source, id) {
+  if (!/^\s*accTitle:\s*\S.+$/m.test(source)) throw new Error(`diagram '${id}' requires accTitle`);
+  if (!/^\s*accDescr(?:\s*:\s*\S.+|\s*\{)/m.test(source)) throw new Error(`diagram '${id}' requires accDescr`);
+}
+
+function admittedSvg(raw, id) {
+  const start = raw.indexOf("<svg");
+  const end = raw.lastIndexOf("</svg>");
+  if (start < 0 || end < start) throw new Error(`diagram '${id}' renderer did not return SVG`);
+  const svg = `${raw.slice(start, end + 6).trim()}\n`;
+  // Mermaid may use a bounded foreignObject subtree for wrapped labels even with strict security
+  // and htmlLabels disabled. That subtree executes inside the same exact-digest sandboxed View as
+  // the wrapper itself; scripts, event handlers, and external resources remain categorically
+  // rejected below.
+  if (/<script\b|\son[a-z]+\s*=/i.test(svg)) {
+    throw new Error(`diagram '${id}' SVG contains executable markup`);
+  }
+  if (/\b(?:href|src)\s*=\s*["'](?!#)[^"']+/i.test(svg)) {
+    throw new Error(`diagram '${id}' SVG contains an external resource`);
+  }
+  if (!/<title\b/i.test(svg) || !/<desc\b/i.test(svg)) {
+    throw new Error(`diagram '${id}' rendered SVG lacks an accessible title or description`);
+  }
+  return svg;
+}
+
+function wrapView(diagram, svg) {
+  const title = escapeHtml(diagram.title);
+  const description = escapeHtml(diagram.description);
+  const documentId = escapeHtml(diagram.documentId);
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:">
+  <title>${title}</title>
+  <style>
+    :root{color-scheme:light;--paper:#fffdf7;--ink:#211b00;--muted:#5e635f;--line:#d9d2bd;--accent:#176b53}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.5 Inter,ui-sans-serif,system-ui,sans-serif}
+    main{max-width:1200px;margin:auto;padding:clamp(1rem,4vw,3rem)}header{margin-bottom:1.5rem}h1{font-size:clamp(1.7rem,4vw,3rem);line-height:1.05;margin:.2rem 0 .7rem}
+    header p{max-width:70ch;color:var(--muted)}.diagram{border:1px solid var(--line);border-radius:1rem;background:#fff;padding:clamp(.5rem,2vw,1.5rem);overflow:auto}
+    svg{display:block;max-width:100%;height:auto;margin:auto}.source{font-size:.82rem;color:var(--muted);overflow-wrap:anywhere}
+    @media print{body{background:#fff}.diagram{border:0;padding:0}}
+  </style>
+</head>
+<body>
+  <main>
+    <header><p class="source">Source document: <code>${documentId}</code></p><h1>${title}</h1><p>${description}</p></header>
+    <section class="diagram" aria-label="${title}">${svg}</section>
+  </main>
+</body>
+</html>
+`;
+}
+
+async function defaultMermaidRunner({ sourcePath, outputPath }) {
+  await execFileAsync("mmdc", [
+    "--input", sourcePath,
+    "--output", outputPath,
+    "--configFile", mermaidConfig,
+    "--backgroundColor", "transparent",
+  ], { maxBuffer: 4 * 1024 * 1024 });
+}
+
+export function expectedViewMarkdown(diagram) {
+  return `---
+type: View
+title: ${JSON.stringify(diagram.title)}
+description: ${JSON.stringify(diagram.description)}
+entry: ${diagram.entry}
+access: none
+---
+This registered View is the deterministic visual projection of
+[the architecture source](../${diagram.documentId}.md).
+`;
+}
+
+export async function compileAll({ root, manifestPath, outputDir, runner = defaultMermaidRunner }) {
+  const absoluteRoot = resolve(root);
+  const manifest = await loadManifest(absoluteRoot, manifestPath);
+  const absoluteOutput = resolve(outputDir);
+  await mkdir(absoluteOutput, { recursive: true });
+  const rows = [];
+  for (const diagram of manifest.diagrams) {
+    const sourcePath = inside(absoluteRoot, diagram.source, `diagram '${diagram.id}' source`);
+    const source = await readFile(sourcePath, "utf8");
+    assertAccessibleMermaid(source, diagram.id);
+    const work = await mkdtemp(resolve(tmpdir(), "superbee-docs-diagram-"));
+    try {
+      const svgPath = resolve(work, `${diagram.id}.svg`);
+      await runner({ sourcePath, outputPath: svgPath, diagram });
+      const svg = admittedSvg(await readFile(svgPath, "utf8"), diagram.id);
+      const html = wrapView(diagram, svg);
+      const htmlPath = resolve(absoluteOutput, `${diagram.id}.html`);
+      await writeFile(htmlPath, html, "utf8");
+      rows.push({
+        ...diagram,
+        sourcePath,
+        htmlPath,
+        sourceSha256: sha256(source),
+        entrySha256: sha256(html),
+      });
+    } finally {
+      await rm(work, { recursive: true, force: true });
+    }
+  }
+  const receipt = { schema: "superbee-docs-diagram-build/v1", renderer: manifest.renderer, diagrams: rows.map(({ sourcePath, htmlPath, ...row }) => row) };
+  await writeFile(resolve(absoluteOutput, "receipt.json"), `${JSON.stringify(receipt, null, 2)}\n`, "utf8");
+  return { manifest, rows, receipt };
+}
+
+function parseFrontmatter(raw) {
+  const match = raw.match(/^---\n([\s\S]*?)\n---(?:\n|$)/);
+  if (!match) return {};
+  const fields = {};
+  for (const line of match[1].split("\n")) {
+    const field = line.match(/^([A-Za-z][A-Za-z0-9_-]*):\s*(.*)$/);
+    if (!field) continue;
+    let value = field[2].trim();
+    try { value = JSON.parse(value); } catch {}
+    fields[field[1]] = value;
+  }
+  return fields;
+}
+
+export async function checkAgreement({ root, manifestPath, runner = defaultMermaidRunner }) {
+  const absoluteRoot = resolve(root);
+  const work = await mkdtemp(resolve(tmpdir(), "superbee-docs-diagram-check-"));
+  try {
+    const built = await compileAll({ root: absoluteRoot, manifestPath, outputDir: work, runner });
+    const portal = JSON.parse(await readFile(resolve(absoluteRoot, "portal.config.json"), "utf8"));
+    const admissions = new Map((portal.views ?? []).map((row) => [row.id, row]));
+    const rows = [];
+    for (const diagram of built.rows) {
+      const publishedSource = inside(resolve(absoluteRoot, ".superbee"), diagram.publishedSource, `diagram '${diagram.id}' published source`);
+      const publishedHtml = inside(resolve(absoluteRoot, ".superbee"), diagram.entry, `diagram '${diagram.id}' published View`);
+      const registrationPath = inside(resolve(absoluteRoot, ".superbee"), `${diagram.viewId}.md`, `diagram '${diagram.id}' registration`);
+      const [sourceBytes, publishedSourceBytes, builtHtml, publishedHtmlBytes, registrationBytes] = await Promise.all([
+        readFile(diagram.sourcePath), readFile(publishedSource), readFile(diagram.htmlPath), readFile(publishedHtml), readFile(registrationPath, "utf8"),
+      ]);
+      if (!sourceBytes.equals(publishedSourceBytes)) throw new Error(`diagram '${diagram.id}' published source is stale`);
+      if (!builtHtml.equals(publishedHtmlBytes)) throw new Error(`diagram '${diagram.id}' generated View is stale`);
+      const registration = parseFrontmatter(registrationBytes);
+      for (const [field, expected] of Object.entries({ type: "View", entry: diagram.entry, access: diagram.access })) {
+        if (registration[field] !== expected) throw new Error(`diagram '${diagram.id}' registration ${field} is stale`);
+      }
+      const admission = admissions.get(diagram.viewId);
+      if (!admission || admission.entry !== diagram.entry || admission.access !== diagram.access || admission.entrySha256 !== diagram.entrySha256) {
+        throw new Error(`diagram '${diagram.id}' Portal admission is stale`);
+      }
+      rows.push({ id: diagram.id, source: diagram.sourceSha256, view: diagram.entrySha256, verified: true });
+    }
+    return { schema: "superbee-docs-diagram-check/v1", count: rows.length, rows };
+  } finally {
+    await rm(work, { recursive: true, force: true });
+  }
+}

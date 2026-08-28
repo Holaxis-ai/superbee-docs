@@ -1,0 +1,55 @@
+import { execFile } from "node:child_process";
+import { mkdir, readdir, rm, stat } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { promisify } from "node:util";
+
+const execFileAsync = promisify(execFile);
+const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
+const sourceRoot = resolve(root, ".deps/source");
+const packs = resolve(root, ".deps/packs");
+const pins = {
+  superbee: { repository: "https://github.com/Holaxis-ai/superbee.git", commit: "070426446c00bc1f04ae54007930ce726fec913c" },
+  portal: { repository: "https://github.com/Holaxis-ai/superbee-portal.git", commit: "0ca81130e64919371effd21113f77f218613c93d" },
+};
+
+async function run(command, args, cwd = root) {
+  const result = await execFileAsync(command, args, { cwd, maxBuffer: 16 * 1024 * 1024 });
+  return result.stdout.trim();
+}
+
+async function isDirectory(path) {
+  try { return (await stat(path)).isDirectory(); } catch { return false; }
+}
+
+async function exactCheckout(name, pin) {
+  const target = resolve(sourceRoot, name);
+  if (!(await isDirectory(target))) {
+    await run("git", ["clone", "--filter=blob:none", pin.repository, target]);
+    await run("git", ["checkout", "--detach", pin.commit], target);
+  }
+  const observed = await run("git", ["rev-parse", "HEAD"], target);
+  if (observed !== pin.commit) throw new Error(`${name} dependency is ${observed}; remove .deps/source/${name} and rerun`);
+  return target;
+}
+
+await mkdir(sourceRoot, { recursive: true });
+await rm(packs, { recursive: true, force: true });
+await mkdir(packs, { recursive: true });
+
+const superbee = await exactCheckout("superbee", pins.superbee);
+await run("npm", ["ci"], superbee);
+await run("npm", ["run", "build", "-w", "superbee"], superbee);
+await run("npm", ["pack", resolve(superbee, "packages/cli"), "--pack-destination", packs]);
+
+const superbeePack = resolve(packs, (await readdir(packs)).find((name) => name.startsWith("superbee-") && name.endsWith(".tgz")));
+const portal = await exactCheckout("portal", pins.portal);
+await run("npm", ["ci", "--legacy-peer-deps"], portal);
+await run("npm", ["install", "--no-save", "--package-lock=false", "--force", superbeePack], portal);
+await run("npm", ["run", "build"], portal);
+await run("npm", ["pack", portal, "--pack-destination", packs]);
+
+const packageFiles = (await readdir(packs)).filter((name) => name.endsWith(".tgz")).map((name) => resolve(packs, name));
+await run("npm", ["install", "--no-save", "--package-lock=false", "--legacy-peer-deps", ...packageFiles]);
+console.log(`tools_bootstrap: complete\nsuperbee: ${pins.superbee.commit}\nportal: ${pins.portal.commit}`);
+

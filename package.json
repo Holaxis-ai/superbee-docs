@@ -1,0 +1,25 @@
+{
+  "name": "superbee-docs",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Public, source-grounded documentation for Superbee.",
+  "workspaces": [
+    "tooling/diagram-pipeline"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "tools:bootstrap": "node scripts/bootstrap-tools.mjs",
+    "diagram:build": "node scripts/apply-diagrams.mjs",
+    "diagram:check": "node tooling/diagram-pipeline/cli.mjs check --root . --manifest diagrams/manifest.json",
+    "bundle:check": "node scripts/validate.mjs",
+    "portal:check": "superbee-portal check --config portal.config.json --json",
+    "portal:build": "superbee-portal build --config portal.config.json --json",
+    "portal:preview": "superbee-portal preview --config portal.config.json --json",
+    "test": "node --test tooling/diagram-pipeline/test/*.test.mjs",
+    "check": "npm run diagram:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm test"
+  }
+}
+
