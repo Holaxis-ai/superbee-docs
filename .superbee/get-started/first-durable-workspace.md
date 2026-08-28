@@ -12,7 +12,8 @@ Create a local Superbee workspace inside a project, preserve one real decision, 
 document in Superbee's Markdown reader. The result survives the agent session and remains ordinary,
 user-owned Markdown.
 
-This tutorial is verified against `superbee@0.1.3`.
+This tutorial is verified against the current stable release recorded in
+[the current release evidence](../sources/current-release.md).
 
 # Before you start
 
@@ -113,7 +114,7 @@ chosen the participants, privacy boundary, and repository.
 - Use `superbee recipe add <recipe>` to add capability to an existing workspace. Do not rerun init
   to force a recipe into it.
 
-[release evidence](../sources/superbee-release-0.1.3.md)
+[current release evidence](../sources/current-release.md)
 
 [learn what Superbee is](../concepts/what-superbee-is.md)
 

@@ -157,6 +157,27 @@ is the one planning projection and Git history is the audit trail.
 | Verified release | Reconcile release facts, compatibility, reference version labels, and migration guidance. |
 | Quarterly audit | Remove ceremonial pages and visuals, promote repeated stable structure, and test the priority journeys. |
 
+## Stable current-release identities
+
+Reader navigation and maintained pages link to `releases/current` and `sources/current-release`, not
+to a package-version path. Each verified release also creates immutable `releases/<version>` and
+`sources/superbee-release-<version>` records. The stable documents are semantic copies of those
+immutable records, so history remains inspectable while ordinary pages avoid mechanical version
+churn.
+
+The release process passes an ephemeral, validated JSON handoff to:
+
+```bash
+npm run docs:release -- --manifest <release.json>
+```
+
+The input is transport, not a persisted documentation authority. The command normalizes and writes
+the four bundle documents through Superbee, refuses to replace immutable history, and is idempotent
+when retried. `npm run docs:release:check` verifies stable-to-immutable agreement, stable Portal
+navigation, and the absence of hardcoded Superbee package versions outside release, evidence, or
+migration records. Authored behavioral claims still require the declared release verification;
+automation never promotes an unverified version merely by changing a number.
+
 An agent run ends with a durable update to the relevant page or plan, the evidence examined, checks
 run, and unresolved questions. Private chat is not the handoff mechanism.
 
