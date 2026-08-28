@@ -203,7 +203,10 @@ async function defaultMermaidRunner({ sourcePath, outputPath, fontCss }) {
     readFile(sourcePath, "utf8"),
     readFile(mermaidConfig, "utf8").then(JSON.parse),
   ]);
-  const browser = await puppeteer.launch({ headless: "shell" });
+  const browser = await puppeteer.launch({
+    headless: "shell",
+    args: process.env.CI === "true" ? ["--no-sandbox", "--disable-setuid-sandbox"] : [],
+  });
   try {
     const page = await browser.newPage();
     await page.setViewport({ width: 800, height: 600, deviceScaleFactor: 1 });
