@@ -1,0 +1,30 @@
+{
+  "schema": "superbee-docs-release-input.v1",
+  "package": "superbee",
+  "version": "1.2.3",
+  "npmTag": "latest",
+  "publishedAt": "2026-08-28",
+  "summary": "One sentence describing the verified reader-facing outcome.",
+  "changes": [
+    "A verified capability readers can now use.",
+    "A compatibility or reliability improvement worth knowing about."
+  ],
+  "action": "State the shortest action for new and existing users.",
+  "compatibility": "State supported platforms, hosts, bundles, and important limits.",
+  "recovery": "State the bounded rollback or recovery path.",
+  "packageUrl": "https://www.npmjs.com/package/superbee/v/1.2.3",
+  "tarballUrl": "https://registry.npmjs.org/superbee/-/superbee-1.2.3.tgz",
+  "npmIntegrity": "sha512-REPLACE_WITH_THE_VERIFIED_NPM_INTEGRITY",
+  "sourceUrl": "https://github.com/Holaxis-ai/superbee/tree/v1.2.3",
+  "sourceCommit": "0123456789abcdef0123456789abcdef01234567",
+  "sourceTag": "v1.2.3",
+  "nodeRequirement": ">=20",
+  "supportedPlatforms": [
+    "darwin",
+    "linux"
+  ],
+  "verification": [
+    "Installed the exact package in an isolated prefix.",
+    "Completed the declared release journey against the installed package."
+  ]
+}

@@ -11,7 +11,8 @@ superbee_updated_by: openai/codex
 What is inside a Superbee workspace, and how do its parts remain portable while gaining useful
 structure?
 
-This explanation describes released `superbee@0.1.3` behavior and new OKF v0.2 bundles.
+This explanation describes behavior verified against
+[the current stable release](../sources/current-release.md) and new OKF v0.2 bundles.
 
 # A bundle is a portable boundary
 
@@ -69,7 +70,8 @@ real consistency or lifecycle need.
 
 # Recipes install reusable structure
 
-`superbee recipes` shows the definitions shipped with the release. In `0.1.3` they are:
+`superbee recipes` is the authority for definitions shipped with the installed release. The current
+set includes:
 
 - `context-notes`;
 - `work-tracking`; and
@@ -121,7 +123,7 @@ authoritative.
 
 [CLI overview](../reference/cli-overview.md)
 
-[release evidence](../sources/superbee-release-0.1.3.md)
+[current release evidence](../sources/current-release.md)
 
 # Re-evaluate this page when
 

@@ -15,7 +15,8 @@ representations—into typed, linked Markdown that later sessions can inspect an
 The AI model remains the expert doing the work. Superbee supplies the durable environment that lets
 the result compound instead of being reconstructed each time.
 
-This explanation describes released `superbee@0.1.3` behavior.
+This explanation describes behavior verified against
+[the current stable release](../sources/current-release.md).
 
 # The core mental model
 
@@ -113,7 +114,7 @@ pages state the exact package they verify rather than describing newer source as
 
 [system context](../architecture/superbee-system-context.md)
 
-[release evidence](../sources/superbee-release-0.1.3.md)
+[current release evidence](../sources/current-release.md)
 
 # Re-evaluate this page when
 

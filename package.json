@@ -12,6 +12,8 @@
   },
   "scripts": {
     "tools:bootstrap": "node scripts/bootstrap-tools.mjs",
+    "docs:release": "node scripts/release-docs.mjs update",
+    "docs:release:check": "node scripts/release-docs.mjs check",
     "diagram:build": "node scripts/apply-diagrams.mjs",
     "diagram:check": "node tooling/diagram-pipeline/cli.mjs check --root . --manifest diagrams/manifest.json",
     "bundle:check": "node scripts/validate.mjs",
@@ -21,8 +23,8 @@
     "cloudflare:check": "wrangler deploy --dry-run",
     "cloudflare:preview": "wrangler versions upload",
     "cloudflare:deploy": "wrangler deploy",
-    "test": "node --test tooling/diagram-pipeline/test/*.test.mjs",
-    "check": "npm run diagram:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run cloudflare:check && npm test"
+    "test": "node --test test/*.test.mjs tooling/diagram-pipeline/test/*.test.mjs",
+    "check": "npm run diagram:check && npm run docs:release:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run cloudflare:check && npm test"
   },
   "devDependencies": {
     "wrangler": "4.127.1"

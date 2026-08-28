@@ -1,13 +1,16 @@
 ---
 type: Reference
 title: CLI overview
-description: Compact command ownership and output contract for released Superbee 0.1.3.
+description: >-
+  Compact command ownership and output contract for the current stable Superbee
+  release.
 superbee_updated_by: openai/codex
 ---
 # Scope
 
-This is the compact command map for released `superbee@0.1.3`. It helps an agent or integrator find
-the owning command without copying the entire generated manual into documentation.
+This is the compact command map verified against
+[the current stable release](../sources/current-release.md). It helps an agent or integrator find the
+owning command without copying the entire generated manual into documentation.
 
 Run `superbee --help` for the exact current command list and `superbee <command> --help` for one
 command's complete syntax. Generated help from the installed package is authoritative for flags and
@@ -131,7 +134,7 @@ the installed package's help owns its complete flags and defaults.
 
 [bundles, documents, and relationships](../concepts/bundles-documents-and-relationships.md)
 
-[release evidence](../sources/superbee-release-0.1.3.md)
+[current release evidence](../sources/current-release.md)
 
 # Re-evaluate this page when
 

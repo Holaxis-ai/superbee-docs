@@ -28,6 +28,24 @@ The bootstrap command builds the exact pinned Superbee publication and Portal co
 development packages. This temporary step disappears once compatible releases are available from
 npm.
 
+## Release documentation
+
+Navigation and maintained pages use the stable `releases/current` and `sources/current-release`
+bundle identities. A verified release updates those identities and creates immutable versioned
+records with one idempotent command:
+
+```bash
+cp examples/release-input.example.json /tmp/superbee-release.json
+# Fill the handoff with facts and verification from the completed release.
+npm run docs:release -- --manifest /tmp/superbee-release.json
+npm run docs:release:check
+```
+
+The JSON file is ephemeral release-process input, not another persisted documentation authority.
+The command writes all four documents through Superbee, refuses to alter existing version history,
+and converges to a no-op when retried. The repository check rejects a package version pinned in
+ordinary pages; exact versions remain available in release, evidence, and migration records.
+
 ## Deployment
 
 Portal builds the public site into `dist`. Cloudflare Workers Static Assets serves that directory

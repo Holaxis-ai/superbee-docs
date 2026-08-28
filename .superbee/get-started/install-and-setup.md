@@ -12,8 +12,8 @@ Install the released Superbee CLI, let Superbee inspect one exact AI host, and f
 host's required integrations verified. The setup conductor proposes one change at a time and never
 edits host configuration by itself.
 
-This tutorial is verified against `superbee@0.1.3`, released from source commit
-`f4e1c37349627030f8201ff52028f71a9c92570a`.
+This tutorial is verified against
+[the current stable release evidence](../sources/current-release.md).
 
 # Before you start
 
@@ -21,11 +21,11 @@ You need:
 
 - Node.js 20 or newer;
 - npm;
-- macOS or Linux for the released `0.1.3` package; and
+- a platform listed as supported by the [current release](../releases/current.md); and
 - one supported host: Codex, Claude Code, Claude Desktop, or OpenCode.
 
-The published `0.1.3` package explicitly excludes Windows. Windows support may exist in newer source
-or prerelease work, but it is not a stable-package capability until the npm release metadata says so.
+Treat the current release record and npm package metadata as the platform authority. Source or
+prerelease support is not a stable-package capability until that release evidence says so.
 
 # 1. Install the CLI
 
@@ -41,8 +41,8 @@ Then inspect the installed identity:
 superbee version
 ```
 
-For this verified release, the output identifies package `superbee` version `0.1.3`, channel
-`npm-package`, and source commit `f4e1c37349627030f8201ff52028f71a9c92570a`.
+The output identifies package `superbee`, channel `npm-package`, and a version and source commit that
+agree with the [current release evidence](../sources/current-release.md).
 
 If `superbee` is not found, make sure npm's global binary directory is on `PATH`, then open a fresh
 terminal. Do not use `npx` for persistent host integrations: MCP, Skills, and hooks need a durable
@@ -108,7 +108,7 @@ the previous session's result.
 
 Continue with [Create your first durable workspace](first-durable-workspace.md).
 
-[release evidence](../sources/superbee-release-0.1.3.md)
+[current release evidence](../sources/current-release.md)
 
 # Re-evaluate this page when
 
