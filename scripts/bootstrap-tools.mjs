@@ -24,6 +24,19 @@ async function isDirectory(path) {
 
 async function exactCheckout(name, pin) {
   const target = resolve(sourceRoot, name);
+  if (await isDirectory(target)) {
+    let matches = false;
+    try {
+      const [observed, repository] = await Promise.all([
+        run("git", ["rev-parse", "HEAD"], target),
+        run("git", ["remote", "get-url", "origin"], target),
+      ]);
+      matches = observed === pin.commit && repository === pin.repository;
+    } catch {
+      // A failed cached clone is not an authority. Recreate it below.
+    }
+    if (!matches) await rm(target, { recursive: true, force: true });
+  }
   if (!(await isDirectory(target))) {
     await run("git", ["clone", "--filter=blob:none", pin.repository, target]);
     await run("git", ["checkout", "--detach", pin.commit], target);
