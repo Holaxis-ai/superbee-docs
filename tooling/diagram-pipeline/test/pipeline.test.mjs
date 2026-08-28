@@ -122,3 +122,28 @@ test("compiler rejects empty rendered accessibility text", async () => {
     /lacks an accessible title or description/,
   );
 });
+
+test("compiler rejects source outside pinned glyph coverage", async () => {
+  const root = await fixture("flowchart LR\n  accTitle: Example\n  accDescr: Example flow\n  A[\"日本語\"] --> B\n");
+  let rendered = false;
+  await assert.rejects(
+    compileAll({
+      root, manifestPath: "diagrams/manifest.json", outputDir: join(root, "out"),
+      runner: async () => { rendered = true; },
+    }),
+    /source contains unsupported character U\+65E5/,
+  );
+  assert.equal(rendered, false);
+});
+
+test("manifest rejects publication paths outside diagram ownership", async () => {
+  const root = await fixture();
+  const manifestPath = join(root, "diagrams/manifest.json");
+  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
+  manifest.diagrams[0].viewId = "architecture/example";
+  await writeFile(manifestPath, JSON.stringify(manifest));
+  await assert.rejects(
+    compileAll({ root, manifestPath: "diagrams/manifest.json", outputDir: join(root, "out"), runner: async () => {} }),
+    /viewId must be 'views-registry\/example'/,
+  );
+});

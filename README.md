@@ -16,7 +16,7 @@ communications belong elsewhere.
 
 ## Development
 
-Node.js 22 or newer is required.
+Node.js 22.12 or newer is required.
 
 ```bash
 npm ci
@@ -40,5 +40,5 @@ npm run portal:preview  # inspect the exact Portal artifact locally
 ```
 
 The reusable compilation boundary lives under `tooling/diagram-pipeline/`; the thin bundle adapter
-lives under `scripts/`.
-
+lives under `scripts/`. Diagram source uses printable ASCII in v1 so every rendered glyph comes
+from the pinned embedded font rather than a platform fallback.

@@ -8,7 +8,7 @@
     "tooling/diagram-pipeline"
   ],
   "engines": {
-    "node": ">=22"
+    "node": ">=22.12.0"
   },
   "scripts": {
     "tools:bootstrap": "node scripts/bootstrap-tools.mjs",

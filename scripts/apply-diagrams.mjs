@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
-import { compileAll, expectedViewMarkdown } from "../tooling/diagram-pipeline/src/index.mjs";
+import { compileAll, expectedViewMarkdown, validatePublicationOwnership } from "../tooling/diagram-pipeline/src/index.mjs";
 
 const execFileAsync = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -22,6 +22,9 @@ async function exists(path) {
 }
 
 function bundleTarget(key) {
+  if (!/^(?:visuals\/sources\/[a-z0-9]+(?:-[a-z0-9]+)*\.mmd|views-registry\/[a-z0-9]+(?:-[a-z0-9]+)*\.md|views\/[a-z0-9]+(?:-[a-z0-9]+)*\.html)$/.test(key)) {
+    throw new Error(`managed publication key '${key}' is outside diagram-owned namespaces`);
+  }
   const target = resolve(bundle, key);
   const rel = relative(bundle, target);
   if (rel === "" || rel.startsWith("..") || resolve(bundle, rel) !== target) {
@@ -48,12 +51,11 @@ async function readPublicationState() {
   if (state.schema !== "https://getsuperbee.com/schemas/docs-diagram-publications/v1" || !Array.isArray(state.diagrams)) {
     throw new Error("diagram publication state must use docs-diagram-publications/v1");
   }
-  for (const [index, row] of state.diagrams.entries()) {
-    for (const field of ["id", "publishedSource", "viewId", "entry"]) {
-      if (typeof row?.[field] !== "string" || row[field].trim() === "") {
-        throw new Error(`publication state diagrams[${index}].${field} must be a non-empty string`);
-      }
-    }
+  state.diagrams = state.diagrams.map((row, index) => validatePublicationOwnership(row, `publication state diagrams[${index}]`));
+  if (new Set(state.diagrams.map((row) => row.id)).size !== state.diagrams.length) {
+    throw new Error("publication state diagram ids must be unique");
+  }
+  for (const row of state.diagrams) {
     for (const key of publicationKeys(row)) bundleTarget(key);
   }
   return state;

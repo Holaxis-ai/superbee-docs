@@ -37,22 +37,33 @@ function requiredString(value, label) {
   return value.trim();
 }
 
+export function validatePublicationOwnership(row, label = "publication") {
+  const id = requiredString(row?.id, `${label}.id`);
+  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) throw new Error(`${label}.id '${id}' is not a stable slug`);
+  const expected = {
+    id,
+    publishedSource: `visuals/sources/${id}.mmd`,
+    viewId: `views-registry/${id}`,
+    entry: `views/${id}.html`,
+  };
+  for (const field of ["publishedSource", "viewId", "entry"]) {
+    const actual = requiredString(row?.[field], `${label}.${field}`);
+    if (actual !== expected[field]) throw new Error(`${label}.${field} must be '${expected[field]}'`);
+  }
+  return expected;
+}
+
 function validateDiagram(row, index) {
-  const id = requiredString(row?.id, `diagrams[${index}].id`);
-  if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(id)) throw new Error(`diagram id '${id}' is not a stable slug`);
+  const publication = validatePublicationOwnership(row, `diagrams[${index}]`);
+  const { id } = publication;
   const access = requiredString(row.access, `diagrams[${index}].access`);
   if (access !== "none") throw new Error(`diagram '${id}' must use access 'none' in v1`);
-  const entry = requiredString(row.entry, `diagrams[${index}].entry`);
-  if (!entry.startsWith("views/") || !entry.endsWith(".html")) throw new Error(`diagram '${id}' entry must be views/*.html`);
   return {
-    id,
+    ...publication,
     title: requiredString(row.title, `diagrams[${index}].title`),
     description: requiredString(row.description, `diagrams[${index}].description`),
     source: requiredString(row.source, `diagrams[${index}].source`),
-    publishedSource: requiredString(row.publishedSource, `diagrams[${index}].publishedSource`),
     documentId: requiredString(row.documentId, `diagrams[${index}].documentId`),
-    viewId: requiredString(row.viewId, `diagrams[${index}].viewId`),
-    entry,
     access,
   };
 }
@@ -74,6 +85,23 @@ export async function loadManifest(root, manifestPath) {
 function assertAccessibleMermaid(source, id) {
   if (!/^\s*accTitle:\s*\S.+$/m.test(source)) throw new Error(`diagram '${id}' requires accTitle`);
   if (!/^\s*accDescr(?:\s*:\s*\S.+|\s*\{)/m.test(source)) throw new Error(`diagram '${id}' requires accDescr`);
+}
+
+function assertPinnedGlyphCoverage(value, id, label) {
+  const expanded = value.replace(/&#(?:x([0-9a-f]+)|([0-9]+));/gi, (entity, hex, decimal) => {
+    const codePoint = Number.parseInt(hex ?? decimal, hex ? 16 : 10);
+    return Number.isSafeInteger(codePoint) && codePoint <= 0x10ffff ? String.fromCodePoint(codePoint) : entity;
+  });
+  const unsupportedEntity = expanded.match(/&([a-z][a-z0-9]+);/i);
+  if (unsupportedEntity && !/^&(amp|lt|gt|quot|apos);$/i.test(unsupportedEntity[0])) {
+    throw new Error(`diagram '${id}' ${label} contains unsupported character entity '${unsupportedEntity[0]}'`);
+  }
+  for (const character of expanded) {
+    const codePoint = character.codePointAt(0);
+    if (character !== "\t" && character !== "\n" && character !== "\r" && (codePoint < 0x20 || codePoint > 0x7e)) {
+      throw new Error(`diagram '${id}' ${label} contains unsupported character U+${codePoint.toString(16).toUpperCase().padStart(4, "0")}`);
+    }
+  }
 }
 
 function admittedSvg(raw, id) {
@@ -106,6 +134,7 @@ function admittedSvg(raw, id) {
   if (!accessibleText("title") || !accessibleText("desc")) {
     throw new Error(`diagram '${id}' rendered SVG lacks an accessible title or description`);
   }
+  assertPinnedGlyphCoverage(svg, id, "rendered SVG");
   return svg;
 }
 
@@ -211,6 +240,7 @@ export async function compileAll({ root, manifestPath, outputDir, runner = defau
     const sourcePath = inside(absoluteRoot, diagram.source, `diagram '${diagram.id}' source`);
     const source = await readFile(sourcePath, "utf8");
     assertAccessibleMermaid(source, diagram.id);
+    assertPinnedGlyphCoverage(source, diagram.id, "source");
     const work = await mkdtemp(resolve(tmpdir(), "superbee-docs-diagram-"));
     try {
       const svgPath = resolve(work, `${diagram.id}.svg`);
