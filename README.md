@@ -87,6 +87,7 @@ differ slightly across operating systems, so
 checks re-render for safety and accessibility while source-bound projection metadata detects drift;
 Portal separately pins the exact committed View bytes.
 
-If `diagram:build` reports an interrupted apply, run the exact `superbee-docs diagram rollback`
-command it returns before retrying. Apply never removes stale publications merely because the local
-receipt no longer lists them; pruning is a separate, explicitly authorized lifecycle operation.
+If `diagram:build` reports an interrupted apply, run `npm run diagram:rollback` before retrying.
+That repository command supplies the required root and config arguments. Apply never removes stale
+publications merely because the local receipt no longer lists them; pruning is a separate,
+explicitly authorized lifecycle operation.

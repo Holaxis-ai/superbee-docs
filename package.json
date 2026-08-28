@@ -12,6 +12,7 @@
     "docs:release": "node scripts/release-docs.mjs update",
     "docs:release:check": "node scripts/release-docs.mjs check",
     "diagram:build": "superbee-docs diagram apply --root . --config portal.config.json",
+    "diagram:rollback": "superbee-docs diagram rollback --root . --config portal.config.json",
     "diagram:check": "superbee-docs diagram check --root . --config portal.config.json",
     "bundle:check": "node scripts/validate.mjs",
     "portal:check": "superbee-docs check --config portal.config.json",
