@@ -57,6 +57,19 @@ test("release update is idempotent, advances stable identities, and preserves im
     await writeFile(placeholderManifest, JSON.stringify({ ...input("1.2.4"), action: "TODO: decide what users should do." }));
     await assert.rejects(invoke(root, "update", ["--manifest", placeholderManifest]), /authored-content placeholder/);
 
+    const contradictoryManifests = [
+      [{ npmTag: "next" }, /npmTag must be latest/],
+      [{ sourceTag: "v9.9.9" }, /sourceTag must equal v<version>/],
+      [{ packageUrl: "https://www.npmjs.com/package/superbee/v/9.9.9" }, /packageUrl must equal/],
+      [{ tarballUrl: "https://registry.npmjs.org/superbee/-/superbee-9.9.9.tgz" }, /tarballUrl must equal/],
+      [{ sourceUrl: "https://github.com/Holaxis-ai/superbee/tree/v9.9.9" }, /sourceUrl must equal/],
+    ];
+    for (const [override, expected] of contradictoryManifests) {
+      const contradictoryManifest = path.join(root, `contradictory-${Object.keys(override)[0]}.json`);
+      await writeFile(contradictoryManifest, JSON.stringify({ ...input("1.2.4"), ...override }));
+      await assert.rejects(invoke(root, "update", ["--manifest", contradictoryManifest]), expected);
+    }
+
     const oldRelease = await readFile(path.join(root, ".superbee", "releases", "1.2.3.md"));
     const nextManifest = path.join(root, "next.json");
     await writeFile(nextManifest, JSON.stringify(input("1.2.4")));
@@ -73,8 +86,19 @@ test("release update is idempotent, advances stable identities, and preserves im
     assert.deepEqual(resumed.changed, ["releases/current"]);
     await invoke(root, "check");
 
+    await mkdir(path.join(root, ".superbee", "migrations"), { recursive: true });
+    await writeFile(path.join(root, ".superbee", "migrations", "allowed-history.md"), "---\ntype: Guide\n---\n[Evidence](../sources/superbee-release-1.2.3.md) for the historical migration.\n");
+    await invoke(root, "check");
+
     await mkdir(path.join(root, ".superbee", "guides"), { recursive: true });
-    await writeFile(path.join(root, ".superbee", "guides", "stale.md"), "---\ntype: Guide\n---\nVerified against superbee@1.2.3.\n");
+    await writeFile(path.join(root, ".superbee", "guides", "stale.md"), `---
+type: Guide
+---
+[Evidence](../sources/superbee-release-1.2.3.md)
+[Release](../releases/1.2.3.md)
+https://www.npmjs.com/package/superbee/v/1.2.3
+https://registry.npmjs.org/superbee/-/superbee-1.2.3.tgz
+`);
     await assert.rejects(invoke(root, "check"), /hardcoded Superbee package version/);
   } finally {
     await rm(root, { recursive: true, force: true });

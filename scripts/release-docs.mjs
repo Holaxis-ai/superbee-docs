@@ -95,6 +95,16 @@ function validateInput(raw) {
   };
   if (input.schema !== RELEASE_INPUT_V1) throw new Error(`manifest schema must be ${RELEASE_INPUT_V1}`);
   if (input.package !== "superbee") throw new Error("manifest package must be superbee");
+  if (input.npmTag !== "latest") throw new Error("manifest npmTag must be latest when advancing the stable current release");
+  if (input.sourceTag !== `v${input.version}`) throw new Error("manifest sourceTag must equal v<version>");
+  const canonicalUrls = {
+    packageUrl: `https://www.npmjs.com/package/superbee/v/${input.version}`,
+    tarballUrl: `https://registry.npmjs.org/superbee/-/superbee-${input.version}.tgz`,
+    sourceUrl: `https://github.com/Holaxis-ai/superbee/tree/v${input.version}`,
+  };
+  for (const [field, expected] of Object.entries(canonicalUrls)) {
+    if (input[field] !== expected) throw new Error(`manifest ${field} must equal ${expected}`);
+  }
   const authored = [input.summary, input.action, input.compatibility, input.recovery, ...input.changes, ...input.verification];
   if (authored.some((value) => /\bTODO\b|REPLACE_WITH|<[^>]+>/i.test(value))) {
     throw new Error("release manifest still contains an authored-content placeholder");
@@ -302,13 +312,14 @@ async function check(options) {
 
   const bundle = resolve(options.root, ".superbee");
   const allowed = /^(?:releases|sources|migrations|evidence)\//;
+  const volatileVersion = /\b(?:superbee@|Superbee\s+|released\s+)[v]?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?\b|\breleased\s+`?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?`?\b|(?:sources\/superbee-release-|releases\/)[v]?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\.md)?|(?:npmjs\.com\/package\/superbee\/v\/|registry\.npmjs\.org\/superbee\/-\/superbee-)[v]?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?/i;
   const stale = [];
   for (const path of await markdownFiles(bundle)) {
     const id = relative(bundle, path).replace(/\.md$/, "");
     if (allowed.test(id)) continue;
     const lines = (await readFile(path, "utf8")).split("\n");
     lines.forEach((line, index) => {
-      if (/\b(?:superbee@|Superbee\s+|released\s+)[v]?\d+\.\d+\.\d+\b|\breleased\s+`?\d+\.\d+\.\d+`?\b/i.test(line)) {
+      if (volatileVersion.test(line)) {
         stale.push(`${relative(options.root, path)}:${index + 1}`);
       }
     });
