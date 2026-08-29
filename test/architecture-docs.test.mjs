@@ -56,6 +56,7 @@ async function fixture() {
   const source = join(root, "source");
   const docs = join(root, "docs");
   await mkdir(join(source, "packages/core/src"), { recursive: true });
+  await mkdir(join(source, "packages/board-git/src"), { recursive: true });
   await mkdir(join(docs, ".superbee/sources"), { recursive: true });
   await mkdir(join(docs, ".superbee/architecture"), { recursive: true });
   await run("git", ["init", source]);
@@ -64,6 +65,7 @@ async function fixture() {
   await git(source, "remote", "add", "origin", "https://github.com/Holaxis-ai/superbee.git");
   await writeFile(join(source, "packages/core/src/backend.ts"), "export const one = 1;\nexport const two = 2;\n");
   await writeFile(join(source, "packages/core/src/document-write-policy.ts"), "export const policy = 1;\n");
+  await writeFile(join(source, "packages/board-git/src/porcelain.ts"), "export const push = 1;\n");
   await writeFile(join(source, "README.md"), "initial\n");
   const pin = await commit(source, "initial source");
   await writeFile(join(docs, ".superbee/sources/superbee-codebase-main.md"), sourceDocument(pin));
@@ -124,6 +126,21 @@ test("forward impact distinguishes no impact from semantic review and supports o
     assert.deepEqual(policyImpact.pages[0].matches, [
       { status: "M", path: "packages/core/src/backend.ts" },
       { status: "M", path: "packages/core/src/document-write-policy.ts" },
+    ]);
+
+    await writeFile(
+      join(value.docs, ".superbee/architecture/mutation.md"),
+      governedPage.replace(
+        "- `packages/core/src/document-write-policy.ts`",
+        "- `packages/core/src/document-write-policy.ts`\n- `packages/board-git/src/porcelain.ts`",
+      ),
+    );
+    await writeFile(join(value.source, "packages/board-git/src/porcelain.ts"), "export const push = 2;\n");
+    const porcelainHead = await commit(value.source, "change board-git porcelain");
+    const porcelainImpact = await architectureImpact({ root: value.docs, source: value.source, change: porcelainHead });
+    assert.equal(porcelainImpact.status, "semantic_review_required");
+    assert.deepEqual(porcelainImpact.pages[0].matches, [
+      { status: "M", path: "packages/board-git/src/porcelain.ts" },
     ]);
   } finally {
     await rm(value.root, { recursive: true, force: true });

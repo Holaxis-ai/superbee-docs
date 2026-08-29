@@ -169,6 +169,8 @@ Re-evaluate this page when any of these source paths changes:
 - `packages/cli/src/commands/sync/orchestrate.ts`
 - `packages/cli/src/commands/sync/converge.ts`
 - `packages/cli/src/commands/sync/establish.ts`
+- `packages/board-git/src/porcelain.ts`
+- `packages/board-git/src/diff.ts`
 - `packages/board-git/src/channel.ts`
 - `packages/board-git/src/engine.ts`
 - `packages/board-git/src/flow.ts`
