@@ -12,7 +12,9 @@ Upgrade the installed Superbee CLI and reconnect its host integrations while kee
 workspace intact. Legacy AgentState installations can move their private operational state into
 Superbee without relocating bundle content.
 
-This guide is verified against [the current stable release evidence](../sources/current-release.md).
+This guide is verified against [the current stable release evidence](../sources/current-release.md),
+the tagged migration implementations and tests linked below, and a disposable governed OKF v0.1
+journey in this documentation repository.
 
 # Choose the path that matches your starting point
 
@@ -38,6 +40,10 @@ If `superbee home` resolves an unexpected workspace, stop and correct the projec
 directory first. An upgrade should never be used to switch a project's active bundle.
 
 # Upgrade Superbee
+
+Superbee 0.1.3 requires Node.js 20 or newer. Its stable npm package supports macOS and Linux and
+excludes Windows. Check the [current release record](../releases/current.md) before applying these
+instructions to a later release.
 
 Install the current stable package:
 
@@ -105,17 +111,22 @@ a new workspace and does not upgrade an existing one.
 
 # Work with an OKF v0.1 bundle
 
-OKF v0.1 bundles remain supported. Superbee accepts the logical field name `progress_status` for
-workflow operations and maps it to the field used by the bundle's edition:
+OKF v0.1 bundles remain supported. When a document's governing Kind declares the v0.1 workflow
+field `status`, Superbee accepts the logical name `progress_status` and maps it to that declared
+storage field:
 
 ```sh
 superbee list --type Task --field progress_status=todo
 superbee doc update tasks/<id> --progress_status done
 ```
 
+This compatibility mapping does not apply to ungoverned documents or Kinds that do not declare the
+workflow field. Run `superbee kinds` to inspect the governing conventions before relying on it.
+
 Run `superbee status` before changing the bundle edition. An `okf_upgrade` section identifies
-workflow fields that conflict with the v0.2 lifecycle vocabulary. The current CLI reports this
-condition and keeps the v0.1 bundle usable. It does not perform the multi-document conversion.
+registered Kinds that declare the v0.1 physical field `status`. It does not detect raw `status`
+fields on ungoverned documents, saved queries, or View code. Audit those surfaces separately. The
+current CLI keeps the v0.1 bundle usable and does not perform the multi-document conversion.
 
 Keep the existing `okf_version` while that finding is present. Editing `index.md` alone would leave
 the bundle internally inconsistent.
@@ -123,10 +134,27 @@ the bundle internally inconsistent.
 # Check legacy Views
 
 `superbee status` reports `legacy_naming` when a bundle still uses the retired `Page` type or
-`bridge` capability field. Those records cannot launch with current View semantics. Preserve the
-bundle, follow the remedy printed by the installed CLI, and verify the affected Views after the
-migration. Avoid hand-editing executable View registrations without reviewing their entry and
-access fields together.
+`bridge` capability field. A `Page` document no longer registers as a View. A `View` with only
+`bridge` still registers with `access: none`, so it may launch without the bundle capability the
+author expected. When both fields exist, current `access` wins and the stale `bridge` field is
+ignored.
+
+The remedy printed by 0.1.3 names a repository script that the npm package does not contain. Treat
+this as a source-only migration. Preserve and back up the bundle, then use a reviewed checkout
+pinned to `v0.1.3`:
+
+```sh
+git clone --branch v0.1.3 --depth 1 https://github.com/Holaxis-ai/superbee.git /tmp/superbee-v0.1.3
+cd /tmp/superbee-v0.1.3
+npm ci
+npm run build
+node scripts/migrate-legacy-view-names.mjs --dir <bundle-root> --dry-run
+```
+
+Review the dry-run receipt and the affected registrations. Run the same script without `--dry-run`
+only after the proposed type, capability, convention, and reference changes are understood. Then
+run `superbee status` and launch each affected View. Avoid independent hand edits to executable View
+registrations because the type, entry, and access fields form one trust decision.
 
 # Verify the result
 
@@ -159,7 +187,8 @@ superbee doc open <document-id>
 - A repeated `migrate-state` offer means legacy private state still needs inspection. Keep both
   state directories and use the recovery guidance returned by setup.
 - An `okf_upgrade` finding leaves the v0.1 bundle supported. Continue using the logical
-  `progress_status` interface until a reviewed bundle migration is available.
+  `progress_status` interface for workflows governed by a compatible Kind until a reviewed bundle
+  migration is available.
 - A `legacy_naming` finding affects View registration. Ordinary documents remain readable while
   the View records are repaired.
 
@@ -171,12 +200,22 @@ superbee doc open <document-id>
 
 [current release](../releases/current.md)
 
+# Evidence
+
+- [Private-state migration implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/src/user-state-migration.ts)
+- [Private-state recovery and migration tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/test/private-state-recoverability.test.ts)
+- [Logical progress-field implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/core/src/kinds.ts)
+- [OKF upgrade status tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/test/status.test.ts)
+- [Legacy View compatibility rules](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/core/src/page.ts)
+- [Source-only legacy View migration](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/scripts/migrate-legacy-view-names.mjs)
+- [Stable package contents and platform metadata](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/package.json)
+
 # Journey check
 
-Test this page with one current Superbee installation and one disposable OKF v0.1 workspace. The
-reader should preserve the same bundle path, use logical `progress_status` successfully, and finish
-with a verified host setup. Test legacy private-state migration only in an isolated home directory
-that contains a supported legacy fixture.
+Test this page with one current Superbee installation and one disposable, Kind-governed OKF v0.1
+workspace. The reader should preserve the same bundle path, use logical `progress_status`
+successfully, and finish with a verified host setup. Test legacy private-state migration only in an
+isolated home directory that contains a supported legacy fixture.
 
 # Re-evaluate this page when
 
