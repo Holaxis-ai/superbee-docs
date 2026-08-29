@@ -14,6 +14,17 @@ verified product evidence
 The repository is public by design. Private planning, credentials, security work, and unpublished
 communications belong elsewhere.
 
+## Documentation selection
+
+`portal.config.json` owns the ordered primary navigation. The production
+`documentation-selection.json` contract names the additional public support documents that output
+adapters must include without placing them in that navigation. The public documentation set is the
+explicit union of those two lists; adapters must not follow links to expand it implicitly.
+
+Keep the support list unique and canonically ordered. `npm run bundle:check` verifies its stable v1
+schema, confirms every selected support document exists in `.superbee`, and rejects overlap with
+the primary navigation.
+
 ## Development
 
 Node.js 22.12 or newer is required.

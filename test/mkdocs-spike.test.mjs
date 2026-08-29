@@ -5,21 +5,14 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-import { buildProjection, PROJECTION_SCHEMA } from "../spikes/mkdocs/projection.mjs";
+import { buildProjection, PROJECTION_SCHEMA, SELECTION_SCHEMA } from "../spikes/mkdocs/projection.mjs";
 import { materializeMkDocs } from "../spikes/mkdocs/materialize.mjs";
 
 const root = path.resolve(".");
 const temporaryRoot = await realpath(tmpdir());
-const expectedSupport = [
-  "design/docs-operating-model",
-  "design/site-experience-contract",
-  "plans/docs-coverage",
-  "sources/current-release",
-  "sources/superbee-codebase-main",
-  "sources/superbee-core",
-  "sources/superbee-portal",
-  "sources/superbee-release-0.1.3",
-];
+const productionSelection = JSON.parse(await readFile(path.join(root, "documentation-selection.json"), "utf8"));
+assert.equal(productionSelection.schema, SELECTION_SCHEMA);
+const expectedSupport = productionSelection.supportingDocuments;
 
 const digest = (bytes) => createHash("sha256").update(bytes).digest("hex");
 
@@ -132,6 +125,7 @@ test("a selected document linking to an unselected local document fails instead 
       cp(path.join(root, "diagrams"), path.join(temporary, "diagrams"), { recursive: true }),
       cp(path.join(root, "spikes"), path.join(temporary, "spikes"), { recursive: true }),
       cp(path.join(root, "portal.config.json"), path.join(temporary, "portal.config.json")),
+      cp(path.join(root, "documentation-selection.json"), path.join(temporary, "documentation-selection.json")),
     ]);
     const selected = path.join(temporary, ".superbee", "learn", "start-here.md");
     const before = await readFile(selected, "utf8");

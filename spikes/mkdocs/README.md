@@ -5,7 +5,9 @@ documentation bundle can feed an ordinary MkDocs site. It is not a production ou
 package, deployment path, or cutover.
 
 The projection selects the 11 documents in the existing documentation navigation plus the eight
-explicit support documents in `projection-selection.json`. It never follows links to grow that set.
+explicit support documents in the repository's production
+[`documentation-selection.json`](../../documentation-selection.json). It never follows links to
+grow that set.
 A selected document linking to any other local document fails the projection build.
 Deployment host and canonical-URL choices stay out of the projection and this proof materializer.
 

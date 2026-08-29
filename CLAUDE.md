@@ -10,6 +10,8 @@ into this repository or its `.superbee/` bundle.
 - Product behavior answers to exact Superbee source, tests, schemas, packed packages, and verified
   release receipts. Documentation interprets those sources; it never overrides them.
 - `.superbee/` is the public documentation bundle and documentation authority.
+- `portal.config.json` owns primary navigation; `documentation-selection.json` owns the explicit
+  supporting-document allowlist shared by documentation outputs.
 - Generated View HTML, Portal data, and deployed bytes are projections of the bundle and declared
   source inputs.
 - Use Superbee commands for bundle documents and byte promotion. Keep ordinary source and tooling

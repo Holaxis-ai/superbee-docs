@@ -7,7 +7,7 @@ import { checkPublishedAgreement } from "@superbee/docs-tooling";
 import { capturePublicationSnapshot, PUBLICATION_SNAPSHOT_V1 } from "superbee/publication";
 
 export const PROJECTION_SCHEMA = "superbee-docs-documentation-projection-spike/v0";
-export const SELECTION_SCHEMA = "superbee-docs-projection-selection-spike/v0";
+export const SELECTION_SCHEMA = "https://getsuperbee.com/schemas/superbee-docs-documentation-selection/v1";
 
 const encoder = new TextEncoder();
 
@@ -64,7 +64,7 @@ async function readJson(file, subject) {
 function normalizeSelection(input) {
   exactKeys(input, ["schema", "supportingDocuments"], "projection selection");
   if (input.schema !== SELECTION_SCHEMA || !Array.isArray(input.supportingDocuments)) {
-    throw new Error("projection selection must use the spike v0 schema and an explicit supportingDocuments array");
+    throw new Error("documentation selection must use the production v1 schema and an explicit supportingDocuments array");
   }
   const supportingDocuments = input.supportingDocuments.map((id, index) => documentId(id, `supportingDocuments[${index}]`));
   if (new Set(supportingDocuments).size !== supportingDocuments.length) {
@@ -129,7 +129,7 @@ async function writeProjection(output, manifest, files) {
   await writeFile(path.join(output, "projection.json"), manifestBytes(manifest), { flag: "wx" });
 }
 
-export async function buildProjection({ root = ".", config = "portal.config.json", selection = "spikes/mkdocs/projection-selection.json", output }) {
+export async function buildProjection({ root = ".", config = "portal.config.json", selection = "documentation-selection.json", output }) {
   if (!output) throw new Error("projection output is required");
   const absoluteRoot = path.resolve(root);
   const configFile = relativeFile(absoluteRoot, config, "documentation config");
@@ -258,7 +258,7 @@ export async function buildProjection({ root = ".", config = "portal.config.json
 }
 
 function options(argv) {
-  const parsed = { root: ".", config: "portal.config.json", selection: "spikes/mkdocs/projection-selection.json" };
+  const parsed = { root: ".", config: "portal.config.json", selection: "documentation-selection.json" };
   for (let index = 0; index < argv.length; index += 2) {
     const flag = argv[index];
     const value = argv[index + 1];
