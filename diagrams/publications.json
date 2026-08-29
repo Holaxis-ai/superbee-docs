@@ -4,8 +4,8 @@
     "package": "@superbee/docs-tooling",
     "version": "0.1.0"
   },
-  "renderer": "superbee-docs-mermaid-v1+mermaid@11.17.2+puppeteer@25.9.0+atkinson-hyperlegible@5.3.0",
-  "manifestSha256": "sha256:a8092cf1d8a7a777892afd2937d42fb43f492866b3b3e83f393d312c10207759",
+  "renderer": "superbee-docs-mmdc-v1+mermaid-cli@11.16.0+mermaid@11.17.2",
+  "manifestSha256": "sha256:c0ae2aad3e271cef435219da007a318f1e67587aa663bdc9f5375cc159145f90",
   "diagrams": [
     {
       "id": "document-mutation-lifecycle",
@@ -14,8 +14,8 @@
       "entry": "views/document-mutation-lifecycle.html",
       "access": "none",
       "sourceSha256": "sha256:62ea8a1d9d512ac0e425fce6a07bacbe6b5ab2fa64c774cc31efddb3ad0c0639",
-      "projectionSha256": "sha256:5c7e27351fc5c126aded45cad027634ce985f3bae05fd5ee8f0e7336a5971617",
-      "entrySha256": "sha256:a252ecc62134b97605e2da97ed3619d5edc76cfe65007f8dd2760ab016567cd5",
+      "projectionSha256": "sha256:21cc87cc496e9b07f1f85be474889dd988100745bd01be8ae96b7c0cb69b5c75",
+      "entrySha256": "sha256:72492612601bb4be3acaf1810067d01caa92219a2b9f695b9115b2c06926ae23",
       "registrationSha256": "sha256:3127eea8f0248ec3570e540ebbbc4feff35b2caed56f563b3d452555c6abe189"
     },
     {
@@ -25,10 +25,10 @@
       "entry": "views/superbee-system-context.html",
       "access": "none",
       "sourceSha256": "sha256:af9fb2fa0e9bf4babc1b75daa4bc2804c53fc4c6bbe51baa3ee67a6fe1c413a3",
-      "projectionSha256": "sha256:e8db656541bb3f9f458d037adafabc8184e4ffa933eaceb15b5e6ec63cb86317",
-      "entrySha256": "sha256:e60f1a6d209b3725b9906cceceee0737bb84579ffeec5b569e506f97ccc62b06",
+      "projectionSha256": "sha256:7fa1ab48122cb0c45edc82f9edd3a9548a9fe16c19433d5c3e98f6f9f87ce2b2",
+      "entrySha256": "sha256:7053d2135b279f5ca2e93bfb3bedc7374fccd5fadcab4bf6d94b4055aac1c5ea",
       "registrationSha256": "sha256:42a8a4a54f685276e75585223ddeacda02c552e38d0d61b0adfca31ecab3df70"
     }
   ],
-  "receiptDigest": "sha256:9e5140ea716169700f8f8b4aaac4e03e9468dbbe7b3403f6a853c1372540cf5f"
+  "receiptDigest": "sha256:a8149e8d227b856cbbf9de8fe8f5f11bcc0ae30c82f3b4620beb2d0aa8905634"
 }

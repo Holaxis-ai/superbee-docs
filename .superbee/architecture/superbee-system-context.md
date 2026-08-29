@@ -45,8 +45,6 @@ source bundle.
 Re-evaluate this diagram when the core storage authority, CLI installation model, publication
 snapshot boundary, Portal authority, or supported sharing model changes materially.
 
-[inspect the visual](../views-registry/superbee-system-context.md)
-
 [product evidence](../sources/superbee-core.md)
 
 [publication evidence](../sources/superbee-portal.md)
