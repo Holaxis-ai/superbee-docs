@@ -28,7 +28,7 @@ test("consumer uses only public packed package surfaces and nested versioned con
   await assert.rejects(readFile("scripts/apply-diagrams.mjs"), (error) => error.code === "ENOENT");
 });
 
-test("built site preserves documentation, explorer, View, and profile agreement", async () => {
+test("built site preserves documentation, View, and presentation agreement", async () => {
   const [config, manifest, home, registeredView] = await Promise.all([
     json("portal.config.json"),
     json("dist/data/portal-manifest.json"),
@@ -39,14 +39,15 @@ test("built site preserves documentation, explorer, View, and profile agreement"
   for (const required of [
     "index.html",
     "docs/learn/start-here/index.html",
-    "explore/index.html",
-    "data/search.json",
+    "assets/docs-search.json",
     "sitemap.xml",
     "bundle/views/superbee-system-context.html",
   ]) assert.ok(paths.has(required), required);
-  assert.equal(manifest.profile.contract, "https://getsuperbee.com/schemas/portal-profile-contribution/v1");
-  assert.equal(manifest.profile.producer.package, "@superbee/portal-docs");
+  assert.equal(paths.has("explore/index.html"), false);
+  assert.equal(manifest.presentation.contract, "https://getsuperbee.com/schemas/portal-presentation-contribution/v1");
+  assert.equal(manifest.presentation.id, "documentation");
+  assert.equal(manifest.presentation.producer.name, "superbee-portal-docs");
   assert.match(home, /Superbee/);
-  assert.match(home, /href="\/explore\/"/);
+  assert.doesNotMatch(home, /href="\/explore\/"/);
   assert.equal(config.portal.views[0].entrySha256, sha256(registeredView));
 });

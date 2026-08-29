@@ -16,10 +16,13 @@ inspect sources, and move between prose and registered Views without learning th
 This is a stable interface between the documentation bundle and Portal. It does not prescribe a
 specific frontend framework or move content authority into site code.
 
-This is a **proposed target contract**, not a description of current Portal behavior. The present
-Portal configuration supports public audience/exposure metadata, title, description, retention, and
-exact registered-View admission. Documentation profiles, editorial navigation, clean static routes,
-search, and theme inputs require an explicit versioned Portal schema and implementation change.
+The ownership boundary in this contract is current: Portal captures and verifies the complete
+publication snapshot, emits the stable read model and browser client, admits exact registered Views,
+and composes one explicit presentation contribution. The documentation client owns editorial
+navigation, clean static routes, search, theme, and all visible page structure through that
+contribution. The experience clauses below remain target requirements unless the coverage plan and
+exact built artifact mark them delivered; they must not be read as claims that every interaction is
+already implemented.
 
 # Experience principles
 
@@ -53,8 +56,9 @@ Reference. A persistent action exposes the complete public bundle for inspection
 The global header provides the official Superbee mark with a Docs label, search, the current
 supported version when relevant, a repository link, and an accessible mobile-navigation trigger.
 On desktop, articles use ordered left navigation, a restrained reading column, breadcrumbs, and an
-on-page heading index. The complete generic bundle browser remains available as a utility route such
-as `/explore/`; it is not the primary reader experience.
+on-page heading index. The complete public publication remains inspectable through Portal's
+versioned read model, snapshot, object map, manifest, and raw bundle paths. This site does not ship
+or maintain a generic explorer UI.
 
 Breadcrumbs show conceptual location rather than filesystem paths. Each article ends with a small
 set of prerequisites, related concepts, and likely next actions generated from declared document
@@ -108,7 +112,7 @@ The home page is documentation orientation, not a marketing-site replacement.
 
 # Presentation primitives
 
-Portal should provide shared rendering for:
+The documentation presentation should provide reader-facing rendering for:
 
 - Markdown headings, lists, links, task steps, tables, and quotations;
 - inline code and fenced code with copy affordance and horizontal overflow containment;
@@ -152,7 +156,7 @@ two simultaneously supported documentation sets exist. Pages with version-sensit
 their tested package or compatibility range; evergreen explanations avoid decorative version noise.
 
 Stale or superseded pages remain inspectable but display a clear successor or limitation. Technical
-hashes and full provenance are available in details and the bundle browser.
+hashes and full provenance are available in details and the published manifest/read-model endpoints.
 
 # Brand and visual direction
 
@@ -184,18 +188,21 @@ hashes and full provenance are available in details and the bundle browser.
 
 The bundle supplies canonical document IDs, titles, descriptions, content, relationships, mode or
 type, version scope where needed, evidence links, registered View relationships, and lifecycle
-signals once stabilized. Portal supplies routes, navigation projections, search indexes, chrome,
-responsive layout, safe rendering, and deployment.
+signals once stabilized. Portal owns the presentation-neutral publication artifact, strict identity
+and integrity checks, stable read model, safe Markdown/View browser primitives, and deployment
+adapters. The documentation client owns routes, navigation projections, search indexes, chrome, and
+responsive layout.
 
 Portal must not infer public truth from source directory names, execute raw bundle HTML, rewrite
 Markdown semantics, or invent release/version state. Site-specific editorial ordering may be
 declared in repository configuration until repeated structure justifies a bundle convention.
 
-The generic Portal publication profile remains the backward-compatible default. A documentation
-profile is an optional projection over the same normalized snapshot and View authority. It produces
-clean stable document routes, canonical metadata, sitemap inputs, and useful article HTML without
+Portal is headless by default and emits no site shell. The documentation presentation is one
+explicit, immutable contribution over the normalized snapshot and View authority. It produces clean
+stable document routes, canonical metadata, sitemap inputs, and useful article HTML without
 requiring JavaScript; JavaScript enhances search and interaction rather than creating the content.
-No Superbee-specific document ID or product vocabulary is hard-coded into Portal.
+No Superbee-specific document ID, product vocabulary, or generic explorer UI is hard-coded into
+Portal.
 
 # Representative vertical slice
 
@@ -207,7 +214,7 @@ Design and test the system against real content rather than a component gallery:
 4. CLI reference page with generated facts.
 5. System-context page with an admitted registered View.
 6. Release or migration page with version and provenance metadata.
-7. Complete-bundle browser route.
+7. Complete-publication inspection through the versioned manifest, read model, and raw bundle paths.
 
 The slice must be tested on desktop and mobile, by keyboard, with a screen reader smoke test, and
 through at least one evaluator and one first-time-user task.

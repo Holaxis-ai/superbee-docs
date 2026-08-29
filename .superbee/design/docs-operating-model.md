@@ -196,8 +196,10 @@ run, and unresolved questions. Private chat is not the handoff mechanism.
 # Site and bundle boundary
 
 The bundle owns documents, relationships, evidence links, registered Views, and the information
-architecture. Portal owns routing, layout, navigation rendering, search presentation, responsive
-behavior, and deployment. Generated site data and HTML are projections, never competing content
+architecture. Portal owns a presentation-neutral publication artifact, integrity and View-admission
+boundaries, stable browser primitives, and deployment adapters. The documentation client owns
+routing, layout, navigation rendering, search presentation, and responsive behavior as an explicit
+presentation contribution. Generated site data and HTML are projections, never competing content
 authorities.
 
 The entire public bundle remains inspectable. The primary UI may emphasize a curated subset and
