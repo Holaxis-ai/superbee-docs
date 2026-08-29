@@ -15,7 +15,7 @@ Pinned evidence for the current headless publication, client-owned presentation,
 documentation projection, Portal adapter, MkDocs adapter, and static-first diagram boundary:
 
 - Repository: `https://github.com/Holaxis-ai/superbee-portal`
-- Commit: `53c289beaa3b5c155417bf15836f86d72e3ed402`
+- Commit: `8651d5e63befd2f234be8d44efe7c8b70951cd41`
 - Headless presentation pull request: `https://github.com/Holaxis-ai/superbee-portal/pull/8`
 - Docs-native diagram pull request: `https://github.com/Holaxis-ai/superbee-portal/pull/9`
 - Inline diagram pull request: `https://github.com/Holaxis-ai/superbee-portal/pull/11`
@@ -24,11 +24,13 @@ documentation projection, Portal adapter, MkDocs adapter, and static-first diagr
   `https://github.com/Holaxis-ai/superbee-portal/pull/14`,
   `https://github.com/Holaxis-ai/superbee-portal/pull/15`,
   `https://github.com/Holaxis-ai/superbee-portal/pull/16`,
-  `https://github.com/Holaxis-ai/superbee-portal/pull/17`, and
-  `https://github.com/Holaxis-ai/superbee-portal/pull/18`
+  `https://github.com/Holaxis-ai/superbee-portal/pull/17`,
+  `https://github.com/Holaxis-ai/superbee-portal/pull/18`, and
+  `https://github.com/Holaxis-ai/superbee-portal/pull/19`
 - Significance: reviewed artifact v2, explicit presentation contribution, secure generic browser
   client for genuine Views, shared fail-closed projection admission, conventional MkDocs output,
-  and the final reviewed View-independent exact static SVG boundary for documentation.
+  the final reviewed View-independent exact static SVG boundary for documentation, and root-origin
+  URL validation that keeps generated routes aligned with canonical and sitemap URLs.
 
 The documentation toolchain binds selected documents, relationships, navigation, brand, and verified
 diagram identities and exact SVG bytes into one host-neutral owned projection. Portal and MkDocs
