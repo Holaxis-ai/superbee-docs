@@ -1,0 +1,36 @@
+.spike-page-header {
+  border-bottom: 1px solid #d8d8d8;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+}
+
+.spike-page-header h1 {
+  margin-bottom: .35rem;
+}
+
+.spike-page-header p,
+.spike-diagram figcaption span {
+  color: #4a5d6e;
+}
+
+.spike-diagram {
+  border: 1px solid #d8d8d8;
+  margin: 1.5rem 0;
+  padding: 1rem;
+}
+
+.spike-diagram figcaption strong,
+.spike-diagram figcaption span {
+  display: block;
+}
+
+.spike-diagram img {
+  display: block;
+  height: auto;
+  margin: 1rem auto;
+  max-width: 100%;
+}
+
+.spike-diagram p {
+  margin-bottom: 0;
+}
