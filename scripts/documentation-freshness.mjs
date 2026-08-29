@@ -12,12 +12,18 @@ function canonicalTimestamp(value) {
 }
 
 function meaningfulChangeTime(frontmatter) {
-  if (!frontmatter || typeof frontmatter !== "object" || Array.isArray(frontmatter)) return undefined;
+  if (!frontmatter || typeof frontmatter !== "object" || Array.isArray(frontmatter)) {
+    return { present: false, value: undefined };
+  }
   const generated = frontmatter.generated;
-  const current = generated && typeof generated === "object" && !Array.isArray(generated)
-    ? canonicalTimestamp(generated.at)
-    : undefined;
-  return current ?? canonicalTimestamp(frontmatter.timestamp);
+  if (generated && typeof generated === "object" && !Array.isArray(generated)
+    && Object.hasOwn(generated, "at")) {
+    return { present: true, value: canonicalTimestamp(generated.at) };
+  }
+  if (Object.hasOwn(frontmatter, "timestamp")) {
+    return { present: true, value: canonicalTimestamp(frontmatter.timestamp) };
+  }
+  return { present: false, value: undefined };
 }
 
 async function git(root, args) {
@@ -51,8 +57,10 @@ export async function deriveDocumentationFreshness({ root, bundle, snapshot, doc
   for (const documentId of [...documentIds].sort()) {
     const document = byId.get(documentId);
     if (!document) throw new Error(`freshness selection references absent document '${documentId}'`);
-    const updatedAt = meaningfulChangeTime(document.frontmatter)
-      ?? await committedChangeTime(root, path.join(bundle, ...documentId.split("/")) + ".md");
+    const clock = meaningfulChangeTime(document.frontmatter);
+    const updatedAt = clock.present
+      ? clock.value
+      : await committedChangeTime(root, path.join(bundle, ...documentId.split("/")) + ".md");
     if (!updatedAt) continue;
     facts.push({ documentId, sourceVersion: document.version, updatedAt });
   }

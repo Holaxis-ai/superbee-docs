@@ -33,41 +33,70 @@ function snapshot(body, frontmatter = { type: "Guide" }) {
 test("page updates, evidence-only commits, unchanged rebuilds, and unknown facts remain distinct", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "superbee-docs-freshness-"));
   try {
-  const bundle = path.join(root, ".superbee");
-  await mkdir(path.join(bundle, "guide"), { recursive: true });
-  await mkdir(path.join(bundle, "maintenance"), { recursive: true });
-  await git(root, ["init"]);
-  await git(root, ["config", "user.name", "Fixture"]);
-  await git(root, ["config", "user.email", "fixture@example.test"]);
-  await writeFile(path.join(bundle, "guide/start.md"), "first\n");
-  await writeFile(path.join(bundle, "maintenance/evidence.md"), "first evidence\n");
-  await commit(root, "initial page", "2026-08-20T10:00:00Z");
+    const bundle = path.join(root, ".superbee");
+    await mkdir(path.join(bundle, "guide"), { recursive: true });
+    await mkdir(path.join(bundle, "maintenance"), { recursive: true });
+    await git(root, ["init"]);
+    await git(root, ["config", "user.name", "Fixture"]);
+    await git(root, ["config", "user.email", "fixture@example.test"]);
+    await writeFile(path.join(bundle, "guide/start.md"), "first\n");
+    await writeFile(path.join(bundle, "maintenance/evidence.md"), "first evidence\n");
+    await commit(root, "initial page", "2026-08-20T10:00:00Z");
 
-  const input = { root, bundle, snapshot: snapshot("first"), documentIds: ["guide/start"] };
-  const initial = await deriveDocumentationFreshness(input);
-  assert.deepEqual(initial, [{
-    documentId: "guide/start",
-    sourceVersion: "version:first",
-    updatedAt: "2026-08-20T10:00:00.000Z",
-  }]);
-  assert.deepEqual(await deriveDocumentationFreshness(input), initial, "unchanged rebuilds are deterministic");
+    const input = { root, bundle, snapshot: snapshot("first"), documentIds: ["guide/start"] };
+    const initial = await deriveDocumentationFreshness(input);
+    assert.deepEqual(initial, [{
+      documentId: "guide/start",
+      sourceVersion: "version:first",
+      updatedAt: "2026-08-20T10:00:00.000Z",
+    }]);
+    assert.deepEqual(await deriveDocumentationFreshness(input), initial, "unchanged rebuilds are deterministic");
 
-  await writeFile(path.join(bundle, "maintenance/evidence.md"), "verification completed\n");
-  await commit(root, "verify evidence", "2026-08-21T11:00:00Z");
-  assert.deepEqual(await deriveDocumentationFreshness(input), initial,
-    "an evidence-only verification must not masquerade as a page update");
+    await writeFile(path.join(bundle, "maintenance/evidence.md"), "verification completed\n");
+    await commit(root, "verify evidence", "2026-08-21T11:00:00Z");
+    assert.deepEqual(await deriveDocumentationFreshness(input), initial,
+      "an evidence-only verification must not masquerade as a page update");
 
-  await writeFile(path.join(bundle, "guide/start.md"), "second\n");
-  await commit(root, "update page", "2026-08-22T12:00:00Z");
-  assert.deepEqual(await deriveDocumentationFreshness({ ...input, snapshot: snapshot("second") }), [{
-    documentId: "guide/start",
-    sourceVersion: "version:second",
-    updatedAt: "2026-08-22T12:00:00.000Z",
-  }]);
+    await writeFile(path.join(bundle, "guide/start.md"), "second\n");
+    await commit(root, "update page", "2026-08-22T12:00:00Z");
+    assert.deepEqual(await deriveDocumentationFreshness({ ...input, snapshot: snapshot("second") }), [{
+      documentId: "guide/start",
+      sourceVersion: "version:second",
+      updatedAt: "2026-08-22T12:00:00.000Z",
+    }]);
 
-  await writeFile(path.join(bundle, "guide/start.md"), `${await readFile(path.join(bundle, "guide/start.md"), "utf8")}dirty`);
-  assert.deepEqual(await deriveDocumentationFreshness({ ...input, snapshot: snapshot("dirty") }), [],
-    "dirty bytes have no immutable Git update fact");
+    await writeFile(path.join(bundle, "guide/start.md"), `${await readFile(path.join(bundle, "guide/start.md"), "utf8")}dirty`);
+    assert.deepEqual(await deriveDocumentationFreshness({ ...input, snapshot: snapshot("dirty") }), [],
+      "dirty bytes have no immutable Git update fact");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("a present invalid current clock suppresses legacy and Git substitution", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "superbee-docs-invalid-clock-"));
+  try {
+    const bundle = path.join(root, ".superbee");
+    await mkdir(path.join(bundle, "guide"), { recursive: true });
+    await git(root, ["init"]);
+    await git(root, ["config", "user.name", "Fixture"]);
+    await git(root, ["config", "user.email", "fixture@example.test"]);
+    await writeFile(path.join(bundle, "guide/start.md"), "committed\n");
+    await commit(root, "committed source", "2026-08-20T10:00:00Z");
+
+    for (const at of ["", "not-a-timestamp"]) {
+      const facts = await deriveDocumentationFreshness({
+        root,
+        bundle,
+        snapshot: snapshot("current", {
+          type: "Guide",
+          generated: { at },
+          timestamp: "2026-08-19T09:00:00Z",
+        }),
+        documentIds: ["guide/start"],
+      });
+      assert.deepEqual(facts, [], `generated.at '${at}' must not fall through`);
+    }
   } finally {
     await rm(root, { recursive: true, force: true });
   }
