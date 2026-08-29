@@ -84,7 +84,7 @@ test("real bundle projects one explicit target-neutral, deterministic publicatio
     }
 
     const keys = structuralKeys(left.manifest);
-    for (const targetSpecific of ["portal", "views", "viewId", "entry", "access", "contribution", "shell", "mkdocs", "theme", "plugins", "route", "cloudflare", "deployment"]) {
+    for (const targetSpecific of ["portal", "views", "viewId", "entry", "access", "contribution", "shell", "mkdocs", "theme", "plugins", "route", "cloudflare", "deployment", "siteUrl", "canonicalBase", "host", "baseUrl"]) {
       assert.equal(keys.has(targetSpecific), false, targetSpecific);
     }
   } finally {
@@ -104,6 +104,7 @@ test("materializer preserves exact sources and emits a strict static MkDocs inpu
     assert.match(config, /^site_name: "Superbee documentation"/);
     assert.match(config, /strict: true/);
     assert.match(config, /theme:\n  name: mkdocs/);
+    assert.doesNotMatch(config, /^site_url:/m);
     assert.match(config, /hooks:\n  - hook\.py/);
     assert.match(config, /not_in_nav: \|/);
     for (const id of expectedSupport) assert.match(config, new RegExp(`  ${id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\.md`));

@@ -51,7 +51,6 @@ function mkdocsConfig(manifest) {
   const byId = new Map(manifest.documents.map((document) => [document.id, document]));
   const lines = [
     `site_name: ${quote(`${manifest.product.name} documentation`)}`,
-    ...(manifest.product.siteUrl ? [`site_url: ${quote(manifest.product.siteUrl)}`] : []),
     ...(manifest.product.repositoryUrl ? [`repo_url: ${quote(manifest.product.repositoryUrl)}`] : []),
     "docs_dir: docs",
     "site_dir: site",
@@ -104,7 +103,7 @@ function validateManifest(manifest) {
     || !Array.isArray(manifest.supportingDocuments) || !Array.isArray(manifest.relationships) || !Array.isArray(manifest.diagrams)) {
     throw new Error("projection manifest is not the spike v0 shape");
   }
-  exactKeys(manifest.product, ["name", "siteUrl", "versionLabel", "repositoryUrl"], "projection product");
+  exactKeys(manifest.product, ["name", "versionLabel", "repositoryUrl"], "projection product");
   const ids = new Set(manifest.documents.map((document) => document.id));
   if (!ids.has(manifest.home)) throw new Error("projection home is absent");
   for (const section of manifest.navigation) {

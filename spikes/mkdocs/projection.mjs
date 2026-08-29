@@ -100,7 +100,6 @@ function normalizeDocumentation(input) {
     productName,
     home,
     navigation,
-    ...(typeof input.siteUrl === "string" && input.siteUrl ? { siteUrl: input.siteUrl } : {}),
     ...(typeof input.versionLabel === "string" && input.versionLabel ? { versionLabel: input.versionLabel } : {}),
     ...(typeof input.repositoryUrl === "string" && input.repositoryUrl ? { repositoryUrl: input.repositoryUrl } : {}),
     brandBlob: input.brandMark?.blob,
@@ -240,7 +239,6 @@ export async function buildProjection({ root = ".", config = "portal.config.json
       snapshotDigest: snapshot.manifest.snapshotDigest,
       product: {
         name: documentation.productName,
-        ...(documentation.siteUrl ? { siteUrl: documentation.siteUrl } : {}),
         ...(documentation.versionLabel ? { versionLabel: documentation.versionLabel } : {}),
         ...(documentation.repositoryUrl ? { repositoryUrl: documentation.repositoryUrl } : {}),
       },

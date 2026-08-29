@@ -7,6 +7,7 @@ package, deployment path, or cutover.
 The projection selects the 11 documents in the existing documentation navigation plus the eight
 explicit support documents in `projection-selection.json`. It never follows links to grow that set.
 A selected document linking to any other local document fails the projection build.
+Deployment host and canonical-URL choices stay out of the projection and this proof materializer.
 
 The current diagram verifier still proves exact SVG bytes through the existing View-backed
 publication receipt. The projection strips those target-specific mechanics and contains only the
