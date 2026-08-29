@@ -41,9 +41,8 @@ directory first. An upgrade should never be used to switch a project's active bu
 
 # Upgrade Superbee
 
-Superbee 0.1.3 requires Node.js 20 or newer. Its stable npm package supports macOS and Linux and
-excludes Windows. Check the [current release record](../releases/current.md) before applying these
-instructions to a later release.
+The [current release record](../releases/current.md) is the authority for Node.js and platform
+support. Confirm that it lists your environment before installing the package.
 
 Install the current stable package:
 
@@ -139,13 +138,14 @@ the bundle internally inconsistent.
 author expected. When both fields exist, current `access` wins and the stale `bridge` field is
 ignored.
 
-The remedy printed by 0.1.3 names a repository script that the npm package does not contain. Treat
-this as a source-only migration. Preserve and back up the bundle, then use a reviewed checkout
-pinned to `v0.1.3`:
+The remedy printed by the current stable package names a repository script that the npm package does
+not contain. Treat this as a source-only migration. Preserve and back up the bundle, then use a
+reviewed checkout pinned to the source tag named in the current release record:
 
 ```sh
-git clone --branch v0.1.3 --depth 1 https://github.com/Holaxis-ai/superbee.git /tmp/superbee-v0.1.3
-cd /tmp/superbee-v0.1.3
+git clone --branch <current-stable-source-tag> --depth 1 \
+  https://github.com/Holaxis-ai/superbee.git /tmp/superbee-migration
+cd /tmp/superbee-migration
 npm ci
 npm run build
 node scripts/migrate-legacy-view-names.mjs --dir <bundle-root> --dry-run

@@ -108,8 +108,8 @@ superbee doc read context-notes/docs-publishing-handoff
 
 Context Notes appear newest first in the type-scoped list. The built-in Kind has a 24-hour
 freshness horizon, so `superbee status` can identify a handoff whose orientation may need review.
-The convention also marks Context Notes as collapsed in browse listings to keep transient handoffs
-from crowding durable knowledge.
+The convention also marks Context Notes as collapsed by default in the document browser to keep
+transient handoffs from crowding durable knowledge.
 
 # Updating an existing handoff
 
@@ -120,17 +120,15 @@ revision:
 superbee doc read context-notes/docs-publishing-handoff \
   --body-out /tmp/superbee-handoff.md --json
 
-superbee doc read context-notes/docs-publishing-handoff \
-  --field head_version
-
-# Edit /tmp/superbee-handoff.md, then use the version returned above.
+# Record the receipt's version, edit /tmp/superbee-handoff.md, then use that same version.
 superbee doc update context-notes/docs-publishing-handoff \
   --body-file /tmp/superbee-handoff.md \
-  --expected-version <head_version>
+  --expected-version <version-from-the-body-read>
 ```
 
-A stale version fails without replacing a newer edit. Read the current note again, reconcile the
-changes, and retry with its current version.
+The body and version must come from the same read. A stale version fails without replacing a newer
+edit. Read the current note again, reconcile the changes, and retry with the version from that new
+body read.
 
 # Recovery and limits
 

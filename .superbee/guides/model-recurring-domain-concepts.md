@@ -109,13 +109,22 @@ existing file. Review that definition and plan an explicit migration.
 
 # 4. Create related knowledge and one instance
 
-Create the dataset record if the bundle does not already contain it:
+Check whether the example dataset ID is already present:
+
+```sh
+superbee doc read datasets/customer-sample
+```
+
+If that command reports that the document is missing, create it:
 
 ```sh
 superbee doc write datasets/customer-sample \
   --type Dataset \
   --title "Customer sample"
 ```
+
+`doc write` can replace an existing document. If the ID already exists, use that record only when it
+is the intended dataset; otherwise choose a new ID and use it in the `--link` command below.
 
 Save this body as `/tmp/onboarding-copy-experiment.md`:
 

@@ -38,12 +38,14 @@ test("the documented Context Note journey leaves a discoverable and conforming h
     ]);
     assert.equal(created.id, "context-notes/docs-publishing-handoff");
 
-    const read = await run(["doc", "read", created.id, "--dir", bundle]);
+    const read = await run([
+      "doc", "read", created.id, "--body-out", body, "--dir", bundle,
+    ]);
     await writeFile(body, "# Summary\n\nThe publication path is ready for final review.\n", "utf8");
     const updated = await run([
       "doc", "update", created.id,
       "--body-file", body,
-      "--expected-version", read.head_version,
+      "--expected-version", read.version,
       "--dir", bundle,
     ]);
     assert.equal(updated.changed, true);
