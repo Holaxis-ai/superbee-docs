@@ -45,15 +45,15 @@ commits and converges the already-durable local bundle through its own partial-s
 | Receipt and history | CLI output plus backend `versions` | The resulting version token and honest backend-specific history; local filesystem history promises only its current revision. |
 | Optional sharing | CLI `sync` and `board-git` | A separate commit, fetch/rebase, conflict-export, push, and awareness transaction with explicit partial-success receipts. |
 
-The [CLI dispatcher](https://github.com/Holaxis-ai/superbee/blob/cb9c0907f2e3b36eedceb054291b5f954d402fda/packages/cli/src/cli.ts#L96-L144)
+The [CLI dispatcher](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/cli/src/cli.ts#L96-L144)
 centralizes public command ownership. The
-[`doc update` adapter](https://github.com/Holaxis-ai/superbee/blob/cb9c0907f2e3b36eedceb054291b5f954d402fda/packages/cli/src/commands/doc/update.ts#L298-L448)
+[`doc update` adapter](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/cli/src/commands/doc/update.ts#L298-L448)
 resolves the route, constructs the candidate, delegates the mutation, and emits the receipt. It does
 not implement compare-and-swap itself.
 
 # One transaction authority
 
-[`mutateDocument`](https://github.com/Holaxis-ai/superbee/blob/cb9c0907f2e3b36eedceb054291b5f954d402fda/packages/core/src/document-mutation.ts#L289-L460)
+[`mutateDocument`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/core/src/document-mutation.ts#L289-L460)
 is the shared transaction policy for create, overwrite, and patch. A normal patch can retry bounded
 version contention. Passing `--expected-version` requests one hard comparison against the version
 the caller previously observed; a stale token fails instead of silently degrading into an
@@ -61,7 +61,7 @@ unconditional write.
 
 Each retry reruns the complete decision against a fresh document/version pair. This matters because
 the lower-level
-[`versionedMutation` primitive](https://github.com/Holaxis-ai/superbee/blob/cb9c0907f2e3b36eedceb054291b5f954d402fda/packages/core/src/mutation.ts#L18-L110)
+[`versionedMutation` primitive](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/core/src/mutation.ts#L18-L110)
 provides version safety, while the caller remains responsible for rechecking mutable domain rules
 inside that decision. Core is therefore the one mutation transaction authority, not the owner of
 every command-specific domain rule.
@@ -73,7 +73,7 @@ backend CAS.
 # Local and remote parity
 
 The
-[`StorageBackend` contract](https://github.com/Holaxis-ai/superbee/blob/cb9c0907f2e3b36eedceb054291b5f954d402fda/packages/core/src/types.ts#L215-L288)
+[`StorageBackend` contract](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/core/src/types.ts#L215-L288)
 keeps OKF semantics above storage. With a local route, the filesystem backend derives the version
 from the serialized bytes and performs the version check and atomic replacement inside the same
 identity-keyed critical section. Exact identity rejects aliases and symlinks; process-local
@@ -101,7 +101,7 @@ mean a Git board has been pushed. For a shared local bundle, a later `sync` runs
 This separation prevents a network failure from erasing local work. A commit can be real even when
 a later fetch, awareness-state write, or push fails, so receipts describe partial success rather
 than pretending the entire operation rolled back. The
-[`sync` orchestrator](https://github.com/Holaxis-ai/superbee/blob/cb9c0907f2e3b36eedceb054291b5f954d402fda/packages/cli/src/commands/sync/orchestrate.ts#L629-L703)
+[`sync` orchestrator](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/cli/src/commands/sync/orchestrate.ts#L629-L703)
 owns that second transaction domain.
 
 # Load-bearing invariants

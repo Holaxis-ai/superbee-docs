@@ -3,6 +3,17 @@
   "renderer": "superbee-docs-mmdc-v1+mermaid-cli@11.16.0+mermaid@11.17.2",
   "diagrams": [
     {
+      "id": "architecture-at-a-glance",
+      "title": "Architecture at a glance",
+      "description": "How Superbee's private workspace layers become one supported installed package.",
+      "source": "diagrams/sources/architecture-at-a-glance.mmd",
+      "publishedSource": "visuals/sources/architecture-at-a-glance.mmd",
+      "documentId": "architecture/architecture-at-a-glance",
+      "viewId": "views-registry/architecture-at-a-glance",
+      "entry": "views/architecture-at-a-glance.html",
+      "access": "none"
+    },
+    {
       "id": "superbee-system-context",
       "title": "Superbee system context",
       "description": "How humans, agents, Superbee, shared bundles, package distribution, and public publication relate.",

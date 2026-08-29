@@ -4,7 +4,7 @@ title: Documentation coverage and delivery
 description: >-
   Ordered page coverage, representative slice, and readiness gates for the
   public documentation.
-superbee_updated_by: openai/codex
+superbee_updated_by: codex
 ---
 # Purpose
 
@@ -110,7 +110,7 @@ source-path change triggers.
 | --- | --- | --- | --- | --- |
 | P0 | System context — how do humans, agents, the local product, bundles, distribution, and public publication fit together? | Outside-in product boundary | System-context flow | current |
 | P0 | Document mutation lifecycle — how does a read and optimistic update become durable state, and when is it separately published through Git? | CLI, core mutation policy, storage seam, local/remote CAS, honest history, optional board sync | Mutation and optional-publication flow | current |
-| P1 | Architecture at a glance — what are the package layers, runtime surfaces, and supported public entry points? | Package DAG, composition root, distribution and private-state boundaries | Layered package DAG | planned |
+| P1 | [Architecture at a glance](../architecture/architecture-at-a-glance.md) — what are the package layers, runtime surfaces, and supported public entry points? | Package roles, composition root, distribution and stable/prerelease entry-point boundaries | Conceptual layered flow with exact manifest evidence | current |
 | P1 | View lifecycle and trust — how do registered/transient Views safely execute across local UI and MCP? | Registration, exact-byte admission, approval, sandbox, bounded bridge, revocation | Launch sequence and capability matrix | planned |
 | P1 | Sharing and freshness — how do local-only, in-tree, and board-channel bundles converge? | Channel states, opportunistic read freshness, sync, conflict export, awareness | State diagram | planned |
 | P1 | Public publication boundary — how does a changing bundle become an immutable, admitted site artifact? | Capture, snapshot, admission, Portal artifact, verified host | Capture-to-site pipeline | planned |
