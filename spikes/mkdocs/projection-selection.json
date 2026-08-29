@@ -1,0 +1,13 @@
+{
+  "schema": "superbee-docs-projection-selection-spike/v0",
+  "supportingDocuments": [
+    "design/docs-operating-model",
+    "design/site-experience-contract",
+    "plans/docs-coverage",
+    "sources/current-release",
+    "sources/superbee-codebase-main",
+    "sources/superbee-core",
+    "sources/superbee-portal",
+    "sources/superbee-release-0.1.3"
+  ]
+}
