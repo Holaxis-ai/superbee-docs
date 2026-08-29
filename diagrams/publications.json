@@ -13,9 +13,9 @@
       "viewId": "views-registry/architecture-at-a-glance",
       "entry": "views/architecture-at-a-glance.html",
       "access": "none",
-      "sourceSha256": "sha256:2b8483423c8fc5a65e76224f97f3d158dbb2d0c506c669592bf905daecde36be",
-      "projectionSha256": "sha256:583a2e675ef63b10fe6a035a22a46c0536654e212659ab0b515a1ce5935cc9b6",
-      "entrySha256": "sha256:bfd314680071fb81d6210d8416ed1d3858fff12fe93a395714c172ecc5612242",
+      "sourceSha256": "sha256:03fe6d5567691d851ec7e24c7affb84f5c8d6be9507c8e5be9f1700384fb4ef3",
+      "projectionSha256": "sha256:a96508e05c96ac2b9445eb168986945a0515cc6ea7c63e387803aaf2c2b5195e",
+      "entrySha256": "sha256:895c2e5112552ba4801d5f50e08437fd1a05d72f0334e3c73606de0ce34a9766",
       "registrationSha256": "sha256:143ccf935e73674cd2f83705ceaf32608f93ec0eb2b3e4c19541a8cb9cf27b4c"
     },
     {
@@ -41,5 +41,5 @@
       "registrationSha256": "sha256:42a8a4a54f685276e75585223ddeacda02c552e38d0d61b0adfca31ecab3df70"
     }
   ],
-  "receiptDigest": "sha256:e1c0c713b9433577a2ba077b6692fa899efbfa2b5cf1e75b79217576e74da5b4"
+  "receiptDigest": "sha256:5a30f036493243a0f48d896768519c4fedf53c815d1d3db5eb1eea394617d801"
 }

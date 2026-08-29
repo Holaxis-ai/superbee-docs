@@ -3,13 +3,13 @@ flowchart TB
   accDescr {
     The installed superbee package composes private host and projection packages plus reusable
     capabilities. Those packages depend inward on core, which owns bundle semantics and storage
-    contracts. Publication modules and built UI assets are shipped beside the CLI without making
-    private workspaces separate user installs.
+    contracts. On the current main and next release line, publication modules and built UI assets
+    are shipped beside the CLI without making private workspaces separate user installs.
   }
 
-  subgraph distribution["Composition and distribution"]
+  subgraph distribution["Composition and distribution — current main and next"]
     cli["superbee<br/>CLI and root export"]
-    publicModules["publication exports<br/>snapshot API and bridge"]
+    publicModules["next channel exports<br/>snapshot API and bridge"]
   end
 
   subgraph hosts["Host and projection composites"]

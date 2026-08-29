@@ -13,7 +13,7 @@
         "id": "views-registry/architecture-at-a-glance",
         "entry": "views/architecture-at-a-glance.html",
         "access": "none",
-        "entrySha256": "sha256:bfd314680071fb81d6210d8416ed1d3858fff12fe93a395714c172ecc5612242"
+        "entrySha256": "sha256:895c2e5112552ba4801d5f50e08437fd1a05d72f0334e3c73606de0ce34a9766"
       },
       {
         "id": "views-registry/document-mutation-lifecycle",
