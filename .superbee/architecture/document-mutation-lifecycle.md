@@ -4,7 +4,7 @@ title: Document mutation lifecycle
 description: >-
   How an optimistic document update becomes durable state and is optionally
   published through Git.
-superbee_updated_by: openai/codex
+superbee_updated_by: codex
 ---
 # Question answered
 
@@ -157,6 +157,8 @@ Re-evaluate this page when any of these source paths changes:
 - `packages/cli/src/commands/doc/update.ts`
 - `packages/cli/src/mutate.ts`
 - `packages/core/src/document-mutation.ts`
+- `packages/core/src/document-write-policy.ts`
+- `packages/core/src/mutation-attribution.ts`
 - `packages/core/src/mutation.ts`
 - `packages/core/src/types.ts`
 - `packages/core/src/backend.ts`
@@ -165,6 +167,8 @@ Re-evaluate this page when any of these source paths changes:
 - `packages/core/src/remote-backend.ts`
 - `packages/server/src/router.ts`
 - `packages/cli/src/commands/sync/orchestrate.ts`
+- `packages/cli/src/commands/sync/converge.ts`
+- `packages/cli/src/commands/sync/establish.ts`
 - `packages/board-git/src/channel.ts`
 - `packages/board-git/src/engine.ts`
 - `packages/board-git/src/flow.ts`

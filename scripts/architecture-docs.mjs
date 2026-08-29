@@ -149,7 +149,14 @@ async function loadPages(root) {
   const pages = [];
   for (const name of names) {
     const raw = await readFile(resolve(directory, name), "utf8");
-    if (!raw.includes("../sources/superbee-codebase-main.md")) continue;
+    if (!raw.includes("../sources/superbee-codebase-main.md")) {
+      if (SUPERBEE_BLOB_URL.test(raw)) {
+        SUPERBEE_BLOB_URL.lastIndex = 0;
+        fail(`architecture/${basename(name, ".md")} cites Superbee code without the governing Source link`);
+      }
+      SUPERBEE_BLOB_URL.lastIndex = 0;
+      continue;
+    }
     pages.push(parseArchitecturePage(raw, `architecture/${basename(name, ".md")}`));
   }
   if (pages.length === 0) fail("no architecture pages are governed by the Superbee codebase Source");

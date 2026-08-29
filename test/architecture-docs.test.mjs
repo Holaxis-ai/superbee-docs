@@ -63,6 +63,7 @@ async function fixture() {
   await git(source, "config", "user.email", "architecture@example.test");
   await git(source, "remote", "add", "origin", "https://github.com/Holaxis-ai/superbee.git");
   await writeFile(join(source, "packages/core/src/backend.ts"), "export const one = 1;\nexport const two = 2;\n");
+  await writeFile(join(source, "packages/core/src/document-write-policy.ts"), "export const policy = 1;\n");
   await writeFile(join(source, "README.md"), "initial\n");
   const pin = await commit(source, "initial source");
   await writeFile(join(docs, ".superbee/sources/superbee-codebase-main.md"), sourceDocument(pin));
@@ -110,6 +111,20 @@ test("forward impact distinguishes no impact from semantic review and supports o
     assert.equal(historical.mode, "historical-change");
     assert.equal(historical.status, "semantic_review_required");
     assert.deepEqual(historical.changed, [{ status: "M", path: "packages/core/src/backend.ts" }]);
+
+    const governedPage = architecturePage(value.pin).replace(
+      "- `packages/core/src/backend.ts`",
+      "- `packages/core/src/backend.ts`\n- `packages/core/src/document-write-policy.ts`",
+    );
+    await writeFile(join(value.docs, ".superbee/architecture/mutation.md"), governedPage);
+    await writeFile(join(value.source, "packages/core/src/document-write-policy.ts"), "export const policy = 2;\n");
+    const policyHead = await commit(value.source, "change mutation write policy");
+    const policyImpact = await architectureImpact({ root: value.docs, source: value.source, head: policyHead });
+    assert.equal(policyImpact.status, "semantic_review_required");
+    assert.deepEqual(policyImpact.pages[0].matches, [
+      { status: "M", path: "packages/core/src/backend.ts" },
+      { status: "M", path: "packages/core/src/document-write-policy.ts" },
+    ]);
   } finally {
     await rm(value.root, { recursive: true, force: true });
   }
@@ -176,6 +191,27 @@ test("wrong repository identity and divergent forward history never report no im
     await assert.rejects(
       architectureImpact({ root: value.docs, source: value.source, head: divergent }),
       /is not a descendant/,
+    );
+  } finally {
+    await rm(value.root, { recursive: true, force: true });
+  }
+});
+
+test("a code-backed architecture page cannot silently leave source governance", async () => {
+  const value = await fixture();
+  try {
+    await writeFile(
+      join(value.docs, ".superbee/architecture/sentinel.md"),
+      architecturePage(value.pin),
+    );
+    const omitted = architecturePage(value.pin).replace(
+      "\n[pinned implementation evidence](../sources/superbee-codebase-main.md)",
+      "",
+    );
+    await writeFile(join(value.docs, ".superbee/architecture/mutation.md"), omitted);
+    await assert.rejects(
+      checkArchitecture({ root: value.docs, source: value.source }),
+      /cites Superbee code without the governing Source link/,
     );
   } finally {
     await rm(value.root, { recursive: true, force: true });
