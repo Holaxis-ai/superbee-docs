@@ -117,7 +117,7 @@ host exposes text-only MCP results or lacks MCP Apps presentation.
 For a document, confirm that the title and body match:
 
 ```sh
-superbee doc read <id>
+superbee doc read <id> --out -
 ```
 
 For a registered View, confirm that it is available and valid:

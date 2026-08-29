@@ -122,7 +122,7 @@ The `selected_by` value identifies `explicit-dir`, `project-binding`, or `discov
 original command with `--dir <intended-path>` to prove the intended bundle works before changing a
 binding.
 
-Check every ancestor between the current directory and repository root for `.superbee.json` or
+Check every ancestor between the current directory and the filesystem root for `.superbee.json` or
 `.agentstate.json`. The nearest binding wins. A private workspace catalog entry has no role in bare
 CLI selection and never becomes ambient project context.
 
@@ -215,6 +215,10 @@ These procedures are verified against
 [`0.1.3` bundle resolver](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/src/bundle.ts),
 and
 [`0.1.3` locator tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/test/bundle-locate.test.ts).
+Bundle-health behavior is grounded in the tagged
+[`status` implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/src/commands/status.ts)
+and
+[`status` tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/test/status.test.ts).
 
 Re-evaluate this page when the stable release, installation model, supported hosts, setup plan,
 private-state migration, bundle-selection precedence, project binding format, catalog boundary, or

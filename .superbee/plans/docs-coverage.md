@@ -27,14 +27,14 @@ workflow before broad generation.
 | P0 | Install and set up Superbee | Tutorial | First-time user | current | Current stable release evidence, CLI help, isolated setup plans |
 | P0 | Create your first durable workspace | Tutorial | First-time user | current | Current stable release disposable init, write/read, discovery, home, status, and tagged doc-open behavior |
 | P0 | Bundles, documents, and relationships | Explanation | New and active user | current | Current stable release help, OKF semantics, product source |
-| P0 | Preserve context between sessions | How-to | Active user | planned | Context-note recipe and session behavior |
-| P0 | Understand reusable domain structure | Explanation | Active user and agent | planned | Kinds, recipes, validation, and current Skill |
-| P0 | Model recurring domain concepts | How-to | Active user and agent | planned | Kinds, recipes, validation, and current Skill |
-| P0 | Show documents and Views to a human | How-to | Active user and agent | planned | CLI open, MCP Apps, View runtime, host probes |
+| P0 | Preserve context between sessions | How-to | Active user | current | Stable Context Note recipe plus a disposable create, edit, link, and resume journey |
+| P0 | Understand reusable domain structure | Explanation | Active user and agent | current | Stable Kinds, recipes, validation, View behavior, and current Skill |
+| P0 | Model recurring domain concepts | How-to | Active user and agent | current | Stable recipe and Kind commands plus a disposable modeled-domain journey |
+| P0 | Show documents and Views to a human | How-to | Active user and agent | current | Stable CLI help, tagged browser and MCP implementations, and live host probes |
 | P0 | CLI overview | Reference | Active user and integrator | current | Generated current-release help and installed package |
-| P0 | Troubleshoot setup and bundle resolution | How-to | First-time user and integrator | planned | Setup conductor, resolution tests, known failures |
+| P0 | Troubleshoot setup and bundle resolution | How-to | First-time user and integrator | current | Stable setup conductor, bundle resolution tests, and isolated failure probes |
 | P0 | Current release | Reference | Existing user | current | npm/GitHub release receipts |
-| P0 | Migrate or upgrade safely | How-to | Existing user | planned | Release receipts and migration probes |
+| P0 | Migrate or upgrade safely | How-to | Existing user | current | Stable release receipts, private-state source, and disposable OKF v0.1 compatibility journey |
 | P0 | System context | Explanation | All technical readers | current | Pinned Superbee and Portal source; Diagram is its visual representation |
 | P0 | Document mutation lifecycle | Explanation | Contributor and integrator | current | Superbee codebase at `cb9c0907f2e3b36eedceb054291b5f954d402fda`; verified read/update/history sequence; registered diagram |
 
