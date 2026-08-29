@@ -14,7 +14,7 @@ const REPOSITORY = "https://github.com/Holaxis-ai/superbee";
 const SCHEMA = "https://getsuperbee.com/schemas/architecture-freshness-result/v1";
 const FULL_SHA = /^[0-9a-f]{40}$/u;
 const SAFE_PATH = /^(?![-!])(?=.{1,240}$)[A-Za-z0-9._/*-]+$/u;
-const SUPERBEE_BLOB_URL = /https:\/\/github\.com\/Holaxis-ai\/superbee\/blob\/[^\s)<>"']+/gu;
+const SUPERBEE_BLOB_URL = /https:\/\/github\.com\/Holaxis-ai\/superbee\/blob\/[^\s)<>"']+/giu;
 const CITATION = /https:\/\/github\.com\/Holaxis-ai\/superbee\/blob\/([0-9a-f]{40})\/([A-Za-z0-9._/-]+)#L([1-9][0-9]*)(?:-L([1-9][0-9]*))?(?=[\s)])/gu;
 
 function fail(message) {

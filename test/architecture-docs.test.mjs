@@ -139,6 +139,12 @@ test("broken anchors, mixed citation pins, and unmatched or unsafe triggers fail
     ));
     await assert.rejects(checkArchitecture({ root: value.docs, source: value.source }), /noncanonical or floating/);
 
+    await writeFile(page, architecturePage(value.pin).replace(
+      "# Change triggers",
+      `[case-variant floating](https://github.com/holaxis-ai/superbee/blob/main/packages/core/src/backend.ts#L1)\n\n# Change triggers`,
+    ));
+    await assert.rejects(checkArchitecture({ root: value.docs, source: value.source }), /noncanonical or floating/);
+
     await writeFile(page, architecturePage(value.pin).replace("# Change triggers", `[missing anchor](https://github.com/Holaxis-ai/superbee/blob/${value.pin}/packages/core/src/backend.ts)\n\n# Change triggers`));
     await assert.rejects(checkArchitecture({ root: value.docs, source: value.source }), /noncanonical or floating/);
 
