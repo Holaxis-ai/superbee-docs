@@ -1,0 +1,54 @@
+name: Architecture freshness
+
+on:
+  schedule:
+    - cron: "37 6 * * 1"
+  workflow_dispatch:
+    inputs:
+      head:
+        description: "Superbee commit or ref to compare with the documentation source pin"
+        required: false
+        default: "main"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: architecture-freshness
+  cancel-in-progress: false
+
+jobs:
+  impact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: Holaxis-ai/superbee
+          ref: ${{ inputs.head || 'main' }}
+          fetch-depth: 0
+          persist-credentials: false
+          path: source/superbee
+
+      - name: Identify architecture impact
+        run: |
+          set -euo pipefail
+          HEAD_SHA="$(git -C source/superbee rev-parse HEAD)"
+          node scripts/architecture-docs.mjs impact --source source/superbee --head "$HEAD_SHA" | tee architecture-impact.json
+          node --input-type=module <<'NODE' >> "$GITHUB_STEP_SUMMARY"
+          import { readFileSync } from "node:fs";
+          const result = JSON.parse(readFileSync("architecture-impact.json", "utf8"));
+          console.log("## Architecture freshness");
+          console.log(`- source pin: \`${result.sourceCommit}\``);
+          console.log(`- compared head: \`${result.head}\``);
+          console.log(`- result: **${result.status}**`);
+          for (const page of result.pages) {
+            console.log(`- ${page.id}: ${page.matches.map((row) => `\`${row.path}\``).join(", ")}`);
+          }
+          NODE
+          test "$(node -p 'JSON.parse(require("fs").readFileSync("architecture-impact.json", "utf8")).status')" = "no_impact" \
+            || { echo "::error::architecture semantic review is required"; exit 1; }
