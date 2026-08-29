@@ -27,6 +27,6 @@ flowchart TD
   filesystem --> version["New content version"]
   http --> version
   version --> receipt["Receipt<br/>changed true, new version"]
-  receipt --> history["Backend-honest history"]
+  actor --> history["Separate doc history read<br/>backend-honest revisions"]
 
   local -. "separate sync command" .-> sync["Git board transaction<br/>commit, converge, push, awareness"]

@@ -27,6 +27,17 @@ for (const path of await files(root)) {
   const name = relative(root, path);
   if (credential.test(text)) throw new Error(`public-boundary credential pattern in ${name}`);
   if (workstation.test(text)) throw new Error(`public-boundary workstation path in ${name}`);
+  if (name.startsWith(`.superbee/`) && name.endsWith(`.md`) && text.startsWith(`---\n`)) {
+    const firstEnd = text.indexOf(`\n---\n`, 4);
+    const body = firstEnd >= 0 ? text.slice(firstEnd + 5) : ``;
+    if (body.startsWith(`---\n`)) {
+      const secondEnd = body.indexOf(`\n---\n`, 4);
+      const block = secondEnd >= 0 ? body.slice(4, secondEnd) : ``;
+      if (/^(?:type|title|description|superbee_updated_by):/m.test(block)) {
+        throw new Error(`duplicate frontmatter block in ${name}`);
+      }
+    }
+  }
 }
 
 const { stdout } = await execFileAsync("superbee", ["status", "--dir", resolve(root, ".superbee"), "--json"], { maxBuffer: 4 * 1024 * 1024 });

@@ -53,7 +53,7 @@ not implement compare-and-swap itself.
 
 # One transaction authority
 
-[`mutateDocument`](https://github.com/Holaxis-ai/superbee/blob/cb9c0907f2e3b36eedceb054291b5f954d402fda/packages/core/src/document-mutation.ts#L289-L423)
+[`mutateDocument`](https://github.com/Holaxis-ai/superbee/blob/cb9c0907f2e3b36eedceb054291b5f954d402fda/packages/core/src/document-mutation.ts#L289-L460)
 is the shared transaction policy for create, overwrite, and patch. A normal patch can retry bounded
 version contention. Passing `--expected-version` requests one hard comparison against the version
 the caller previously observed; a stale token fails instead of silently degrading into an

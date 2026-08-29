@@ -13,7 +13,7 @@
         "id": "views-registry/document-mutation-lifecycle",
         "entry": "views/document-mutation-lifecycle.html",
         "access": "none",
-        "entrySha256": "sha256:0af297822a8290b59d7c7b696d7dbff286c88da4ebfc06f58e1134f88310b6e0"
+        "entrySha256": "sha256:a252ecc62134b97605e2da97ed3619d5edc76cfe65007f8dd2760ab016567cd5"
       },
       {
         "id": "views-registry/superbee-system-context",

@@ -13,9 +13,9 @@
       "viewId": "views-registry/document-mutation-lifecycle",
       "entry": "views/document-mutation-lifecycle.html",
       "access": "none",
-      "sourceSha256": "sha256:61834bce6938b0dfb7f39ca535cb64c25cbdf1c8d93fc4dfed674470cd332b9c",
-      "projectionSha256": "sha256:ed5983f0492acb29657fabcadb33b41cc99ce9ac3b68726cb38c658536f0e1ac",
-      "entrySha256": "sha256:0af297822a8290b59d7c7b696d7dbff286c88da4ebfc06f58e1134f88310b6e0",
+      "sourceSha256": "sha256:62ea8a1d9d512ac0e425fce6a07bacbe6b5ab2fa64c774cc31efddb3ad0c0639",
+      "projectionSha256": "sha256:5c7e27351fc5c126aded45cad027634ce985f3bae05fd5ee8f0e7336a5971617",
+      "entrySha256": "sha256:a252ecc62134b97605e2da97ed3619d5edc76cfe65007f8dd2760ab016567cd5",
       "registrationSha256": "sha256:3127eea8f0248ec3570e540ebbbc4feff35b2caed56f563b3d452555c6abe189"
     },
     {
@@ -30,5 +30,5 @@
       "registrationSha256": "sha256:42a8a4a54f685276e75585223ddeacda02c552e38d0d61b0adfca31ecab3df70"
     }
   ],
-  "receiptDigest": "sha256:f3eb4e91db19f75bd425823689ee10cc6fce4b61b102c6c824a78bc52abf7dc0"
+  "receiptDigest": "sha256:9e5140ea716169700f8f8b4aaac4e03e9468dbbe7b3403f6a853c1372540cf5f"
 }

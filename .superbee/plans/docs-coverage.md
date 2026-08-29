@@ -6,14 +6,6 @@ description: >-
   public documentation.
 superbee_updated_by: openai/codex
 ---
----
-type: Plan
-title: Documentation coverage and delivery
-description: >-
-  Ordered page coverage, representative slice, and readiness gates for the
-  public documentation.
-superbee_updated_by: openai/codex
----
 # Purpose
 
 This is the shared, ordered coverage plan for Superbee's public documentation. It controls scope and
