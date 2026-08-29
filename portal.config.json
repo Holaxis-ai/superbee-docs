@@ -50,20 +50,30 @@
         "label": "Get started",
         "documents": [
           "learn/start-here",
-          "get-started/install-and-setup"
+          "get-started/install-and-setup",
+          "get-started/first-durable-workspace"
         ]
       },
       {
         "label": "Core concepts",
         "documents": [
           "concepts/what-superbee-is",
-          "concepts/bundles-documents-and-relationships"
+          "concepts/bundles-documents-and-relationships",
+          "concepts/reusable-domain-structure"
         ]
       },
       {
         "label": "Guides",
         "documents": [
-          "get-started/first-durable-workspace"
+          "guides/preserve-context-between-sessions",
+          "guides/model-recurring-domain-concepts",
+          "guides/show-documents-and-views"
+        ]
+      },
+      {
+        "label": "Troubleshooting",
+        "documents": [
+          "troubleshooting/setup-and-bundle-resolution"
         ]
       },
       {
@@ -75,7 +85,8 @@
       {
         "label": "Releases and migrations",
         "documents": [
-          "releases/current"
+          "releases/current",
+          "guides/migrate-or-upgrade-safely"
         ]
       },
       {

@@ -17,10 +17,17 @@ Choose the path that matches what you need:
 - **Start using it:** [install and set up Superbee](../get-started/install-and-setup.md), then
   [create your first durable workspace](../get-started/first-durable-workspace.md).
 - **Understand the system:** see how [bundles, documents, and relationships](../concepts/bundles-documents-and-relationships.md)
-  fit together, or use the [CLI overview](../reference/cli-overview.md).
+  fit together, then learn how to choose [reusable domain structure](../concepts/reusable-domain-structure.md).
+- **Continue useful work:** [preserve context between sessions](../guides/preserve-context-between-sessions.md),
+  [model a recurring domain concept](../guides/model-recurring-domain-concepts.md), or
+  [show a document or View to a human](../guides/show-documents-and-views.md).
+- **Find or fix a command:** use the [CLI overview](../reference/cli-overview.md) or
+  [troubleshoot setup and bundle resolution](../troubleshooting/setup-and-bundle-resolution.md).
+- **Upgrade an existing installation:** follow the
+  [migration and upgrade guide](../guides/migrate-or-upgrade-safely.md).
 
-This is an intentionally small foundation: pages are added only when their behavior is verified
-against public product evidence and their place in a real reader journey is clear.
+Each procedural page is verified against public product evidence and a representative reader
+journey.
 
 Contributors can inspect the [documentation operating model](../design/docs-operating-model.md),
 [site experience contract](../design/site-experience-contract.md), and

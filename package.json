@@ -17,6 +17,7 @@
     "diagram:upgrade-static": "superbee-docs diagram upgrade-static --root . --config portal.config.json",
     "diagram:rollback": "superbee-docs diagram rollback --root . --config portal.config.json",
     "diagram:check": "superbee-docs diagram check --root . --config portal.config.json",
+    "prose:check": "node scripts/prose-style.mjs",
     "bundle:check": "node scripts/validate.mjs",
     "portal:check": "node scripts/documentation-outputs.mjs check",
     "portal:build": "node scripts/documentation-outputs.mjs build",
@@ -27,7 +28,7 @@
     "cloudflare:preview": "wrangler versions upload",
     "cloudflare:deploy": "wrangler deploy",
     "test": "node --test test/*.test.mjs",
-    "check": "npm run diagram:check && npm run docs:release:check && npm run architecture:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run mkdocs:build && npm run cloudflare:check && npm test"
+    "check": "npm run diagram:check && npm run docs:release:check && npm run architecture:check && npm run prose:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run mkdocs:build && npm run cloudflare:check && npm test"
   },
   "devDependencies": {
     "wrangler": "4.127.1"

@@ -4,11 +4,11 @@ title: Architecture at a glance
 description: >-
   How Superbee's private workspace layers become one supported installed
   package.
-superbee_updated_by: codex
+superbee_updated_by: openai/codex
 ---
 # Question answered
 
-How is Superbee divided into stable semantic, reusable capability, host, and distribution layers—and
+How is Superbee divided into stable semantic, reusable capability, host, and distribution layers, and
 which of those boundaries are supported entry points for an installed user?
 
 Superbee keeps bundle meaning and storage contracts in one core. Private workspace packages build
@@ -39,7 +39,7 @@ and its
 | Layer | Packages and responsibility |
 | --- | --- |
 | Composition and distribution | `superbee` CLI owns the installed command surface, setup, orchestration, and packaging; current main/next also declares the import exports. It composes capabilities but does not redefine their semantics. |
-| Host and projection composites | `ui-server`, `mcp-app`, `publication`, and `ui` adapt bundles for local browser use, MCP Apps hosts, read-only snapshots, and human presentation. The UI is embedded as built assets rather than becoming a CLI runtime package dependency. |
+| Host and projection composites | `ui-server`, `mcp-app`, `publication`, and `ui` adapt bundles for local browser use, MCP Apps hosts, read-only snapshots, and human presentation. The CLI embeds the built UI assets and has no runtime package dependency on the UI. |
 | Reusable capabilities | `board-git`, `server`, `view-runtime`, and `markdown-renderer` provide Git coordination, the reference HTTP adapter, safe View execution, and Markdown rendering over the semantic base. |
 | Semantic and storage base | `core` owns OKF bundle/document meaning, Kinds, links, queries, mutation policy, and storage interfaces. It has no production dependency on another Superbee workspace. |
 
@@ -66,7 +66,7 @@ use **Expand** when its labels need more room on a narrow screen. The table and 
 complete readable equivalent, while the pinned manifests preserve the exact package responsibilities
 and dependencies.
 
-# Load-bearing boundaries
+# Core architecture constraints
 
 - Core is the semantic authority. Adapters can transport or present bundle state, but they do not
   create a second definition of documents, Kinds, links, or mutation safety.
@@ -74,8 +74,9 @@ and dependencies.
   site; outer packages may combine inner capabilities.
 - The CLI is the composition and distribution root. Its aliases allow one self-contained executable
   while the workspace graph remains modular for development.
-- Publication is read-only and Views are projections. Neither surface becomes a hidden write
-  authority over the source bundle.
+- Publication is read-only. Views cannot mutate the source bundle on their own. A `bundle-propose`
+  View may submit one versioned proposal; the trusted shell applies it only after separate human
+  confirmation and version checks.
 
 For how these layers meet humans, agents, Git, and public sites, continue to the
 [system context](superbee-system-context.md). For the write path and its transaction authorities,

@@ -42,8 +42,8 @@ source bundle.
 
 # Change triggers
 
-Re-evaluate this diagram when the core storage authority, CLI installation model, publication
-snapshot boundary, Portal authority, or supported sharing model changes materially.
+Re-evaluate this diagram when the core storage contract, CLI installation model, publication
+snapshot contract, Portal responsibilities, or supported sharing model changes materially.
 
 [product evidence](../sources/superbee-core.md)
 

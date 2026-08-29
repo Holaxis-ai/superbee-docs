@@ -26,13 +26,13 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     const navigated = config.documentation.navigation.flatMap((section) => section.documents);
     const selected = [...new Set([...navigated, ...selection.supportingDocuments])].sort();
 
-    assert.equal(result.selectedDocuments, 19);
-    assert.equal(result.navigatedDocuments, 11);
+    assert.equal(result.selectedDocuments, 25);
+    assert.equal(result.navigatedDocuments, 17);
     assert.equal(result.supportingDocuments, 8);
     assert.deepEqual(projectionManifest.selectedDocuments, selected);
     assert.deepEqual(projectionManifest.supportingDocuments, selection.supportingDocuments);
-    assert.equal(mkdocsManifest.documents.length, 19);
-    assert.equal(artifact.manifest.counts.documents, 24);
+    assert.equal(mkdocsManifest.documents.length, 25);
+    assert.equal(artifact.manifest.counts.documents, 30);
     for (const omitted of ["index", ...config.portal.views.map((row) => row.id)]) {
       assert.equal(projectionManifest.selectedDocuments.includes(omitted), false, omitted);
       assert.ok(artifact.files.has(`bundle/${omitted}.md`), omitted);

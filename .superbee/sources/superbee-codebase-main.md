@@ -5,13 +5,12 @@ description: >-
   Pinned implementation evidence for maintained Superbee architecture
   documentation.
 resource: 'https://github.com/Holaxis-ai/superbee'
-superbee_updated_by: codex
+superbee_updated_by: openai/codex
 ---
-# Evidence boundary
+# Evidence scope
 
 This source pins the implementation reviewed for the maintained architecture pages. It describes
-the repository at one exact commit; it is not a claim that every behavior at that commit has shipped
-on npm's stable channel.
+the repository at one commit. Stable npm behavior requires separate release evidence.
 
 - `source_repository`: `https://github.com/Holaxis-ai/superbee`
 - `source_commit`: `54a63382506a1180c7aad96f46c6503f4d7a3a18`
@@ -21,7 +20,7 @@ on npm's stable channel.
 # Evidence contract
 
 An architecture page governed by this source must cite the specific files that support its material
-claims, state the boundary it intentionally omits, and name the source paths whose changes should
+claims, state the scope it intentionally omits, and name the source paths whose changes should
 trigger re-evaluation. The pinned commit makes the explanation reproducible; the page's change
 triggers make later drift visible.
 

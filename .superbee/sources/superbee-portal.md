@@ -5,7 +5,7 @@ description: Pinned Portal evidence for the public documentation bundle.
 resource: 'https://github.com/Holaxis-ai/superbee-portal'
 superbee_updated_by: openai/codex
 ---
-# Evidence boundary
+# Evidence scope
 
 The Superbee Portal repository is authoritative for deterministic human publication artifacts,
 registered-View admission, read-only publication behavior, target adapters, and the generic browser
@@ -35,8 +35,8 @@ documentation projection, Portal adapter, MkDocs adapter, and static-first diagr
 The documentation toolchain binds selected documents, relationships, navigation, brand, and verified
 diagram identities and exact SVG bytes into one host-neutral owned projection. Portal and MkDocs
 consume that projection through closed adapter packages. The source publication snapshot can close
-before target materialization, and neither adapter selects additional documents by recursively
-following links. Portal's generic client remains the authority for exact admission, fresh sandboxed
+before target materialization. Both adapters consume only the documents included in the projection.
+Portal's generic client remains the authority for exact admission, fresh sandboxed
 frame creation, bridge transport, source and generation fencing, and disposal when a client
 intentionally launches a genuine View.
 

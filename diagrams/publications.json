@@ -25,11 +25,11 @@
       "documentId": "architecture/architecture-at-a-glance",
       "publishedSource": "visuals/sources/architecture-at-a-glance.mmd",
       "publishedSvg": "visuals/diagrams/architecture-at-a-glance.svg",
-      "sourceSha256": "sha256:03fe6d5567691d851ec7e24c7affb84f5c8d6be9507c8e5be9f1700384fb4ef3",
-      "projectionSha256": "sha256:a96508e05c96ac2b9445eb168986945a0515cc6ea7c63e387803aaf2c2b5195e",
-      "svgSha256": "sha256:a6ef562c1fabfe5a50828f086cd1b168b561b4c7ccc79b3ebba6a55db21a395e",
-      "sourceSize": 1264,
-      "svgSize": 21096
+      "sourceSha256": "sha256:83d1589a892cf30363e6aa63e2f1ae2070f5ea933d6e5f81f358b8330e6aabf5",
+      "projectionSha256": "sha256:3a0e85d77dee01ca3991edb1ef4dd6575924ea304e8862a6792fb5e4bf6f130e",
+      "svgSha256": "sha256:bcc2e387fd74c68d2aad803a6d7d1a2d2adcd3241a6660517f0c72f707b2845a",
+      "sourceSize": 1261,
+      "svgSize": 21092
     },
     {
       "id": "document-mutation-lifecycle",
@@ -71,5 +71,5 @@
       "svgSize": 42048
     }
   ],
-  "receiptDigest": "sha256:bbbddece49a96f626c583bf829c9e44f723d3ba9671ddcd83d8d7dfa8452353e"
+  "receiptDigest": "sha256:615b9a109b47cd48fd8587a97488351c84331474aee8308d9429360d257d1a2e"
 }

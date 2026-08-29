@@ -4,12 +4,12 @@ title: View lifecycle and trust
 description: >-
   How exact View bytes are admitted, authorized, contained, bridged, confirmed,
   and revoked.
-superbee_updated_by: codex
+superbee_updated_by: openai/codex
 ---
 # Question answered
 
 How can Superbee run bundle-owned or agent-authored HTML without giving that code ambient bundle
-authority—and how does a host prove each request still comes from the exact bytes, capability, and
+access, and how does a host prove each request still comes from the exact bytes, capability, and
 launch the human trusted?
 
 A View is executable HTML admitted into an immutable, process-local launch. An opaque-origin script
@@ -24,8 +24,8 @@ stable authority.
 | Registered Views | Transient Views |
 | --- | --- |
 | A durable `type: View` registry document names an entry blob, access level, and optional exact `entry_version`. The registry and blob are discoverable by ID. | An MCP caller supplies HTML for one process-local launch. It is not cataloged; omitted access defaults to `bundle-read`, while explicit `none` may be bundleless. |
-| A launch rereads the registry and blob, admits the current bytes, and captures registry version, entry, access, content type, and content hash. | A launch admits the supplied bytes into the same runtime and captures their hash, access, and—when data access is possible—the exact bundle identity. |
-| A CLI host may persist approval outside the bundle, but only for the identical registered subject. The launch itself is still bounded and process-local. | Approval is session/process-local and never aliases durable registered approval. Local browser UI does not launch transient Views today. |
+| A launch rereads the registry and blob, admits the current bytes, and captures registry version, entry, access, content type, and content hash. | A launch admits the supplied bytes into the same runtime and captures their hash, access, and the exact bundle identity when data access is possible. |
+| A CLI host may persist approval outside the bundle for the identical registered subject. The launch itself is still bounded and process-local. | Approval is session/process-local and never aliases durable registered approval. Local browser UI does not launch transient Views today. |
 | Any registry or entry change makes the old launch stale. Prior approval stops matching when the registered identity, admitted bytes or type, access, or policy changes; a metadata-only change to the same authorization subject may reuse it for a fresh launch. | Closing, expiry, navigation, workspace change, or replacement HTML revokes the launch. |
 
 Registration is fail-closed: the
@@ -35,8 +35,8 @@ resolves absent or unknown access to `none`, and
 checks safe registry and entry identities plus an optional canonical entry digest. Every launch still
 hashes and pins the admitted bytes even when registration omits that digest.
 
-Saving a transient View does not accept replacement HTML. It persists the server-owned exact
-approved bytes create-only—blob before registration—and creates a new durable identity. Launching
+Saving a transient View does not accept replacement HTML. It persists the server-owned exact approved
+bytes in create-only order, with the blob before registration, and creates a new registered identity. Launching
 that registered identity requires its own authorization; transient trust is never silently promoted.
 
 # One launch-and-trust pipeline
@@ -72,13 +72,13 @@ The complete nonvisual lifecycle is:
 7. Around every bounded bridge request, resolve launch currentness and authorization before work and
    again before replying. The
    [`bridge fence`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/view-runtime/src/bridge.ts#L325-L400)
-   revokes stale work instead of delivering data across a changed authority boundary.
+   revokes stale work before data can cross a changed authorization scope.
 8. Return a bounded read result, or pass a narrow proposal to the trusted shell. A proposal mutates
    nothing until the shell displays it, receives a separate one-shot human confirmation, rechecks
    launch and expected document version, validates edition and Kind conformance, and delegates to
    core mutation policy.
 
-# Access is not write authority
+# Access levels and write control
 
 - `none` receives no bundle-data access and needs no data authorization. It retains only the
   capability-independent `open-page` navigation request. Registered local UI Views may use it. MCP

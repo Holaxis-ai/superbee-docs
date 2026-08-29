@@ -27,14 +27,14 @@ workflow before broad generation.
 | P0 | Install and set up Superbee | Tutorial | First-time user | current | Current stable release evidence, CLI help, isolated setup plans |
 | P0 | Create your first durable workspace | Tutorial | First-time user | current | Current stable release disposable init, write/read, discovery, home, status, and tagged doc-open behavior |
 | P0 | Bundles, documents, and relationships | Explanation | New and active user | current | Current stable release help, OKF semantics, product source |
-| P0 | Preserve context between sessions | How-to | Active user | planned | Context-note recipe and session behavior |
-| P0 | Understand reusable domain structure | Explanation | Active user and agent | planned | Kinds, recipes, validation, and current Skill |
-| P0 | Model recurring domain concepts | How-to | Active user and agent | planned | Kinds, recipes, validation, and current Skill |
-| P0 | Show documents and Views to a human | How-to | Active user and agent | planned | CLI open, MCP Apps, View runtime, host probes |
+| P0 | Preserve context between sessions | How-to | Active user | current | Stable Context Note recipe plus a disposable create, edit, link, and resume journey |
+| P0 | Understand reusable domain structure | Explanation | Active user and agent | current | Stable Kinds, recipes, validation, View behavior, and current Skill |
+| P0 | Model recurring domain concepts | How-to | Active user and agent | current | Stable recipe and Kind commands plus a disposable modeled-domain journey |
+| P0 | Show documents and Views to a human | How-to | Active user and agent | current | Stable CLI help, tagged browser and MCP implementations, and live host probes |
 | P0 | CLI overview | Reference | Active user and integrator | current | Generated current-release help and installed package |
-| P0 | Troubleshoot setup and bundle resolution | How-to | First-time user and integrator | planned | Setup conductor, resolution tests, known failures |
+| P0 | Troubleshoot setup and bundle resolution | How-to | First-time user and integrator | current | Stable setup conductor, bundle resolution tests, and isolated failure probes |
 | P0 | Current release | Reference | Existing user | current | npm/GitHub release receipts |
-| P0 | Migrate or upgrade safely | How-to | Existing user | planned | Release receipts and migration probes |
+| P0 | Migrate or upgrade safely | How-to | Existing user | current | Stable release receipts, private-state source, and disposable OKF v0.1 compatibility journey |
 | P0 | System context | Explanation | All technical readers | current | Pinned Superbee and Portal source; Diagram is its visual representation |
 | P0 | Document mutation lifecycle | Explanation | Contributor and integrator | current | Superbee codebase at `cb9c0907f2e3b36eedceb054291b5f954d402fda`; verified read/update/history sequence; registered diagram |
 
@@ -61,7 +61,7 @@ workflow before broad generation.
 - Evolve a bundle as the user's domain changes.
 - Coordinate several agents or humans through shared structure.
 - Share and synchronize a Git-backed bundle.
-- Create a useful human representation instead of returning raw Markdown paths.
+- Create a useful human representation of the work.
 - Recover from conflicts, stale state, interrupted setup, or a moved bundle.
 - Maintain multiple bundles for distinct purposes.
 
@@ -101,20 +101,20 @@ workflow before broad generation.
 
 # Architecture coverage map
 
-Architecture pages answer stable system questions rather than reproducing the package tree. Every
-page pins the reviewed source identity, cites governing entry points, states load-bearing invariants
-and honest failure behavior, provides a nonvisual equivalent for each diagram, and declares exact
+Architecture pages answer stable system questions and omit exhaustive package-tree detail. Every
+page pins the reviewed source identity, cites governing entry points, states critical constraints
+and honest failure behavior, provides a nonvisual equivalent for each diagram, and declares the
 source-path change triggers.
 
 | Priority | Page and question | Scope | Visual | Status |
 | --- | --- | --- | --- | --- |
-| P0 | System context — how do humans, agents, the local product, bundles, distribution, and public publication fit together? | Outside-in product boundary | System-context flow | current |
-| P0 | Document mutation lifecycle — how does a read and optimistic update become durable state, and when is it separately published through Git? | CLI, core mutation policy, storage seam, local/remote CAS, honest history, optional board sync | Mutation and optional-publication flow | current |
-| P1 | [Architecture at a glance](../architecture/architecture-at-a-glance.md) — what are the package layers, runtime surfaces, and supported public entry points? | Package roles, composition root, distribution and stable/prerelease entry-point boundaries | Conceptual layered flow with exact manifest evidence | current |
-| P1 | [View lifecycle and trust](../architecture/view-lifecycle-and-trust.md) — how do registered/transient Views safely execute across local UI and MCP? | Registration, exact-byte admission, approval, sandbox, bounded bridge, revocation | Admission, capability, confirmation, and revocation flow | current |
-| P1 | Sharing and freshness — how do local-only, in-tree, and board-channel bundles converge? | Channel states, opportunistic read freshness, sync, conflict export, awareness | State diagram | planned |
-| P1 | Public publication boundary — how does a changing bundle become an immutable, admitted site artifact? | Capture, snapshot, admission, Portal artifact, verified host | Capture-to-site pipeline | planned |
-| P2 | Bundle engine and storage seam — which semantics belong to core and which capabilities belong to backends? | OKF engine, StorageBackend, filesystem, memory, remote, wire router | Component diagram | planned |
+| P0 | System context: how do humans, agents, the local product, bundles, distribution, and public publication fit together? | Outside-in product scope | System-context flow | current |
+| P0 | Document mutation lifecycle: how does a read and optimistic update become persisted state, and when is it separately published through Git? | CLI, core mutation policy, storage seam, local/remote CAS, honest history, optional board sync | Mutation and optional-publication flow | current |
+| P1 | [Architecture at a glance](../architecture/architecture-at-a-glance.md): what are the package layers, runtime surfaces, and supported public entry points? | Package roles, composition root, distribution and stable/prerelease entry-point contracts | Conceptual layered flow with manifest evidence | current |
+| P1 | [View lifecycle and trust](../architecture/view-lifecycle-and-trust.md): how do registered/transient Views safely execute across local UI and MCP? | Registration, exact-byte admission, approval, sandbox, bounded bridge, revocation | Admission, capability, confirmation, and revocation flow | current |
+| P1 | Sharing and freshness: how do local-only, in-tree, and board-channel bundles converge? | Channel states, opportunistic read freshness, sync, conflict export, awareness | State diagram | planned |
+| P1 | Public publication: how does a changing bundle become an immutable, admitted site artifact? | Capture, snapshot, admission, Portal artifact, verified host | Capture-to-site pipeline | planned |
+| P2 | Bundle engine and storage seam: which semantics belong to core and which capabilities belong to backends? | OKF engine, StorageBackend, filesystem, memory, remote, wire router | Component diagram | planned |
 
 The first mutation slice deliberately distinguishes document persistence, backend history, board
 awareness, and Git publication. Those are related but separate authorities and transaction domains.

@@ -10,11 +10,11 @@ superbee_updated_by: openai/codex
 
 The documentation bundle helps a curious evaluator understand Superbee, a new user succeed without
 already knowing the product vocabulary, an active user complete recurring work, and a maintainer
-verify exact behavior. It is simultaneously readable public documentation and durable source-grounded
-knowledge that agents can evolve through reviewable changes.
+verify product behavior. It is readable public documentation and source-grounded knowledge that
+agents can evolve through reviewable changes.
 
 This document governs documentation structure and maintenance. Product behavior remains governed by
-the exact product sources linked from each page.
+the product sources linked from each page.
 
 # Audiences and success conditions
 
@@ -22,10 +22,30 @@ the exact product sources linked from each page.
 | --- | --- | --- |
 | Prospective or first-time user | What does Superbee do, does it fit, and how do I get one visible success? | Understands the product boundary, installs safely, and creates or joins the intended bundle. |
 | Practitioner or operator | How do I preserve, model, relate, present, share, upgrade, or recover this work? | Selects the smallest useful structure and completes the task. |
-| Contributor or integrator | What is authoritative, how does this host or interface behave, and how do I extend or update it? | Finds exact behavior and evidence, changes the right page or integration, and proves the result. |
+| Contributor or integrator | What governs behavior, how does this host or interface behave, and how do I extend or update it? | Finds the governing behavior and evidence, changes the right page or integration, and proves the result. |
 
 Documentation should start from the reader's goal. Superbee vocabulary is introduced only when it
 helps the reader make or execute a decision.
+
+# House style
+
+Write concise technical prose for a human reader:
+
+- Name the subject, behavior, and result directly.
+- Use a period, comma, colon, semicolon, or parentheses in place of an em dash.
+- Replace rhetorical denial-then-correction patterns with a direct statement of the behavior that
+  matters.
+- Reserve terms such as `exact`, `authority`, `boundary`, and `durable` for cases where they name a
+  verified identity, security rule, ownership rule, or persistence guarantee. Prefer the concrete
+  component, scope, or behavior elsewhere.
+- Keep commands, identifiers, schema terms, source citations, and compatibility constraints
+  verbatim. Editorial simplification must preserve their technical meaning.
+- Prefer one clear claim per sentence. Explain necessary safety distinctions without dramatizing
+  them or narrating the review process.
+
+The repository prose check enforces only objective signals: em dashes, a short banned-phrase list,
+and common rhetorical contrast templates. Human review remains responsible for clarity, tone, and
+technical fidelity in both rendered documentation outputs.
 
 # Content model and navigation
 
@@ -34,7 +54,7 @@ Internally, every reader-facing page has one primary mode:
 - **Tutorial:** a safe, guided learning experience that produces a real result.
 - **How-to:** a task-oriented procedure for a reader who already knows the desired outcome.
 - **Explanation:** a mental model, boundary, or rationale that makes later decisions easier.
-- **Reference:** exact facts organized for lookup rather than continuous reading.
+- **Reference:** exact facts organized for lookup.
 
 These modes follow the distinct user needs described by
 [Diataxis](https://diataxis.fr/). They are an authoring classification, not the required names of
@@ -44,16 +64,16 @@ Landing and map pages are structural navigation and do not need a content mode.
 
 The public navigation uses conventional goal-oriented labels:
 
-1. **Get started** — orientation, installation, setup, first bundle, and first durable result.
-2. **Core concepts** — bundles, documents, Kinds, recipes, relationships, Views, and authority.
-3. **Guides** — preserve context, model a domain, coordinate work, present knowledge, share, and
+1. **Get started:** orientation, installation, setup, first bundle, and first persisted result.
+2. **Core concepts:** bundles, documents, Kinds, recipes, relationships, Views, and trust.
+3. **Guides:** preserve context, model a domain, coordinate work, present knowledge, share, and
    recover.
-4. **Integrations** — supported agent hosts and installation or lifecycle differences.
-5. **Examples** — complete, inspectable bundles and patterns grounded in real needs.
-6. **Reference** — CLI, configuration, schemas, compatibility, security boundaries, and errors.
-7. **Troubleshooting** — symptom-first diagnosis and recovery.
-8. **Releases and migrations** — verified versions, changes, actions, and compatibility windows.
-9. **Contributing and architecture** — documentation maintenance and source-grounded system design.
+4. **Integrations:** supported agent hosts and installation or lifecycle differences.
+5. **Examples:** complete, inspectable bundles and patterns grounded in real needs.
+6. **Reference:** CLI, configuration, schemas, compatibility, security constraints, and errors.
+7. **Troubleshooting:** symptom-first diagnosis and recovery.
+8. **Releases and migrations:** verified versions, changes, actions, and compatibility windows.
+9. **Contributing and architecture:** documentation maintenance and source-grounded system design.
 
 Launch with a shallow subset that has real content: Get started, Core concepts, Guides, Reference,
 Releases and migrations, and Architecture and contributing. Promote Integrations and Examples to
@@ -133,11 +153,11 @@ and authored prose must not duplicate generated facts where a stable link or pro
 
 The persisted lifecycle is deliberately small:
 
-1. **Current** — the page passed its evidence, link, task, and publication checks for its stated
+1. **Current:** the page passed its evidence, link, task, and publication checks for its stated
    version or scope.
-2. **Needs review** — a declared trigger changed or evidence is no longer sufficient; the limitation
+2. **Needs review:** a declared trigger changed or evidence is no longer sufficient; the limitation
    is visible until the page is re-verified.
-3. **Retired** — the page no longer earns maintenance and identifies its replacement or historical
+3. **Retired:** the page no longer earns maintenance and identifies its replacement or historical
    scope.
 
 `Planned` belongs in the coverage plan. A branch or pull request is the draft and review state; the
@@ -190,7 +210,7 @@ run, and unresolved questions. Private chat is not the handoff mechanism.
   publication.
 - Authors integrate evidence and maintain narrative coherence.
 - Reviewers audit the exact page against its sources and journey; site reviewers test the rendered
-  experience rather than re-litigating product semantics.
+  experience using the settled product semantics.
 - Navigation and synthesis pages are reduced only after their contributing pages stabilize.
 
 # Site and bundle boundary
