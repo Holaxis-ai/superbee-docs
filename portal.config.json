@@ -10,6 +10,12 @@
     "description": "Source-grounded guidance for using, understanding, and evolving Superbee.",
     "views": [
       {
+        "id": "views-registry/document-mutation-lifecycle",
+        "entry": "views/document-mutation-lifecycle.html",
+        "access": "none",
+        "entrySha256": "sha256:0af297822a8290b59d7c7b696d7dbff286c88da4ebfc06f58e1134f88310b6e0"
+      },
+      {
         "id": "views-registry/superbee-system-context",
         "entry": "views/superbee-system-context.html",
         "access": "none",
@@ -63,7 +69,8 @@
       {
         "label": "Architecture and contributing",
         "documents": [
-          "architecture/superbee-system-context"
+          "architecture/superbee-system-context",
+          "architecture/document-mutation-lifecycle"
         ]
       }
     ]

@@ -29,11 +29,12 @@ test("consumer uses only public packed package surfaces and nested versioned con
 });
 
 test("built site preserves documentation, View, and presentation agreement", async () => {
-  const [config, manifest, home, registeredView] = await Promise.all([
+  const [config, manifest, home, systemContextView, mutationLifecycleView] = await Promise.all([
     json("portal.config.json"),
     json("dist/data/portal-manifest.json"),
     readFile("dist/index.html", "utf8"),
     readFile(".superbee/views/superbee-system-context.html"),
+    readFile(".superbee/views/document-mutation-lifecycle.html"),
   ]);
   const paths = new Set(manifest.files.map((row) => row.path));
   for (const required of [
@@ -42,6 +43,7 @@ test("built site preserves documentation, View, and presentation agreement", asy
     "assets/docs-search.json",
     "sitemap.xml",
     "bundle/views/superbee-system-context.html",
+    "bundle/views/document-mutation-lifecycle.html",
   ]) assert.ok(paths.has(required), required);
   assert.equal(paths.has("explore/index.html"), false);
   assert.equal(manifest.presentation.contract, "https://getsuperbee.com/schemas/portal-presentation-contribution/v1");
@@ -49,5 +51,7 @@ test("built site preserves documentation, View, and presentation agreement", asy
   assert.equal(manifest.presentation.producer.name, "superbee-portal-docs");
   assert.match(home, /Superbee/);
   assert.doesNotMatch(home, /href="\/explore\/"/);
-  assert.equal(config.portal.views[0].entrySha256, sha256(registeredView));
+  const views = new Map(config.portal.views.map((view) => [view.id, view]));
+  assert.equal(views.get("views-registry/superbee-system-context").entrySha256, sha256(systemContextView));
+  assert.equal(views.get("views-registry/document-mutation-lifecycle").entrySha256, sha256(mutationLifecycleView));
 });

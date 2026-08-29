@@ -12,6 +12,17 @@
       "viewId": "views-registry/superbee-system-context",
       "entry": "views/superbee-system-context.html",
       "access": "none"
+    },
+    {
+      "id": "document-mutation-lifecycle",
+      "title": "Document mutation lifecycle",
+      "description": "How an optimistic document update becomes durable state and is optionally published through Git.",
+      "source": "diagrams/sources/document-mutation-lifecycle.mmd",
+      "publishedSource": "visuals/sources/document-mutation-lifecycle.mmd",
+      "documentId": "architecture/document-mutation-lifecycle",
+      "viewId": "views-registry/document-mutation-lifecycle",
+      "entry": "views/document-mutation-lifecycle.html",
+      "access": "none"
     }
   ]
 }

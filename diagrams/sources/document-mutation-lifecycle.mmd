@@ -1,0 +1,32 @@
+flowchart TD
+  accTitle: Superbee document mutation lifecycle
+  accDescr {
+    An agent or human invokes document read and update commands. Local and explicit remote routes
+    converge on the core mutation transaction. A semantic no-op returns the current version, while
+    a real change crosses a local atomic or remote HTTP compare-and-swap boundary and returns a new
+    version. An optional later sync publishes the durable local state through a separate Git
+    transaction.
+  }
+
+  actor["Agent or human<br/>doc read and doc update"] --> cli["CLI dispatcher and adapter<br/>route, parse, candidate"]
+  cli --> route{"Selected bundle route"}
+
+  route -->|"local"| local["Resolved local route<br/>canonical identity"]
+  route -->|"explicit remote"| remote["RemoteBackend"]
+
+  local --> core["Core mutation transaction<br/>fresh read, decide, attribute"]
+  remote --> core
+  core --> change{"Semantic change?"}
+
+  change -->|"no"| unchanged["Receipt<br/>changed false, current version"]
+  change -->|"yes"| cas["Compare and swap"]
+
+  cas -->|"local"| filesystem["FilesystemBackend<br/>private lock, atomic replacement"]
+  cas -->|"remote"| http["HTTP precondition<br/>server core engine"]
+
+  filesystem --> version["New content version"]
+  http --> version
+  version --> receipt["Receipt<br/>changed true, new version"]
+  receipt --> history["Backend-honest history"]
+
+  local -. "separate sync command" .-> sync["Git board transaction<br/>commit, converge, push, awareness"]

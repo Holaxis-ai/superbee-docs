@@ -5,8 +5,19 @@
     "version": "0.1.0"
   },
   "renderer": "superbee-docs-mermaid-v1+mermaid@11.17.2+puppeteer@25.9.0+atkinson-hyperlegible@5.3.0",
-  "manifestSha256": "sha256:71024e10c17e49418dc2f66471784809db5820c1302b5b1d12489ebb924ca3e3",
+  "manifestSha256": "sha256:a8092cf1d8a7a777892afd2937d42fb43f492866b3b3e83f393d312c10207759",
   "diagrams": [
+    {
+      "id": "document-mutation-lifecycle",
+      "publishedSource": "visuals/sources/document-mutation-lifecycle.mmd",
+      "viewId": "views-registry/document-mutation-lifecycle",
+      "entry": "views/document-mutation-lifecycle.html",
+      "access": "none",
+      "sourceSha256": "sha256:61834bce6938b0dfb7f39ca535cb64c25cbdf1c8d93fc4dfed674470cd332b9c",
+      "projectionSha256": "sha256:ed5983f0492acb29657fabcadb33b41cc99ce9ac3b68726cb38c658536f0e1ac",
+      "entrySha256": "sha256:0af297822a8290b59d7c7b696d7dbff286c88da4ebfc06f58e1134f88310b6e0",
+      "registrationSha256": "sha256:3127eea8f0248ec3570e540ebbbc4feff35b2caed56f563b3d452555c6abe189"
+    },
     {
       "id": "superbee-system-context",
       "publishedSource": "visuals/sources/superbee-system-context.mmd",
@@ -19,5 +30,5 @@
       "registrationSha256": "sha256:42a8a4a54f685276e75585223ddeacda02c552e38d0d61b0adfca31ecab3df70"
     }
   ],
-  "receiptDigest": "sha256:ad1afd7e6a3802d7cdc1771ea533bd785132351032b3aae214c6485b576f86d7"
+  "receiptDigest": "sha256:f3eb4e91db19f75bd425823689ee10cc6fce4b61b102c6c824a78bc52abf7dc0"
 }

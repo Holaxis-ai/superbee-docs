@@ -6,6 +6,14 @@ description: >-
   public documentation.
 superbee_updated_by: openai/codex
 ---
+---
+type: Plan
+title: Documentation coverage and delivery
+description: >-
+  Ordered page coverage, representative slice, and readiness gates for the
+  public documentation.
+superbee_updated_by: openai/codex
+---
 # Purpose
 
 This is the shared, ordered coverage plan for Superbee's public documentation. It controls scope and
@@ -36,6 +44,7 @@ workflow before broad generation.
 | P0 | Current release | Reference | Existing user | current | npm/GitHub release receipts |
 | P0 | Migrate or upgrade safely | How-to | Existing user | planned | Release receipts and migration probes |
 | P0 | System context | Explanation | All technical readers | current | Pinned Superbee and Portal source; Diagram is its visual representation |
+| P0 | Document mutation lifecycle | Explanation | Contributor and integrator | current | Superbee codebase at `cb9c0907f2e3b36eedceb054291b5f954d402fda`; verified read/update/history sequence; registered diagram |
 
 # Next coverage
 
@@ -97,6 +106,28 @@ workflow before broad generation.
 - Version-specific release notes.
 - Compatibility and deprecation policy.
 - Legacy AgentState and pre-0.2 bundle migration.
+
+# Architecture coverage map
+
+Architecture pages answer stable system questions rather than reproducing the package tree. Every
+page pins the reviewed source identity, cites governing entry points, states load-bearing invariants
+and honest failure behavior, provides a nonvisual equivalent for each diagram, and declares exact
+source-path change triggers.
+
+| Priority | Page and question | Scope | Visual | Status |
+| --- | --- | --- | --- | --- |
+| P0 | System context — how do humans, agents, the local product, bundles, distribution, and public publication fit together? | Outside-in product boundary | System-context flow | current |
+| P0 | Document mutation lifecycle — how does a read and optimistic update become durable state, and when is it separately published through Git? | CLI, core mutation policy, storage seam, local/remote CAS, honest history, optional board sync | Mutation and optional-publication flow | current |
+| P1 | Architecture at a glance — what are the package layers, runtime surfaces, and supported public entry points? | Package DAG, composition root, distribution and private-state boundaries | Layered package DAG | planned |
+| P1 | View lifecycle and trust — how do registered/transient Views safely execute across local UI and MCP? | Registration, exact-byte admission, approval, sandbox, bounded bridge, revocation | Launch sequence and capability matrix | planned |
+| P1 | Sharing and freshness — how do local-only, in-tree, and board-channel bundles converge? | Channel states, opportunistic read freshness, sync, conflict export, awareness | State diagram | planned |
+| P1 | Public publication boundary — how does a changing bundle become an immutable, admitted site artifact? | Capture, snapshot, admission, Portal artifact, verified host | Capture-to-site pipeline | planned |
+| P2 | Bundle engine and storage seam — which semantics belong to core and which capabilities belong to backends? | OKF engine, StorageBackend, filesystem, memory, remote, wire router | Component diagram | planned |
+
+The first mutation slice deliberately distinguishes document persistence, backend history, board
+awareness, and Git publication. Those are related but separate authorities and transaction domains.
+Distribution and private-state facts remain part of architecture-at-a-glance until reader evidence
+justifies another page.
 
 # Page brief template
 
