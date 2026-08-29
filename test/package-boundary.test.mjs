@@ -28,11 +28,14 @@ test("consumer uses only public packed package surfaces and nested versioned con
   await assert.rejects(readFile("scripts/apply-diagrams.mjs"), (error) => error.code === "ENOENT");
 });
 
-test("built site preserves documentation, View, and presentation agreement", async () => {
-  const [config, manifest, home, systemContextView, mutationLifecycleView] = await Promise.all([
+test("built site preserves documentation, View, diagram, and presentation agreement", async () => {
+  const [config, manifest, home, systemContextPage, mutationLifecyclePage, diagramBindings, systemContextView, mutationLifecycleView] = await Promise.all([
     json("portal.config.json"),
     json("dist/data/portal-manifest.json"),
     readFile("dist/index.html", "utf8"),
+    readFile("dist/docs/architecture/superbee-system-context/index.html", "utf8"),
+    readFile("dist/docs/architecture/document-mutation-lifecycle/index.html", "utf8"),
+    json("dist/assets/docs-diagrams.json"),
     readFile(".superbee/views/superbee-system-context.html"),
     readFile(".superbee/views/document-mutation-lifecycle.html"),
   ]);
@@ -41,7 +44,10 @@ test("built site preserves documentation, View, and presentation agreement", asy
     "index.html",
     "docs/learn/start-here/index.html",
     "assets/docs-search.json",
+    "assets/docs-diagrams.json",
     "sitemap.xml",
+    "docs/architecture/superbee-system-context/index.html",
+    "docs/architecture/document-mutation-lifecycle/index.html",
     "bundle/views/superbee-system-context.html",
     "bundle/views/document-mutation-lifecycle.html",
   ]) assert.ok(paths.has(required), required);
@@ -51,6 +57,34 @@ test("built site preserves documentation, View, and presentation agreement", asy
   assert.equal(manifest.presentation.producer.name, "superbee-portal-docs");
   assert.match(home, /Superbee/);
   assert.doesNotMatch(home, /href="\/explore\/"/);
+  assert.deepEqual(diagramBindings, {
+    schema: "https://getsuperbee.com/schemas/portal-docs-diagrams/v1",
+    diagrams: [
+      {
+        diagramId: "document-mutation-lifecycle",
+        documentId: "architecture/document-mutation-lifecycle",
+        title: "Document mutation lifecycle",
+        viewId: "views-registry/document-mutation-lifecycle",
+      },
+      {
+        diagramId: "superbee-system-context",
+        documentId: "architecture/superbee-system-context",
+        title: "Superbee system context",
+        viewId: "views-registry/superbee-system-context",
+      },
+    ],
+  });
+  for (const [page, ownDiagram, otherDiagram] of [
+    [systemContextPage, "superbee-system-context", "document-mutation-lifecycle"],
+    [mutationLifecyclePage, "document-mutation-lifecycle", "superbee-system-context"],
+  ]) {
+    assert.equal((page.match(/data-superbee-diagram-open=/g) ?? []).length, 1);
+    assert.match(page, new RegExp(`data-superbee-diagram-open="${ownDiagram}"`));
+    assert.doesNotMatch(page, new RegExp(`data-superbee-diagram-open="${otherDiagram}"`));
+    assert.match(page, /<dialog id="docs-diagram-stage"/);
+    assert.match(page, /<noscript>/);
+    assert.doesNotMatch(page, /href="[^"]*(?:views-registry|bundle\/views\/)/);
+  }
   const views = new Map(config.portal.views.map((view) => [view.id, view]));
   assert.equal(views.get("views-registry/superbee-system-context").entrySha256, sha256(systemContextView));
   assert.equal(views.get("views-registry/document-mutation-lifecycle").entrySha256, sha256(mutationLifecycleView));

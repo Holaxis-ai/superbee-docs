@@ -149,8 +149,6 @@ version receipt. History reads from the selected backend. A dotted edge from the
 to optional `sync`, emphasizing that attributed Git commit, convergence, push, and awareness are a
 later transaction rather than part of document durability.
 
-[inspect the visual](../views-registry/document-mutation-lifecycle.md)
-
 # Change triggers
 
 Re-evaluate this page when any of these authorities changes:
