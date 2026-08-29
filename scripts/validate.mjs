@@ -1,13 +1,14 @@
 import { execFile } from "node:child_process";
-import { lstat, readdir, readFile } from "node:fs/promises";
+import { readdir, readFile } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
+import { validateDocumentationSelection } from "./documentation-selection.mjs";
+
 const execFileAsync = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const skipped = new Set([".git", ".deps", ".tmp", "dist", "node_modules"]);
-const selectionSchema = "https://getsuperbee.com/schemas/superbee-docs-documentation-selection/v1";
 
 async function files(directory, out = []) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -45,36 +46,7 @@ const [selection, portalConfig] = await Promise.all([
   readFile(resolve(root, "documentation-selection.json"), "utf8").then(JSON.parse),
   readFile(resolve(root, "portal.config.json"), "utf8").then(JSON.parse),
 ]);
-if (!selection || typeof selection !== "object" || Array.isArray(selection)
-  || JSON.stringify(Object.keys(selection).sort()) !== JSON.stringify(["schema", "supportingDocuments"])
-  || selection.schema !== selectionSchema
-  || !Array.isArray(selection.supportingDocuments)
-  || selection.supportingDocuments.length === 0
-  || selection.supportingDocuments.length > 2_048) {
-  throw new Error("documentation selection must use the exact production v1 contract");
-}
-const supportingDocuments = selection.supportingDocuments;
-const canonicalSupport = [...supportingDocuments].sort();
-if (new Set(supportingDocuments).size !== supportingDocuments.length
-  || supportingDocuments.some((id, index) => id !== canonicalSupport[index])) {
-  throw new Error("documentation supportingDocuments must be unique and canonically ordered");
-}
-const navigated = new Set(portalConfig.documentation?.navigation?.flatMap((section) => section.documents ?? []) ?? []);
-for (const [index, id] of supportingDocuments.entries()) {
-  if (typeof id !== "string"
-    || !/^[A-Za-z0-9][A-Za-z0-9._-]*(?:\/[A-Za-z0-9][A-Za-z0-9._-]*)*$/.test(id)) {
-    throw new Error(`documentation supportingDocuments[${index}] is not a safe document id`);
-  }
-  if (navigated.has(id)) throw new Error(`documentation support '${id}' overlaps primary navigation`);
-  const document = resolve(root, ".superbee", `${id}.md`);
-  const info = await lstat(document).catch((error) => {
-    if (error?.code === "ENOENT") throw new Error(`documentation support '${id}' is absent from the public bundle`);
-    throw error;
-  });
-  if (!info.isFile() || info.isSymbolicLink()) {
-    throw new Error(`documentation support '${id}' must be a regular public bundle document`);
-  }
-}
+const supportingDocuments = await validateDocumentationSelection(selection, portalConfig, root);
 
 const { stdout } = await execFileAsync("superbee", ["status", "--dir", resolve(root, ".superbee"), "--json"], { maxBuffer: 4 * 1024 * 1024 });
 const status = JSON.parse(stdout);
