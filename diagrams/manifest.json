@@ -34,6 +34,17 @@
       "viewId": "views-registry/document-mutation-lifecycle",
       "entry": "views/document-mutation-lifecycle.html",
       "access": "none"
+    },
+    {
+      "id": "view-lifecycle-and-trust",
+      "title": "View lifecycle and trust",
+      "description": "How exact View bytes are admitted, authorized, contained, bridged, confirmed, and revoked.",
+      "source": "diagrams/sources/view-lifecycle-and-trust.mmd",
+      "publishedSource": "visuals/sources/view-lifecycle-and-trust.mmd",
+      "documentId": "architecture/view-lifecycle-and-trust",
+      "viewId": "views-registry/view-lifecycle-and-trust",
+      "entry": "views/view-lifecycle-and-trust.html",
+      "access": "none"
     }
   ]
 }
