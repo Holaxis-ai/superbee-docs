@@ -10,9 +10,7 @@ const sourceRoot = resolve(root, ".deps/source");
 const packs = resolve(root, ".deps/packs");
 const pins = {
   superbee: { repository: "https://github.com/Holaxis-ai/superbee.git", commit: "070426446c00bc1f04ae54007930ce726fec913c" },
-  // Temporary bootstrap pin to the reviewed adapter branch. Replace this with the eventual
-  // superbee-portal PR merge commit before the dual-output integration merges.
-  portal: { repository: "https://github.com/Holaxis-ai/superbee-portal.git", commit: "4e4dfaa6ce3f10b4a1e370771bfdd29652aa3486" },
+  portal: { repository: "https://github.com/Holaxis-ai/superbee-portal.git", commit: "53c289beaa3b5c155417bf15836f86d72e3ed402" },
 };
 
 async function run(command, args, cwd = root) {

@@ -18,14 +18,16 @@
     "diagram:rollback": "superbee-docs diagram rollback --root . --config portal.config.json",
     "diagram:check": "superbee-docs diagram check --root . --config portal.config.json",
     "bundle:check": "node scripts/validate.mjs",
-    "portal:check": "superbee-docs check --config portal.config.json",
-    "portal:build": "superbee-docs build --config portal.config.json",
-    "portal:preview": "superbee-docs preview --config portal.config.json",
+    "portal:check": "node scripts/documentation-outputs.mjs check",
+    "portal:build": "node scripts/documentation-outputs.mjs build",
+    "portal:preview": "node scripts/documentation-outputs.mjs preview",
+    "mkdocs:sync": "node scripts/mkdocs-runtime.mjs sync",
+    "mkdocs:build": "node scripts/mkdocs-runtime.mjs build",
     "cloudflare:check": "wrangler deploy --dry-run",
     "cloudflare:preview": "wrangler versions upload",
     "cloudflare:deploy": "wrangler deploy",
     "test": "node --test test/*.test.mjs",
-    "check": "npm run diagram:check && npm run docs:release:check && npm run architecture:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run cloudflare:check && npm test"
+    "check": "npm run diagram:check && npm run docs:release:check && npm run architecture:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run mkdocs:build && npm run cloudflare:check && npm test"
   },
   "devDependencies": {
     "wrangler": "4.127.1"

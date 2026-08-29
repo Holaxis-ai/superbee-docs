@@ -21,11 +21,16 @@ test("consumer uses only public packed package surfaces and nested versioned con
   assert.equal(config.presentation, undefined);
   assert.equal(config.views, undefined);
   assert.equal(diagram.renderer, RENDERER_IDENTITY);
+  assert.match(import.meta.resolve("@superbee/docs-projection"), /\/node_modules\/@superbee\/docs-projection\//);
+  assert.match(import.meta.resolve("@superbee/docs-mkdocs"), /\/node_modules\/@superbee\/docs-mkdocs\//);
   assert.match(import.meta.resolve("@superbee/docs-tooling"), /\/node_modules\/@superbee\/docs-tooling\//);
   assert.match(import.meta.resolve("@superbee/portal-docs"), /\/node_modules\/@superbee\/portal-docs\//);
   assert.match(import.meta.resolve("superbee-portal"), /\/node_modules\/superbee-portal\//);
   assert.equal(consumer.scripts["diagram:build"], "superbee-docs diagram apply --root . --config portal.config.json");
+  assert.equal(consumer.scripts["portal:build"], "node scripts/documentation-outputs.mjs build");
+  assert.equal(consumer.scripts["mkdocs:build"], "node scripts/mkdocs-runtime.mjs build");
   await assert.rejects(readFile("scripts/apply-diagrams.mjs"), (error) => error.code === "ENOENT");
+  await assert.rejects(readFile("spikes/mkdocs/materialize.mjs"), (error) => error.code === "ENOENT");
 });
 
 test("built site preserves documentation, View, diagram, and presentation agreement", async () => {
