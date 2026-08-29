@@ -1,5 +1,5 @@
 {
-  "schema": "https://getsuperbee.com/schemas/docs-diagrams/v1",
+  "schema": "https://getsuperbee.com/schemas/docs-diagrams/v2",
   "renderer": "superbee-docs-mmdc-v1+mermaid-cli@11.16.0+mermaid@11.17.2",
   "diagrams": [
     {
@@ -8,10 +8,8 @@
       "description": "How Superbee's private workspace layers become one supported installed package.",
       "source": "diagrams/sources/architecture-at-a-glance.mmd",
       "publishedSource": "visuals/sources/architecture-at-a-glance.mmd",
-      "documentId": "architecture/architecture-at-a-glance",
-      "viewId": "views-registry/architecture-at-a-glance",
-      "entry": "views/architecture-at-a-glance.html",
-      "access": "none"
+      "publishedSvg": "visuals/diagrams/architecture-at-a-glance.svg",
+      "documentId": "architecture/architecture-at-a-glance"
     },
     {
       "id": "superbee-system-context",
@@ -19,10 +17,8 @@
       "description": "How humans, agents, Superbee, shared bundles, package distribution, and public publication relate.",
       "source": "diagrams/sources/superbee-system-context.mmd",
       "publishedSource": "visuals/sources/superbee-system-context.mmd",
-      "documentId": "architecture/superbee-system-context",
-      "viewId": "views-registry/superbee-system-context",
-      "entry": "views/superbee-system-context.html",
-      "access": "none"
+      "publishedSvg": "visuals/diagrams/superbee-system-context.svg",
+      "documentId": "architecture/superbee-system-context"
     },
     {
       "id": "document-mutation-lifecycle",
@@ -30,10 +26,8 @@
       "description": "How an optimistic document update becomes durable state and is optionally published through Git.",
       "source": "diagrams/sources/document-mutation-lifecycle.mmd",
       "publishedSource": "visuals/sources/document-mutation-lifecycle.mmd",
-      "documentId": "architecture/document-mutation-lifecycle",
-      "viewId": "views-registry/document-mutation-lifecycle",
-      "entry": "views/document-mutation-lifecycle.html",
-      "access": "none"
+      "publishedSvg": "visuals/diagrams/document-mutation-lifecycle.svg",
+      "documentId": "architecture/document-mutation-lifecycle"
     },
     {
       "id": "view-lifecycle-and-trust",
@@ -41,10 +35,8 @@
       "description": "How exact View bytes are admitted, authorized, contained, bridged, confirmed, and revoked.",
       "source": "diagrams/sources/view-lifecycle-and-trust.mmd",
       "publishedSource": "visuals/sources/view-lifecycle-and-trust.mmd",
-      "documentId": "architecture/view-lifecycle-and-trust",
-      "viewId": "views-registry/view-lifecycle-and-trust",
-      "entry": "views/view-lifecycle-and-trust.html",
-      "access": "none"
+      "publishedSvg": "visuals/diagrams/view-lifecycle-and-trust.svg",
+      "documentId": "architecture/view-lifecycle-and-trust"
     }
   ]
 }

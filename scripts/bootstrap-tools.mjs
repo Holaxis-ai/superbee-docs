@@ -10,7 +10,9 @@ const sourceRoot = resolve(root, ".deps/source");
 const packs = resolve(root, ".deps/packs");
 const pins = {
   superbee: { repository: "https://github.com/Holaxis-ai/superbee.git", commit: "070426446c00bc1f04ae54007930ce726fec913c" },
-  portal: { repository: "https://github.com/Holaxis-ai/superbee-portal.git", commit: "94514f986f3b8c1f390e2cca5a1a0128076f56c6" },
+  // Temporary bootstrap pin to the reviewed adapter branch. Replace this with the eventual
+  // superbee-portal PR merge commit before the dual-output integration merges.
+  portal: { repository: "https://github.com/Holaxis-ai/superbee-portal.git", commit: "4e4dfaa6ce3f10b4a1e370771bfdd29652aa3486" },
 };
 
 async function run(command, args, cwd = root) {
@@ -70,8 +72,10 @@ await run("npm", ["install", "--prefix", buildPeers, "--no-save", "--package-loc
 await cp(resolve(buildPeers, "node_modules/superbee"), resolve(portal, "node_modules/superbee"), { recursive: true });
 await run("npm", ["run", "build"], portal);
 await run("npm", ["pack", portal, "--pack-destination", packs]);
+await run("npm", ["pack", resolve(portal, "packages/docs-projection"), "--pack-destination", packs]);
 await run("npm", ["pack", resolve(portal, "packages/portal-docs"), "--pack-destination", packs]);
 await run("npm", ["pack", resolve(portal, "packages/docs-tooling"), "--pack-destination", packs]);
+await run("npm", ["pack", resolve(portal, "packages/docs-mkdocs"), "--pack-destination", packs]);
 
 const packageFiles = (await readdir(packs)).filter((name) => name.endsWith(".tgz")).map((name) => resolve(packs, name));
 await run("npm", ["install", "--no-save", "--package-lock=false", "--legacy-peer-deps", ...packageFiles]);

@@ -14,6 +14,7 @@
     "architecture:check": "node scripts/architecture-docs.mjs check --source .deps/source/superbee",
     "architecture:impact": "node scripts/architecture-docs.mjs impact --source .deps/source/superbee",
     "diagram:build": "superbee-docs diagram apply --root . --config portal.config.json",
+    "diagram:upgrade-static": "superbee-docs diagram upgrade-static --root . --config portal.config.json",
     "diagram:rollback": "superbee-docs diagram rollback --root . --config portal.config.json",
     "diagram:check": "superbee-docs diagram check --root . --config portal.config.json",
     "bundle:check": "node scripts/validate.mjs",
