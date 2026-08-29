@@ -8,7 +8,7 @@ superbee_updated_by: openai/codex
 ---
 # Outcome
 
-Create a local Superbee workspace inside a project, preserve one real decision, and open the exact
+Create a local Superbee workspace inside a project, preserve one real decision, and open the saved
 document in Superbee's Markdown reader. The result survives the agent session and remains ordinary,
 user-owned Markdown.
 
@@ -22,8 +22,8 @@ This tutorial is verified against the current stable release recorded in
   AgentState bundle.
 - Decide that this workspace should remain local for now.
 
-If `superbee home` already finds a bundle, stop. Use that workspace instead of initializing another
-one. A catalog entry elsewhere is not permission to use that bundle as this project's context.
+If `superbee home` already finds a bundle, stop and use that workspace. Do not initialize another.
+A catalog entry elsewhere is not permission to use that bundle as this project's context.
 
 # 1. Create the local workspace
 
@@ -45,7 +45,7 @@ Initialization is local. Nothing is published or synchronized by this command.
 Ask your agent:
 
 > Preserve this decision in the current Superbee workspace: keep the workspace local until we
-> explicitly decide to share it. Then show me the exact document.
+> explicitly decide to share it. Then show me the saved document.
 
 The agent can create a plain typed document without first inventing a schema. An equivalent CLI
 write is:
@@ -58,11 +58,11 @@ superbee doc write decisions/keep-local \
 ```
 
 Superbee attributes writes when the agent supplies its actor identity. Repeating an identical write
-is a no-op rather than a duplicate.
+returns a no-op and creates no duplicate.
 
-# 3. Verify the durable result
+# 3. Verify the saved result
 
-Read the exact document:
+Read the document:
 
 ```sh
 superbee doc read decisions/keep-local
@@ -83,12 +83,12 @@ Now display the document to a human:
 superbee doc open decisions/keep-local
 ```
 
-`doc open` verifies the ID, starts Superbee's existing local UI, and opens the exact document through
+`doc open` verifies the ID, starts Superbee's existing local UI, and opens the document through
 the shared bounded Markdown renderer. The server stays in the foreground; stop it with Control-C
 when you are done. In an MCP Apps host, the agent may instead invoke Superbee's document-display tool
 so the same content appears inside the conversation.
 
-# What became durable
+# What now persists
 
 The `.superbee/` folder now contains:
 

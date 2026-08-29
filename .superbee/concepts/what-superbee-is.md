@@ -8,12 +8,12 @@ superbee_updated_by: openai/codex
 ---
 # The short version
 
-Superbee is a local, user-owned knowledge environment shared by humans and AI agents. It turns work
-that would otherwise disappear in chat—decisions, evidence, domain models, procedures, and useful
-representations—into typed, linked Markdown that later sessions can inspect and extend.
+Superbee is a local, user-owned knowledge environment shared by humans and AI agents. It turns
+decisions, evidence, domain models, procedures, and useful representations that would otherwise
+disappear in chat into typed, linked Markdown that later sessions can inspect and extend.
 
-The AI model remains the expert doing the work. Superbee supplies the durable environment that lets
-the result compound instead of being reconstructed each time.
+The AI model remains the expert doing the work. Superbee preserves the results so later work can
+build on them.
 
 This explanation describes behavior verified against
 [the current stable release](../sources/current-release.md).
@@ -55,7 +55,7 @@ does not replace the documents; it lets agents create and maintain repeated docu
 
 ## Recipe
 
-A recipe packages reusable definitions—Kinds and, when declared, References or Views. Applying a
+A recipe packages reusable definitions, including Kinds and, when declared, References or Views. Applying a
 recipe installs capability into the bundle; the resulting files belong to the bundle and remain
 inspectable. Recipes are useful when a stable structure should travel between projects.
 
@@ -63,30 +63,30 @@ inspectable. Recipes are useful when a stable structure should travel between pr
 
 Documents render as Markdown pages. Registered Views are self-contained, explicitly trusted visual
 representations over bundle knowledge. Artifacts are produced outputs such as HTML meant to be
-shared with a human. Neither becomes a second source of truth: the bundle's documents and evidence
-remain authoritative.
+shared with a human. The bundle's documents and evidence remain authoritative across all of these
+presentations.
 
-# One structure does not fit every project
+# Match structure to the project
 
-Superbee does not require task tracking or a roadmap. An agent should first understand the user's
-work and then add the smallest structure that removes repeated effort:
+Task tracking and roadmaps are optional. An agent should first understand the user's work and then
+add the smallest structure that removes repeated effort:
 
 - one document when one important thing needs to persist;
-- a relationship when two things need durable context;
+- a relationship when two things need persistent context;
 - a Kind when a domain concept recurs and inconsistency is costly;
 - a recipe when stable definitions should be reused; or
 - a View when humans repeatedly reconstruct the same overview.
 
 The structure can evolve as the user's domain and questions change.
 
-# Humans and agents share authority
+# Humans and agents stay in control
 
 Agents use the CLI because its structured, bounded output is predictable and economical. Humans can
-still read every Markdown file, inspect history through Git, and ask Superbee to open an exact
+still read every Markdown file, inspect history through Git, and ask Superbee to open a specific
 document or View. Configuration and publication changes remain explicit human decisions.
 
-Document writes are content-versioned and attributed. A stale writer receives a conflict instead of
-silently overwriting a newer state. On a plain local filesystem, Git supplies longer history when
+Document writes are content-versioned and attributed. A stale writer receives a conflict, preserving
+the newer state. On a plain local filesystem, Git supplies longer history when
 the bundle is committed or shared.
 
 # Local, shared, and public are distinct
@@ -104,7 +104,7 @@ that bundle the active context of an unrelated project.
 
 Superbee is pre-1.0. The local bundle engine, agent-facing CLI, document presentation, Kinds,
 recipes, and Git sharing are functional, but commands and formats can still change. Release-specific
-pages state the exact package they verify rather than describing newer source as already shipped.
+pages identify the package they verify and keep unreleased source behavior separate.
 
 [create your first durable workspace](../get-started/first-durable-workspace.md)
 

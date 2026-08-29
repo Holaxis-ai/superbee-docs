@@ -4,7 +4,7 @@ title: Document mutation lifecycle
 description: >-
   How an optimistic document update becomes durable state and is optionally
   published through Git.
-superbee_updated_by: codex
+superbee_updated_by: openai/codex
 ---
 # Question answered
 
@@ -18,7 +18,7 @@ storage adapter without bypassing Superbee's mutation guarantees. It follows one
 `doc read` / `doc update` / `doc history` sequence across local and explicit remote routes.
 
 Bundle initialization, Kind authoring, and the exceptional first-time board-establishment flow are
-outside this slice. Git synchronization appears only to clarify that durable persistence and shared
+outside this slice. Git synchronization appears only to clarify that local persistence and shared
 publication are different transactions.
 
 # The short version
@@ -30,8 +30,8 @@ and performs a compare-and-swap write through `StorageBackend`. A local backend 
 check to an atomic filesystem replacement; a remote backend maps the same version contract to HTTP
 preconditions. Only after that transaction succeeds does the CLI emit the new version receipt.
 
-Git sharing is not another storage backend and is not part of that transaction. A later `sync`
-commits and converges the already-durable local bundle through its own partial-success-aware flow.
+Git sharing runs as a separate transaction after storage. A later `sync` commits and converges the
+persisted local bundle through its own partial-success-aware flow.
 
 # Lifecycle and owners
 
@@ -51,20 +51,19 @@ centralizes public command ownership. The
 resolves the route, constructs the candidate, delegates the mutation, and emits the receipt. It does
 not implement compare-and-swap itself.
 
-# One transaction authority
+# Core owns the mutation transaction
 
 [`mutateDocument`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/core/src/document-mutation.ts#L289-L460)
 is the shared transaction policy for create, overwrite, and patch. A normal patch can retry bounded
 version contention. Passing `--expected-version` requests one hard comparison against the version
-the caller previously observed; a stale token fails instead of silently degrading into an
-unconditional write.
+the caller previously observed; a stale token fails and cannot become an unconditional write.
 
 Each retry reruns the complete decision against a fresh document/version pair. This matters because
 the lower-level
 [`versionedMutation` primitive](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/core/src/mutation.ts#L18-L110)
 provides version safety, while the caller remains responsible for rechecking mutable domain rules
-inside that decision. Core is therefore the one mutation transaction authority, not the owner of
-every command-specific domain rule.
+inside that decision. Core owns transaction consistency. Command-specific domain rules remain with
+their caller.
 
 A semantic no-op returns the existing version with `changed: false`; automatic actor attribution
 does not manufacture a write. A substantive change receives edition-aware attribution before the
@@ -86,15 +85,15 @@ becomes the same typed version conflict. The reference router sends writes back 
 engine. The reference `serve` command itself is loopback development infrastructure and does not
 claim production authentication.
 
-# Persistence is not Git publication
+# Persistence and Git publication are separate
 
-A successful `doc update` means the selected backend durably accepted the new version. It does not
-mean a Git board has been pushed. For a shared local bundle, a later `sync` runs a distinct sequence:
+A successful `doc update` means the selected backend accepted and persisted the new version. Git
+board publication happens later when a shared local bundle runs `sync`:
 
 1. heal and classify the selected channel;
-2. commit already-durable local changes;
+2. commit already-persisted local changes;
 3. fetch and converge with upstream;
-4. export exact local conflict bytes to private state when reconciliation is needed;
+4. export the local conflict bytes to private state when reconciliation is needed;
 5. push when safe; and
 6. report committed, pulled, pushed, incoming, or partial-success state.
 
@@ -104,7 +103,7 @@ than pretending the entire operation rolled back. The
 [`sync` orchestrator](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/cli/src/commands/sync/orchestrate.ts#L629-L703)
 owns that second transaction domain.
 
-# Load-bearing invariants
+# Mutation guarantees
 
 - Canonical route identity owns the document ID; payload fields cannot rename the route.
 - A blank expected-version token is an error, never permission for an unconditional write.
@@ -112,7 +111,7 @@ owns that second transaction domain.
 - Semantic no-op detection happens before automatic attribution.
 - The local CAS check and atomic replacement share one exact-identity critical section.
 - Runtime locks and conflict exports remain outside the portable bundle.
-- Remote reads without a trustworthy version fail rather than weakening later CAS.
+- Remote reads without a trustworthy version fail, preserving the later CAS guarantee.
 - Backend history is capability-specific; the filesystem does not promise a revision chain it does
   not retain.
 - Git sync is separate from document persistence and reports post-commit network failures honestly.
@@ -125,7 +124,7 @@ In an existing disposable bundle:
 superbee doc write decisions/example \
   --type Decision \
   --title "Example decision" \
-  --body "Keep the durable state local first."
+  --body "Keep the saved state local first."
 
 superbee doc read decisions/example
 
@@ -138,7 +137,7 @@ superbee doc history decisions/example
 
 The update receipt returns `changed: true` and a new version. Reusing the old expected version after
 another write fails with a stale-head conflict. History output reflects the selected backend's real
-capability rather than implying a universal Git-style ledger.
+capability and makes no promise of a universal Git-style ledger.
 
 # Accessible diagram narrative
 
@@ -147,7 +146,7 @@ on the same core mutation transaction. A no-op returns the current version; a re
 one CAS boundary into either exact local atomic storage or HTTP preconditions and returns a new
 version receipt. History reads from the selected backend. A dotted edge from the local route leads
 to optional `sync`, emphasizing that attributed Git commit, convergence, push, and awareness are a
-later transaction rather than part of document durability.
+a later transaction, separate from document persistence.
 
 # Change triggers
 

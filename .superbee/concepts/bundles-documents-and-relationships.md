@@ -14,10 +14,10 @@ structure?
 This explanation describes behavior verified against
 [the current stable release](../sources/current-release.md) and new OKF v0.2 bundles.
 
-# A bundle is a portable boundary
+# A bundle is a portable workspace
 
 A bundle is a directory with a root `index.md` declaring its Open Knowledge Format version. Concept
-documents are Markdown files; non-document artifacts remain byte-exact blobs. The document ID is its
+documents are Markdown files; non-document artifacts retain their original bytes. The document ID is its
 bundle-relative path without `.md`.
 
 The conventional project location is `.superbee/`. From a project subdirectory, Superbee walks up
@@ -29,7 +29,8 @@ Resolution remains explicit and deterministic:
 2. an explicit `--remote` selects a wire-protocol service and cannot be combined with `--dir`;
 3. a supported project binding can point to an out-of-tree local bundle;
 4. otherwise conventional local discovery walks upward; and
-5. a private catalog label must be deliberately resolved and selected—it is not ambient context.
+5. a private catalog label must be deliberately resolved and selected. Catalog entries never become
+   ambient project context.
 
 If valid `.superbee/` and legacy `.agentstate-lite/` bundles compete at one project level, Superbee
 refuses to choose.
@@ -70,7 +71,7 @@ real consistency or lifecycle need.
 
 # Recipes install reusable structure
 
-`superbee recipes` is the authority for definitions shipped with the installed release. The current
+`superbee recipes` lists the definitions shipped with the installed release. The current
 set includes:
 
 - `context-notes`;
@@ -84,8 +85,8 @@ another recipe is explicit and idempotent:
 superbee recipe add <name-or-path>
 ```
 
-A recipe installs definitions rather than project instances. After application, the bundle owns
-the resulting content.
+A recipe installs reusable definitions. Project instances remain separate, and the bundle owns the
+installed content.
 
 # Relationships remain ordinary links
 
@@ -99,13 +100,12 @@ superbee link list --text "supported by"
 ```
 
 Adding the same relationship again is a no-op. A Kind may describe allowed or expected relationship
-labels, but the graph still comes from the documents' links rather than a separate database of
-edges.
+labels. The documents' links remain the stored graph, so no separate edge database is required.
 
 # Versions protect concurrent work
 
 Each document state has a content-derived version token. Mutations use compare-and-swap semantics;
-callers that supply `--expected-version` fail on a stale head instead of replacing newer content.
+callers that supply `--expected-version` fail on a stale head and preserve newer content.
 Writes may carry an actor identity, and history-keeping backends expose the attributed chain through
 `doc history`. A plain local filesystem reports its current content version; Git can preserve the
 broader file history.
@@ -113,7 +113,7 @@ broader file history.
 # Views and artifacts serve humans
 
 `doc open` and `ui` render documents through Superbee's shared bounded Markdown renderer. Registered
-Views use an exact bundle registration and an explicit trust boundary for richer presentations.
+Views use a version-bound bundle registration and an explicit trust boundary for richer presentations.
 `artifact create` packages a produced HTML output and its record in one operation.
 
 These are presentation and output surfaces. They do not change which document or evidence is

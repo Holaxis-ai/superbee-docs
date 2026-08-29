@@ -5,7 +5,7 @@ description: Pinned product evidence for the public documentation bundle.
 resource: 'https://github.com/Holaxis-ai/superbee'
 superbee_updated_by: openai/codex
 ---
-# Evidence boundary
+# Evidence scope
 
 The Superbee repository is authoritative for local bundle semantics, the agent-facing CLI, host
 integration, registered Views, and the stable publication snapshot contract.

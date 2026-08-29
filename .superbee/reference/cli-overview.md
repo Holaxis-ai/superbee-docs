@@ -40,10 +40,10 @@ Catalog labels are resolved explicitly and never act as ambient project selectio
 | --- | --- | --- |
 | Bundle | `bundle locate`, `catalog`, `init`, `index generate`, `status` | Resolve, create, inspect, catalog, and validate a bundle. |
 | Documents and links | `doc write`, `doc update`, `doc read`, `doc open`, `doc history`, `doc delete`, `list`, `link` | Create, patch, inspect, display, query, relate, and remove concepts. |
-| Artifacts | `artifact create`, `promote`, `pull`, `blobs`, `delete` | Move byte-exact outputs across the model boundary and store produced HTML. |
+| Artifacts | `artifact create`, `promote`, `pull`, `blobs`, `delete` | Move byte-preserving outputs across the model boundary and store produced HTML. |
 | Kinds and recipes | `new`, `kinds`, `kind field`, `recipes`, `recipe add` | Inspect or evolve bundle-owned structure and create validated instances. |
 | Remote and human presentation | `serve`, `ui`, `mcp`, `view list`, `sync` | Serve or present a bundle, integrate MCP Apps, inspect Views, and exchange a Git-backed board. |
-| Session and installation | `version`, `session-start`, `hook`, `skill`, `setup` | Inspect the build, orient sessions, and manage durable host integrations. |
+| Session and installation | `version`, `session-start`, `hook`, `skill`, `setup` | Inspect the build, orient sessions, and manage persistent host integrations. |
 
 # High-value lookups
 
@@ -75,8 +75,8 @@ superbee doc read <id> --out <file>
 ```
 
 List and default reads are bounded. Use `--fields` on list/query when more columns are required, and
-use `--out`, `--body-out`, or `--rendered-out` when complete bytes should go to a file or trusted
-consumer instead of the model.
+use `--out`, `--body-out`, or `--rendered-out` to send complete bytes to a file or trusted consumer
+while keeping model-facing output bounded.
 
 ## Create generic or governed documents
 
@@ -96,7 +96,7 @@ superbee doc open <id>
 superbee ui --open
 ```
 
-`doc open` targets one exact document. `ui` presents the selected bundle, cross-links, backlinks,
+`doc open` targets one specified document. `ui` presents the selected bundle, cross-links, backlinks,
 activity, sharing state, and registered Views. Both use the same local UI and renderer.
 
 ## Share deliberately
@@ -122,11 +122,11 @@ changes, receives teammates' changes, and pushes without touching code files.
 Raw bytes are never mixed with the structured receipt. Commands that reserve stdout for byte or
 protocol transport route diagnostics separately.
 
-# Command authority
+# Where command details live
 
-Do not maintain copied option tables in prose when generated help can answer the question exactly.
-Documentation should explain which command owns a task, its safety boundary, and a verified journey;
-the installed package's help owns its complete flags and defaults.
+Generated help provides current option tables. Documentation explains which command owns a task,
+its safety constraints, and a verified journey; the installed package's help owns its complete flags
+and defaults.
 
 [install and set up Superbee](../get-started/install-and-setup.md)
 
@@ -141,4 +141,4 @@ the installed package's help owns its complete flags and defaults.
 - a command moves between ownership areas;
 - generated help or output conventions change;
 - bundle-selection precedence changes; or
-- installation or sharing authority changes.
+- installation or sharing ownership changes.

@@ -4,7 +4,7 @@ title: Documentation site experience contract
 description: >-
   Stable human experience and bundle-to-Portal boundary for the Superbee
   documentation site.
-superbee_updated_by: codex
+superbee_updated_by: openai/codex
 ---
 # Outcome
 
@@ -14,9 +14,9 @@ the curated reading experience. A reader can start quickly, navigate by goal, se
 inspect sources, and move between prose and registered Views without learning the repository layout.
 
 This is a stable interface between the documentation bundle and Portal. It does not prescribe a
-specific frontend framework or move content authority into site code.
+specific frontend framework or move product definitions into site code.
 
-The ownership boundary in this contract is current: Portal captures and verifies the complete
+The ownership split in this contract is current: Portal captures and verifies the complete
 publication snapshot, emits the stable read model and browser client, admits exact registered Views,
 and composes one explicit presentation contribution. The documentation client owns editorial
 navigation, clean static routes, search, theme, and all visible page structure through that
@@ -33,7 +33,7 @@ already implemented.
    structure, and historical detail remain one action away.
 4. **Evidence without noise.** Versions and sources are visible where they affect trust, but hashes
    and raw objects never dominate the main reading flow.
-5. **One content authority.** Navigation, search, and page chrome project bundle content; they do not
+5. **One content source.** Navigation, search, and page chrome project bundle content; they do not
    fork it.
 6. **Accessible by construction.** Keyboard, narrow-screen, zoom, reduced-motion, contrast, and
    screen-reader behavior are part of the page contract.
@@ -60,7 +60,7 @@ on-page heading index. The complete public publication remains inspectable throu
 versioned read model, snapshot, object map, manifest, and raw bundle paths. This site does not ship
 or maintain a generic explorer UI.
 
-Breadcrumbs show conceptual location rather than filesystem paths. Each article ends with a small
+Breadcrumbs show conceptual location. Each article ends with a small
 set of prerequisites, related concepts, and likely next actions generated from declared document
 relationships plus editorial ordering.
 
@@ -74,7 +74,8 @@ relationships plus editorial ordering.
 - One credible example or product representation.
 - Direct routes to reference, troubleshooting, and the complete bundle.
 
-The home page is documentation orientation, not a marketing-site replacement.
+The home page orients readers within the documentation. Product marketing remains on the marketing
+site.
 
 ## Section landing
 
@@ -100,7 +101,7 @@ The home page is documentation orientation, not a marketing-site replacement.
 - Searchable and deep-linkable entries.
 - Exact syntax, defaults, constraints, output shape, exit behavior, and examples.
 - Generated facts visibly identified and bound to a package version.
-- Authored explanation linked rather than duplicated inside every entry.
+- Authored explanation linked once and reused across entries.
 
 ## Release or migration
 
@@ -116,21 +117,21 @@ The documentation presentation should provide reader-facing rendering for:
 
 - Markdown headings, lists, links, task steps, tables, and quotations;
 - inline code and fenced code with copy affordance and horizontal overflow containment;
-- notes, warnings, security boundaries, compatibility notices, and verified outcomes;
+- notes, warnings, security constraints, compatibility notices, and verified outcomes;
 - responsive tables with an accessible small-screen alternative;
 - build-time technical diagrams as responsive inline static figures, with optional expansion for detail;
 - registered Views, when a page genuinely needs an interactive or executable presentation, with an obvious launch action and return path;
-- image or artifact downloads that remain inert unless admitted through an existing safe boundary;
+- image or artifact downloads that remain inert unless admitted through an existing safe pathway;
 - source citations, version badges, and last-reviewed metadata;
 - empty, unavailable, stale, and superseded states.
 
 Code copy confirmation is announced accessibly. Callouts use both a visible label and an icon, never
 color alone. Static diagrams are readable in the page without JavaScript. Views open inside the
 documentation frame or a focused stage with a clear return path only when their interactive or
-executable behavior earns that stronger runtime boundary.
+executable behavior earns that stronger runtime isolation.
 
 Any semantic primitive not already present in the normalized publication and canonical rendering
-contract must first be represented at that shared boundary or remain deferred. Portal may decorate
+contract must first be represented in that shared contract or remain deferred. Portal may decorate
 declared classes, attributes, or normalized metadata; it may not infer callouts, anchors, lifecycle,
 aliases, tags, or review state heuristically from prose or parse Markdown a second time.
 
@@ -146,7 +147,7 @@ Search covers title, description, headings, body, aliases, type, and declared ta
 human pages ahead of operational records for ordinary queries. Results show section, short context,
 content mode, and version scope when relevant.
 
-The search index is generated from the exact normalized publication snapshot at build time rather
+The search index is generated from the captured normalized publication snapshot at build time rather
 than from a separate Markdown parser or external crawler. Search is fully operable from the keyboard,
 with a visible trigger and conventional `/` or Command/Control-K shortcut, managed focus, Escape
 handling, and announced result state.
@@ -171,11 +172,11 @@ hashes and full provenance are available in details and the published manifest/r
 - Use Paper, White, Ink, Slate, and Rule for long-form reading surfaces. Superbee blue, teal, and
   amber are not body-text colors on light surfaces.
 - Use DM Sans for body and UI, JetBrains Mono for code and technical metadata, and Cormorant
-  Garamond sparingly for major editorial headings rather than dense reference pages.
+  Garamond sparingly for major editorial headings. Dense reference pages use DM Sans.
 - Preserve the two-pixel radius convention and a precise, structural visual tone.
 - Prefer network, signal, and verification motifs when they communicate actual structure; avoid
   decorative diagrams.
-- Copy committed Superbee logo assets from the private brand authority. Do not recreate or expose
+- Copy committed Superbee logo assets from the approved private brand source. Do not recreate or expose
   the generator in this public repository.
 
 # Responsive and accessibility contract
@@ -207,12 +208,12 @@ Portal is headless by default and emits no site shell. The documentation present
 explicit, immutable contribution over the normalized snapshot plus any construction-time static
 artifact bindings supplied by the documentation toolchain. It produces clean stable document
 routes, canonical metadata, sitemap inputs, and useful article HTML without requiring JavaScript;
-JavaScript enhances search and interaction rather than creating the content. No Superbee-specific
+JavaScript enhances search and interaction. All content remains available without it. No Superbee-specific
 document ID, product vocabulary, or generic explorer UI is hard-coded into Portal.
 
 # Representative vertical slice
 
-Design and test the system against real content rather than a component gallery:
+Design and test the system against real content:
 
 1. Documentation home and Get started section.
 2. Install and setup tutorial with commands, checkpoints, note, warning, and troubleshooting link.

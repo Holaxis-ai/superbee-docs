@@ -21,7 +21,7 @@ superbee_updated_by: openai/codex
 | Node requirement | `>=20` |
 | npm platform metadata | excludes `win32` |
 
-# Public authorities
+# Primary public sources
 
 - Package: `https://www.npmjs.com/package/superbee/v/0.1.3`
 - Source: `https://github.com/Holaxis-ai/superbee/tree/v0.1.3`
@@ -29,7 +29,7 @@ superbee_updated_by: openai/codex
 
 # Verification performed
 
-The exact npm package was installed into an isolated global prefix and invoked from its installed
+The published npm package was installed into an isolated global prefix and invoked from its installed
 binary. Its `version` receipt agreed with the source commit and artifact hash above.
 
 Read-only setup plans were exercised for Codex, Claude Code, Claude Desktop, and OpenCode. Each plan
@@ -40,13 +40,13 @@ A disposable project then exercised:
 
 1. `init --create-only --dir .superbee` with the default context-notes recipe;
 2. generic typed document creation;
-3. exact document read;
+3. document read;
 4. conventional-folder discovery from the project root;
 5. `home --no-update-check`; and
 6. `status` with zero reported conformance findings.
 
 The document-open behavior is additionally grounded in generated `0.1.3` CLI help and the tagged
-implementation, which verifies the document before launching the existing local UI's exact DocPage
+implementation, which verifies the document before launching the existing local UI's corresponding DocPage
 route through the shared renderer.
 
 # Limits of this evidence

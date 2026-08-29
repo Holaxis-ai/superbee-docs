@@ -20,7 +20,7 @@ global CLI install to a durable local workspace that agents and humans can inspe
   host-specific setup action at a time.
 - Create a local OKF 0.2 workspace with `superbee init`.
 - Preserve typed Markdown documents, links, reusable conventions, and recipes.
-- Open a document in Superbee's human reader instead of returning an unrendered file path.
+- Open a document in Superbee's rendered human reader.
 
 # Who should act
 
@@ -44,8 +44,8 @@ rerun setup to verify the result.
 
 - Node.js 20 or newer is required.
 - Setup is a read-only conductor; it does not silently edit host configuration.
-- If host integration is incomplete, rerun `superbee setup` and use its verification step rather
-  than reinstalling or initializing another workspace.
+- If host integration is incomplete, rerun `superbee setup` and use its verification step.
+  Reinstallation and another workspace are unnecessary.
 - Pin `superbee@0.1.3` when a reproducible environment must not follow a later stable release.
 
 The exact package identities, source commit, integrity hashes, verification journey, and evidence
