@@ -29,7 +29,7 @@ test("consumer uses only public packed package surfaces and nested versioned con
 });
 
 test("built site preserves documentation, View, diagram, and presentation agreement", async () => {
-  const [config, manifest, home, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, diagramBindings, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
+  const [config, manifest, home, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
     json("portal.config.json"),
     json("dist/data/portal-manifest.json"),
     readFile("dist/index.html", "utf8"),
@@ -37,18 +37,30 @@ test("built site preserves documentation, View, diagram, and presentation agreem
     readFile("dist/docs/architecture/superbee-system-context/index.html", "utf8"),
     readFile("dist/docs/architecture/document-mutation-lifecycle/index.html", "utf8"),
     readFile("dist/docs/architecture/view-lifecycle-and-trust/index.html", "utf8"),
-    json("dist/assets/docs-diagrams.json"),
     readFile(".superbee/views/architecture-at-a-glance.html"),
     readFile(".superbee/views/superbee-system-context.html"),
     readFile(".superbee/views/document-mutation-lifecycle.html"),
     readFile(".superbee/views/view-lifecycle-and-trust.html"),
+  ]);
+  const assetPath = (page, diagramId) => page.match(new RegExp(`src="/(assets/diagrams/${diagramId}\\.[0-9a-f]{64}\\.svg)"`))?.[1];
+  const architectureGlanceAsset = assetPath(architectureGlancePage, "architecture-at-a-glance");
+  const systemContextAsset = assetPath(systemContextPage, "superbee-system-context");
+  const mutationLifecycleAsset = assetPath(mutationLifecyclePage, "document-mutation-lifecycle");
+  const viewLifecycleAsset = assetPath(viewLifecyclePage, "view-lifecycle-and-trust");
+  for (const asset of [architectureGlanceAsset, systemContextAsset, mutationLifecycleAsset, viewLifecycleAsset]) assert.ok(asset);
+  const [architectureGlanceSvg, systemContextSvg, mutationLifecycleSvg, viewLifecycleSvg] = await Promise.all([
+    readFile(`dist/${architectureGlanceAsset}`), readFile(`dist/${systemContextAsset}`),
+    readFile(`dist/${mutationLifecycleAsset}`), readFile(`dist/${viewLifecycleAsset}`),
   ]);
   const paths = new Set(manifest.files.map((row) => row.path));
   for (const required of [
     "index.html",
     "docs/learn/start-here/index.html",
     "assets/docs-search.json",
-    "assets/docs-diagrams.json",
+    architectureGlanceAsset,
+    systemContextAsset,
+    mutationLifecycleAsset,
+    viewLifecycleAsset,
     "sitemap.xml",
     "docs/architecture/architecture-at-a-glance/index.html",
     "docs/architecture/superbee-system-context/index.html",
@@ -65,50 +77,32 @@ test("built site preserves documentation, View, diagram, and presentation agreem
   assert.equal(manifest.presentation.producer.name, "superbee-portal-docs");
   assert.match(home, /Superbee/);
   assert.doesNotMatch(home, /href="\/explore\/"/);
-  assert.deepEqual(diagramBindings, {
-    schema: "https://getsuperbee.com/schemas/portal-docs-diagrams/v1",
-    diagrams: [
-      {
-        diagramId: "architecture-at-a-glance",
-        documentId: "architecture/architecture-at-a-glance",
-        title: "Architecture at a glance",
-        viewId: "views-registry/architecture-at-a-glance",
-      },
-      {
-        diagramId: "document-mutation-lifecycle",
-        documentId: "architecture/document-mutation-lifecycle",
-        title: "Document mutation lifecycle",
-        viewId: "views-registry/document-mutation-lifecycle",
-      },
-      {
-        diagramId: "superbee-system-context",
-        documentId: "architecture/superbee-system-context",
-        title: "Superbee system context",
-        viewId: "views-registry/superbee-system-context",
-      },
-      {
-        diagramId: "view-lifecycle-and-trust",
-        documentId: "architecture/view-lifecycle-and-trust",
-        title: "View lifecycle and trust",
-        viewId: "views-registry/view-lifecycle-and-trust",
-      },
-    ],
-  });
+  assert.equal(paths.has("assets/docs-diagrams.json"), false);
+  await assert.rejects(readFile("dist/assets/docs-diagrams.json"), (error) => error.code === "ENOENT");
   for (const [page, ownDiagram, otherDiagrams] of [
     [architectureGlancePage, "architecture-at-a-glance", ["superbee-system-context", "document-mutation-lifecycle", "view-lifecycle-and-trust"]],
     [systemContextPage, "superbee-system-context", ["architecture-at-a-glance", "document-mutation-lifecycle", "view-lifecycle-and-trust"]],
     [mutationLifecyclePage, "document-mutation-lifecycle", ["architecture-at-a-glance", "superbee-system-context", "view-lifecycle-and-trust"]],
     [viewLifecyclePage, "view-lifecycle-and-trust", ["architecture-at-a-glance", "superbee-system-context", "document-mutation-lifecycle"]],
   ]) {
-    assert.equal((page.match(/data-superbee-diagram-open=/g) ?? []).length, 1);
-    assert.match(page, new RegExp(`data-superbee-diagram-open="${ownDiagram}"`));
+    assert.equal((page.match(/class="docs-diagram"/g) ?? []).length, 1);
+    assert.match(page, new RegExp(`src="/assets/diagrams/${ownDiagram}\\.[0-9a-f]{64}\\.svg"`));
+    assert.match(page, new RegExp(`class="docs-full-diagram" href="/assets/diagrams/${ownDiagram}\\.[0-9a-f]{64}\\.svg"`));
     for (const otherDiagram of otherDiagrams) {
-      assert.doesNotMatch(page, new RegExp(`data-superbee-diagram-open="${otherDiagram}"`));
+      assert.doesNotMatch(page, new RegExp(`src="/assets/diagrams/${otherDiagram}\\.[0-9a-f]{64}\\.svg"`));
     }
     assert.match(page, /<dialog id="docs-diagram-stage"/);
-    assert.match(page, /<noscript>/);
-    assert.doesNotMatch(page, /href="[^"]*(?:views-registry|bundle\/views\/)/);
+    assert.doesNotMatch(page, /<noscript>|<iframe|data-superbee-diagram-open|portal-client/);
+    assert.doesNotMatch(page, /(?:href|src)="[^"]*(?:views-registry|bundle\/views\/)/);
   }
+  const exactSvg = (view) => {
+    const text = view.toString("utf8");
+    return Buffer.from(`${text.slice(text.indexOf("<svg"), text.lastIndexOf("</svg>") + 6).trim()}\n`);
+  };
+  assert.equal(architectureGlanceSvg.equals(exactSvg(architectureGlanceView)), true);
+  assert.equal(systemContextSvg.equals(exactSvg(systemContextView)), true);
+  assert.equal(mutationLifecycleSvg.equals(exactSvg(mutationLifecycleView)), true);
+  assert.equal(viewLifecycleSvg.equals(exactSvg(viewLifecycleView)), true);
   const views = new Map(config.portal.views.map((view) => [view.id, view]));
   assert.equal(views.get("views-registry/architecture-at-a-glance").entrySha256, sha256(architectureGlanceView));
   assert.equal(views.get("views-registry/superbee-system-context").entrySha256, sha256(systemContextView));

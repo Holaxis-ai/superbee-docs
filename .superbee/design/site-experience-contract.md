@@ -4,7 +4,7 @@ title: Documentation site experience contract
 description: >-
   Stable human experience and bundle-to-Portal boundary for the Superbee
   documentation site.
-superbee_updated_by: openai/codex
+superbee_updated_by: codex
 ---
 # Outcome
 
@@ -118,21 +118,27 @@ The documentation presentation should provide reader-facing rendering for:
 - inline code and fenced code with copy affordance and horizontal overflow containment;
 - notes, warnings, security boundaries, compatibility notices, and verified outcomes;
 - responsive tables with an accessible small-screen alternative;
-- registered Views with an obvious **Open visual** action and return path;
+- build-time technical diagrams as responsive inline static figures, with optional expansion for detail;
+- registered Views, when a page genuinely needs an interactive or executable presentation, with an obvious launch action and return path;
 - image or artifact downloads that remain inert unless admitted through an existing safe boundary;
 - source citations, version badges, and last-reviewed metadata;
 - empty, unavailable, stale, and superseded states.
 
 Code copy confirmation is announced accessibly. Callouts use both a visible label and an icon, never
-color alone. Views open inside the documentation frame or a focused stage with a clear return path.
+color alone. Static diagrams are readable in the page without JavaScript. Views open inside the
+documentation frame or a focused stage with a clear return path only when their interactive or
+executable behavior earns that stronger runtime boundary.
 
 Any semantic primitive not already present in the normalized publication and canonical rendering
 contract must first be represented at that shared boundary or remain deferred. Portal may decorate
 declared classes, attributes, or normalized metadata; it may not infer callouts, anchors, lifecycle,
 aliases, tags, or review state heuristically from prose or parse Markdown a second time.
 
-Mermaid fences remain source text. Rendered technical visuals use the repository's registered-View
-pipeline and exact admission boundary.
+Mermaid fences remain source text. The repository's pinned build-time toolchain compiles declared
+diagram sources into exact accessible SVG bytes, and documentation pages present those bytes as
+ordinary responsive static assets. A separately registered View projection may remain available for
+host-native presentation, but documentation rendering does not launch, authorize, bridge, or depend
+on that View.
 
 # Search and discovery
 
@@ -198,11 +204,11 @@ Markdown semantics, or invent release/version state. Site-specific editorial ord
 declared in repository configuration until repeated structure justifies a bundle convention.
 
 Portal is headless by default and emits no site shell. The documentation presentation is one
-explicit, immutable contribution over the normalized snapshot and View authority. It produces clean
-stable document routes, canonical metadata, sitemap inputs, and useful article HTML without
-requiring JavaScript; JavaScript enhances search and interaction rather than creating the content.
-No Superbee-specific document ID, product vocabulary, or generic explorer UI is hard-coded into
-Portal.
+explicit, immutable contribution over the normalized snapshot plus any construction-time static
+artifact bindings supplied by the documentation toolchain. It produces clean stable document
+routes, canonical metadata, sitemap inputs, and useful article HTML without requiring JavaScript;
+JavaScript enhances search and interaction rather than creating the content. No Superbee-specific
+document ID, product vocabulary, or generic explorer UI is hard-coded into Portal.
 
 # Representative vertical slice
 
@@ -212,7 +218,7 @@ Design and test the system against real content rather than a component gallery:
 2. Install and setup tutorial with commands, checkpoints, note, warning, and troubleshooting link.
 3. Core mental-model explanation with relationships.
 4. CLI reference page with generated facts.
-5. System-context page with an admitted registered View.
+5. System-context page with an inline static diagram and a separately inspectable registered View.
 6. Release or migration page with version and provenance metadata.
 7. Complete-publication inspection through the versioned manifest, read model, and raw bundle paths.
 

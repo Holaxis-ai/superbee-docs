@@ -61,9 +61,10 @@ depends, among Superbee workspaces, only on the rendering and View contracts it 
 The visual is a conceptual layer flow, not the full package DAG. A grouped arrow means one or more
 packages in the upstream group use the downstream layer; it does not claim that every package has
 every possible edge. The dashed publication edge shows that the prerelease snapshot and bridge
-modules are built beside the CLI in the same npm artifact. On narrow screens, pan inside the opened
-visual; the table and prose remain the complete readable equivalent, while the pinned manifests
-preserve the exact package responsibilities and dependencies.
+modules are built beside the CLI in the same npm artifact. The diagram scales inline with the page;
+use **Expand** when its labels need more room on a narrow screen. The table and prose remain the
+complete readable equivalent, while the pinned manifests preserve the exact package responsibilities
+and dependencies.
 
 # Load-bearing boundaries
 

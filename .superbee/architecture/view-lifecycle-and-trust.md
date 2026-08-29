@@ -41,9 +41,9 @@ that registered identity requires its own authorization; transient trust is neve
 
 # One launch-and-trust pipeline
 
-Open the visual for the compact flow. Read it from top to bottom; scroll vertically and pan
-horizontally inside the viewer on a narrow screen. The numbered lifecycle below and the source table
-above are its complete readable equivalent.
+The compact flow appears inline. Read it from top to bottom; use **Expand** when its labels need more
+room on a narrow screen. The numbered lifecycle below and the source table above are its complete
+readable equivalent.
 
 The complete nonvisual lifecycle is:
 
