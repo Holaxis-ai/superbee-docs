@@ -1,56 +1,75 @@
 {
-  "schema": "https://getsuperbee.com/schemas/docs-diagram-publications/v2",
+  "schema": "https://getsuperbee.com/schemas/docs-diagram-publications/v3",
   "producer": {
     "package": "@superbee/docs-tooling",
     "version": "0.1.0"
   },
   "renderer": "superbee-docs-mmdc-v1+mermaid-cli@11.16.0+mermaid@11.17.2",
-  "manifestSha256": "sha256:b3e8c5388feaf1781d31307350d3ac86bda364e3cfae3ce2168fe741b84e5246",
+  "admission": "https://getsuperbee.com/schemas/documentation-static-svg/v1",
+  "manifestSha256": "sha256:b2ab9f66a2410d49a79e41ed16801bb8b0b041e727bb6af399639dfe0f4ea57d",
+  "predecessor": {
+    "receipt": {
+      "digest": "sha256:aaafe7dd024a8d1078d7a8f4f4bb81ef5921b6ebd439b7f1fd4bfeb31fca735d",
+      "bytesBase64": "ewogICJzY2hlbWEiOiAiaHR0cHM6Ly9nZXRzdXBlcmJlZS5jb20vc2NoZW1hcy9kb2NzLWRpYWdyYW0tcHVibGljYXRpb25zL3YyIiwKICAicHJvZHVjZXIiOiB7CiAgICAicGFja2FnZSI6ICJAc3VwZXJiZWUvZG9jcy10b29saW5nIiwKICAgICJ2ZXJzaW9uIjogIjAuMS4wIgogIH0sCiAgInJlbmRlcmVyIjogInN1cGVyYmVlLWRvY3MtbW1kYy12MSttZXJtYWlkLWNsaUAxMS4xNi4wK21lcm1haWRAMTEuMTcuMiIsCiAgIm1hbmlmZXN0U2hhMjU2IjogInNoYTI1NjpiM2U4YzUzODhmZWFmMTc4MWQzMTMwNzM1MGQzYWM4NmJkYTM2NGUzY2ZhZTNjZTIxNjhmZTc0MWI4NGU1MjQ2IiwKICAiZGlhZ3JhbXMiOiBbCiAgICB7CiAgICAgICJpZCI6ICJhcmNoaXRlY3R1cmUtYXQtYS1nbGFuY2UiLAogICAgICAicHVibGlzaGVkU291cmNlIjogInZpc3VhbHMvc291cmNlcy9hcmNoaXRlY3R1cmUtYXQtYS1nbGFuY2UubW1kIiwKICAgICAgInZpZXdJZCI6ICJ2aWV3cy1yZWdpc3RyeS9hcmNoaXRlY3R1cmUtYXQtYS1nbGFuY2UiLAogICAgICAiZW50cnkiOiAidmlld3MvYXJjaGl0ZWN0dXJlLWF0LWEtZ2xhbmNlLmh0bWwiLAogICAgICAiYWNjZXNzIjogIm5vbmUiLAogICAgICAic291cmNlU2hhMjU2IjogInNoYTI1NjowM2ZlNmQ1NTY3NjkxZDg1MWVjN2UyNGM3YWZmYjg0ZjVjOGQ2YmU5NTA3YzhlNWJlOWYxNzAwMzg0ZmI0ZWYzIiwKICAgICAgInByb2plY3Rpb25TaGEyNTYiOiAic2hhMjU2OmE5NjUwOGUwNWM5NmFjMmI5NDQ1ZWIxNjg5ODY5NDVhMDUxNWNjNmVhN2M2M2UzODc4MDNhYWYyYzJiNTE5NWUiLAogICAgICAiZW50cnlTaGEyNTYiOiAic2hhMjU2Ojg5NWMyZTUxMTI1NTJiYTQ4MDFkNWY1MGUwODQzN2ZkMWEwNWQ3MmYwMzM0ZTNjNzM2MDZkZTBjZTM0YTk3NjYiLAogICAgICAicmVnaXN0cmF0aW9uU2hhMjU2IjogInNoYTI1NjoxNDNjY2Y5MzVlNzM2NzRjZDJmODM3MDVjZWFmMzI2MDhmOTNlYzBlYjJiM2U0YzE5NTQxYThjYjljZjI3YjRjIgogICAgfSwKICAgIHsKICAgICAgImlkIjogImRvY3VtZW50LW11dGF0aW9uLWxpZmVjeWNsZSIsCiAgICAgICJwdWJsaXNoZWRTb3VyY2UiOiAidmlzdWFscy9zb3VyY2VzL2RvY3VtZW50LW11dGF0aW9uLWxpZmVjeWNsZS5tbWQiLAogICAgICAidmlld0lkIjogInZpZXdzLXJlZ2lzdHJ5L2RvY3VtZW50LW11dGF0aW9uLWxpZmVjeWNsZSIsCiAgICAgICJlbnRyeSI6ICJ2aWV3cy9kb2N1bWVudC1tdXRhdGlvbi1saWZlY3ljbGUuaHRtbCIsCiAgICAgICJhY2Nlc3MiOiAibm9uZSIsCiAgICAgICJzb3VyY2VTaGEyNTYiOiAic2hhMjU2OjYyZWE4YTFkOWQ1MTJhYzBlNDI1ZmNlNmEwN2JhY2JlNmI1YWIyZmE2NGM3NzRjYzMxZWZkZGIzYWQwYzA2MzkiLAogICAgICAicHJvamVjdGlvblNoYTI1NiI6ICJzaGEyNTY6MjFjYzg3Y2M0OTZlOWIwN2YxZjg1YmU0NzQ4ODlkZDk4ODEwMDc0NWJkMDFiZThhZTk2YjdjMGNiNjliNWM3NSIsCiAgICAgICJlbnRyeVNoYTI1NiI6ICJzaGEyNTY6NzI0OTI2MTI2MDFiYjRiZTNhY2FmMTgxMDA2N2QwMWNhYTkyMjE5YTJiOWY2OTViOTExNWIyYzA2OTI2YWUyMyIsCiAgICAgICJyZWdpc3RyYXRpb25TaGEyNTYiOiAic2hhMjU2OjMxMjdlZWE4ZjAyNDhlYzM1NzBlNTQwZWJiYmM0ZmVmZjM1YjJjYWVkNTZmNTYzYjNkNDUyNTU1YzZhYmUxODkiCiAgICB9LAogICAgewogICAgICAiaWQiOiAic3VwZXJiZWUtc3lzdGVtLWNvbnRleHQiLAogICAgICAicHVibGlzaGVkU291cmNlIjogInZpc3VhbHMvc291cmNlcy9zdXBlcmJlZS1zeXN0ZW0tY29udGV4dC5tbWQiLAogICAgICAidmlld0lkIjogInZpZXdzLXJlZ2lzdHJ5L3N1cGVyYmVlLXN5c3RlbS1jb250ZXh0IiwKICAgICAgImVudHJ5IjogInZpZXdzL3N1cGVyYmVlLXN5c3RlbS1jb250ZXh0Lmh0bWwiLAogICAgICAiYWNjZXNzIjogIm5vbmUiLAogICAgICAic291cmNlU2hhMjU2IjogInNoYTI1NjphZjlmYjJmYTBlOWJmNGJhYmMxYjc1ZGFhNGJjMjgwNGM1M2ZjNGM2YmJlNTFiYWEzZWU2N2E2ZmUxYzQxM2EzIiwKICAgICAgInByb2plY3Rpb25TaGEyNTYiOiAic2hhMjU2OjdmYTFhYjQ4MTIyY2IwYzQ1ZWRjODJmOWVkZDNhOTU0OGE5ZmUxNmMxOTQzM2Q1YzNlOThmNmY5Zjg3Y2UyYjIiLAogICAgICAiZW50cnlTaGEyNTYiOiAic2hhMjU2OjcwNTNkMjEzNWIyNzlmNWNhMmU5M2JmYjNiZWRjNzM3NGZjY2Q1ZmFkY2FiNGJmNmQ5NGI0MDU1YWFjMWM1ZWEiLAogICAgICAicmVnaXN0cmF0aW9uU2hhMjU2IjogInNoYTI1Njo0MmE4YTRhNTRmNjg1Mjc2ZTc1NTg1MjIzZGRlYWNkYTAyYzU1MmUzOGQwZDYxYjBhZGZjYTMxZWNhYjNkZjcwIgogICAgfSwKICAgIHsKICAgICAgImlkIjogInZpZXctbGlmZWN5Y2xlLWFuZC10cnVzdCIsCiAgICAgICJwdWJsaXNoZWRTb3VyY2UiOiAidmlzdWFscy9zb3VyY2VzL3ZpZXctbGlmZWN5Y2xlLWFuZC10cnVzdC5tbWQiLAogICAgICAidmlld0lkIjogInZpZXdzLXJlZ2lzdHJ5L3ZpZXctbGlmZWN5Y2xlLWFuZC10cnVzdCIsCiAgICAgICJlbnRyeSI6ICJ2aWV3cy92aWV3LWxpZmVjeWNsZS1hbmQtdHJ1c3QuaHRtbCIsCiAgICAgICJhY2Nlc3MiOiAibm9uZSIsCiAgICAgICJzb3VyY2VTaGEyNTYiOiAic2hhMjU2OmU1NGViMTFiODQ3YTE2ZjZmNDljZjFlN2ZkN2RkZGYxYTQ1NTg3Y2EyYjQ3YjkzNTkzMTJjMzgzMDM2NjY1MmMiLAogICAgICAicHJvamVjdGlvblNoYTI1NiI6ICJzaGEyNTY6ODE5YTBlYjgzMjUwYWY0YzE4MDkwMDkxNzgxODg4YzY5ZDRjMzIxY2I4MGQ5ZDA5MjFkMjYxZDdkNzFkOGYzYiIsCiAgICAgICJlbnRyeVNoYTI1NiI6ICJzaGEyNTY6NWQ2MGI4ZDJhMTRjNjBjMTZhZjgyOWYwNDgyMjNhN2YzZjYwM2IyNzVlNWNmOWUwYjRhOWJjZDVlYmU3YTA1NyIsCiAgICAgICJyZWdpc3RyYXRpb25TaGEyNTYiOiAic2hhMjU2OmVmNjQzMTRlZDg2YjMzYTQxZjdjODZhNjcxMTU3MTZkYzI5MGE3MDY3OWYzZmQ1ZDdhM2MwMjUwMjE2MjMzNjkiCiAgICB9CiAgXSwKICAicmVjZWlwdERpZ2VzdCI6ICJzaGEyNTY6ZmMyZDY2ZDUyY2MxYzhkMTA2MGRmMWRhM2EwODdhMjFjYmM1MjBiNDkyYzI2OTU0ZTAzMzk4NWQ3MWI2OTkwNyIKfQo="
+    },
+    "manifest": {
+      "digest": "sha256:b3e8c5388feaf1781d31307350d3ac86bda364e3cfae3ce2168fe741b84e5246",
+      "bytesBase64": "ewogICJzY2hlbWEiOiAiaHR0cHM6Ly9nZXRzdXBlcmJlZS5jb20vc2NoZW1hcy9kb2NzLWRpYWdyYW1zL3YxIiwKICAicmVuZGVyZXIiOiAic3VwZXJiZWUtZG9jcy1tbWRjLXYxK21lcm1haWQtY2xpQDExLjE2LjArbWVybWFpZEAxMS4xNy4yIiwKICAiZGlhZ3JhbXMiOiBbCiAgICB7CiAgICAgICJpZCI6ICJhcmNoaXRlY3R1cmUtYXQtYS1nbGFuY2UiLAogICAgICAidGl0bGUiOiAiQXJjaGl0ZWN0dXJlIGF0IGEgZ2xhbmNlIiwKICAgICAgImRlc2NyaXB0aW9uIjogIkhvdyBTdXBlcmJlZSdzIHByaXZhdGUgd29ya3NwYWNlIGxheWVycyBiZWNvbWUgb25lIHN1cHBvcnRlZCBpbnN0YWxsZWQgcGFja2FnZS4iLAogICAgICAic291cmNlIjogImRpYWdyYW1zL3NvdXJjZXMvYXJjaGl0ZWN0dXJlLWF0LWEtZ2xhbmNlLm1tZCIsCiAgICAgICJwdWJsaXNoZWRTb3VyY2UiOiAidmlzdWFscy9zb3VyY2VzL2FyY2hpdGVjdHVyZS1hdC1hLWdsYW5jZS5tbWQiLAogICAgICAiZG9jdW1lbnRJZCI6ICJhcmNoaXRlY3R1cmUvYXJjaGl0ZWN0dXJlLWF0LWEtZ2xhbmNlIiwKICAgICAgInZpZXdJZCI6ICJ2aWV3cy1yZWdpc3RyeS9hcmNoaXRlY3R1cmUtYXQtYS1nbGFuY2UiLAogICAgICAiZW50cnkiOiAidmlld3MvYXJjaGl0ZWN0dXJlLWF0LWEtZ2xhbmNlLmh0bWwiLAogICAgICAiYWNjZXNzIjogIm5vbmUiCiAgICB9LAogICAgewogICAgICAiaWQiOiAic3VwZXJiZWUtc3lzdGVtLWNvbnRleHQiLAogICAgICAidGl0bGUiOiAiU3VwZXJiZWUgc3lzdGVtIGNvbnRleHQiLAogICAgICAiZGVzY3JpcHRpb24iOiAiSG93IGh1bWFucywgYWdlbnRzLCBTdXBlcmJlZSwgc2hhcmVkIGJ1bmRsZXMsIHBhY2thZ2UgZGlzdHJpYnV0aW9uLCBhbmQgcHVibGljIHB1YmxpY2F0aW9uIHJlbGF0ZS4iLAogICAgICAic291cmNlIjogImRpYWdyYW1zL3NvdXJjZXMvc3VwZXJiZWUtc3lzdGVtLWNvbnRleHQubW1kIiwKICAgICAgInB1Ymxpc2hlZFNvdXJjZSI6ICJ2aXN1YWxzL3NvdXJjZXMvc3VwZXJiZWUtc3lzdGVtLWNvbnRleHQubW1kIiwKICAgICAgImRvY3VtZW50SWQiOiAiYXJjaGl0ZWN0dXJlL3N1cGVyYmVlLXN5c3RlbS1jb250ZXh0IiwKICAgICAgInZpZXdJZCI6ICJ2aWV3cy1yZWdpc3RyeS9zdXBlcmJlZS1zeXN0ZW0tY29udGV4dCIsCiAgICAgICJlbnRyeSI6ICJ2aWV3cy9zdXBlcmJlZS1zeXN0ZW0tY29udGV4dC5odG1sIiwKICAgICAgImFjY2VzcyI6ICJub25lIgogICAgfSwKICAgIHsKICAgICAgImlkIjogImRvY3VtZW50LW11dGF0aW9uLWxpZmVjeWNsZSIsCiAgICAgICJ0aXRsZSI6ICJEb2N1bWVudCBtdXRhdGlvbiBsaWZlY3ljbGUiLAogICAgICAiZGVzY3JpcHRpb24iOiAiSG93IGFuIG9wdGltaXN0aWMgZG9jdW1lbnQgdXBkYXRlIGJlY29tZXMgZHVyYWJsZSBzdGF0ZSBhbmQgaXMgb3B0aW9uYWxseSBwdWJsaXNoZWQgdGhyb3VnaCBHaXQuIiwKICAgICAgInNvdXJjZSI6ICJkaWFncmFtcy9zb3VyY2VzL2RvY3VtZW50LW11dGF0aW9uLWxpZmVjeWNsZS5tbWQiLAogICAgICAicHVibGlzaGVkU291cmNlIjogInZpc3VhbHMvc291cmNlcy9kb2N1bWVudC1tdXRhdGlvbi1saWZlY3ljbGUubW1kIiwKICAgICAgImRvY3VtZW50SWQiOiAiYXJjaGl0ZWN0dXJlL2RvY3VtZW50LW11dGF0aW9uLWxpZmVjeWNsZSIsCiAgICAgICJ2aWV3SWQiOiAidmlld3MtcmVnaXN0cnkvZG9jdW1lbnQtbXV0YXRpb24tbGlmZWN5Y2xlIiwKICAgICAgImVudHJ5IjogInZpZXdzL2RvY3VtZW50LW11dGF0aW9uLWxpZmVjeWNsZS5odG1sIiwKICAgICAgImFjY2VzcyI6ICJub25lIgogICAgfSwKICAgIHsKICAgICAgImlkIjogInZpZXctbGlmZWN5Y2xlLWFuZC10cnVzdCIsCiAgICAgICJ0aXRsZSI6ICJWaWV3IGxpZmVjeWNsZSBhbmQgdHJ1c3QiLAogICAgICAiZGVzY3JpcHRpb24iOiAiSG93IGV4YWN0IFZpZXcgYnl0ZXMgYXJlIGFkbWl0dGVkLCBhdXRob3JpemVkLCBjb250YWluZWQsIGJyaWRnZWQsIGNvbmZpcm1lZCwgYW5kIHJldm9rZWQuIiwKICAgICAgInNvdXJjZSI6ICJkaWFncmFtcy9zb3VyY2VzL3ZpZXctbGlmZWN5Y2xlLWFuZC10cnVzdC5tbWQiLAogICAgICAicHVibGlzaGVkU291cmNlIjogInZpc3VhbHMvc291cmNlcy92aWV3LWxpZmVjeWNsZS1hbmQtdHJ1c3QubW1kIiwKICAgICAgImRvY3VtZW50SWQiOiAiYXJjaGl0ZWN0dXJlL3ZpZXctbGlmZWN5Y2xlLWFuZC10cnVzdCIsCiAgICAgICJ2aWV3SWQiOiAidmlld3MtcmVnaXN0cnkvdmlldy1saWZlY3ljbGUtYW5kLXRydXN0IiwKICAgICAgImVudHJ5IjogInZpZXdzL3ZpZXctbGlmZWN5Y2xlLWFuZC10cnVzdC5odG1sIiwKICAgICAgImFjY2VzcyI6ICJub25lIgogICAgfQogIF0KfQo="
+    }
+  },
   "diagrams": [
     {
       "id": "architecture-at-a-glance",
+      "title": "Architecture at a glance",
+      "description": "How Superbee's private workspace layers become one supported installed package.",
+      "documentId": "architecture/architecture-at-a-glance",
       "publishedSource": "visuals/sources/architecture-at-a-glance.mmd",
-      "viewId": "views-registry/architecture-at-a-glance",
-      "entry": "views/architecture-at-a-glance.html",
-      "access": "none",
+      "publishedSvg": "visuals/diagrams/architecture-at-a-glance.svg",
       "sourceSha256": "sha256:03fe6d5567691d851ec7e24c7affb84f5c8d6be9507c8e5be9f1700384fb4ef3",
       "projectionSha256": "sha256:a96508e05c96ac2b9445eb168986945a0515cc6ea7c63e387803aaf2c2b5195e",
-      "entrySha256": "sha256:895c2e5112552ba4801d5f50e08437fd1a05d72f0334e3c73606de0ce34a9766",
-      "registrationSha256": "sha256:143ccf935e73674cd2f83705ceaf32608f93ec0eb2b3e4c19541a8cb9cf27b4c"
+      "svgSha256": "sha256:a6ef562c1fabfe5a50828f086cd1b168b561b4c7ccc79b3ebba6a55db21a395e",
+      "sourceSize": 1264,
+      "svgSize": 21096
     },
     {
       "id": "document-mutation-lifecycle",
+      "title": "Document mutation lifecycle",
+      "description": "How an optimistic document update becomes durable state and is optionally published through Git.",
+      "documentId": "architecture/document-mutation-lifecycle",
       "publishedSource": "visuals/sources/document-mutation-lifecycle.mmd",
-      "viewId": "views-registry/document-mutation-lifecycle",
-      "entry": "views/document-mutation-lifecycle.html",
-      "access": "none",
+      "publishedSvg": "visuals/diagrams/document-mutation-lifecycle.svg",
       "sourceSha256": "sha256:62ea8a1d9d512ac0e425fce6a07bacbe6b5ab2fa64c774cc31efddb3ad0c0639",
       "projectionSha256": "sha256:21cc87cc496e9b07f1f85be474889dd988100745bd01be8ae96b7c0cb69b5c75",
-      "entrySha256": "sha256:72492612601bb4be3acaf1810067d01caa92219a2b9f695b9115b2c06926ae23",
-      "registrationSha256": "sha256:3127eea8f0248ec3570e540ebbbc4feff35b2caed56f563b3d452555c6abe189"
+      "svgSha256": "sha256:36ca8d508ed5eb3e6e96f519dab726167e8c4015684f64c45bc1002b19d3c4ed",
+      "sourceSize": 1510,
+      "svgSize": 34420
     },
     {
       "id": "superbee-system-context",
+      "title": "Superbee system context",
+      "description": "How humans, agents, Superbee, shared bundles, package distribution, and public publication relate.",
+      "documentId": "architecture/superbee-system-context",
       "publishedSource": "visuals/sources/superbee-system-context.mmd",
-      "viewId": "views-registry/superbee-system-context",
-      "entry": "views/superbee-system-context.html",
-      "access": "none",
+      "publishedSvg": "visuals/diagrams/superbee-system-context.svg",
       "sourceSha256": "sha256:af9fb2fa0e9bf4babc1b75daa4bc2804c53fc4c6bbe51baa3ee67a6fe1c413a3",
       "projectionSha256": "sha256:7fa1ab48122cb0c45edc82f9edd3a9548a9fe16c19433d5c3e98f6f9f87ce2b2",
-      "entrySha256": "sha256:7053d2135b279f5ca2e93bfb3bedc7374fccd5fadcab4bf6d94b4055aac1c5ea",
-      "registrationSha256": "sha256:42a8a4a54f685276e75585223ddeacda02c552e38d0d61b0adfca31ecab3df70"
+      "svgSha256": "sha256:0ca7a60fa25403de0fe69951a6242e6c621069da360d3c84cad89cef0c464fa0",
+      "sourceSize": 1317,
+      "svgSize": 25763
     },
     {
       "id": "view-lifecycle-and-trust",
+      "title": "View lifecycle and trust",
+      "description": "How exact View bytes are admitted, authorized, contained, bridged, confirmed, and revoked.",
+      "documentId": "architecture/view-lifecycle-and-trust",
       "publishedSource": "visuals/sources/view-lifecycle-and-trust.mmd",
-      "viewId": "views-registry/view-lifecycle-and-trust",
-      "entry": "views/view-lifecycle-and-trust.html",
-      "access": "none",
+      "publishedSvg": "visuals/diagrams/view-lifecycle-and-trust.svg",
       "sourceSha256": "sha256:e54eb11b847a16f6f49cf1e7fd7dddf1a45587ca2b47b9359312c3830366652c",
       "projectionSha256": "sha256:819a0eb83250af4c18090091781888c69d4c321cb80d9d0921d261d7d71d8f3b",
-      "entrySha256": "sha256:5d60b8d2a14c60c16af829f048223a7f3f603b275e5cf9e0b4a9bcd5ebe7a057",
-      "registrationSha256": "sha256:ef64314ed86b33a41f7c86a67115716dc290a70679f3fd5d7a3c025021623369"
+      "svgSha256": "sha256:06715a9dc359227678796b0bb9147992355ad79f82e6bbde72c6af1acdf4fab2",
+      "sourceSize": 1970,
+      "svgSize": 42048
     }
   ],
-  "receiptDigest": "sha256:fc2d66d52cc1c8d1060df1da3a087a21cbc520b492c26954e033985d71b69907"
+  "receiptDigest": "sha256:bbbddece49a96f626c583bf829c9e44f723d3ba9671ddcd83d8d7dfa8452353e"
 }

@@ -11,28 +11,39 @@ The Superbee Portal repository is authoritative for deterministic human publicat
 registered-View admission, read-only publication behavior, target adapters, and the generic browser
 client used by presentation packages.
 
-Pinned evidence for the current headless publication, client-owned presentation, and inline static
-diagram boundary:
+Pinned evidence for the current headless publication, client-owned presentation, neutral
+documentation projection, Portal adapter, MkDocs adapter, and static-first diagram boundary:
 
 - Repository: `https://github.com/Holaxis-ai/superbee-portal`
-- Commit: `94514f986f3b8c1f390e2cca5a1a0128076f56c6`
+- Commit: `8651d5e63befd2f234be8d44efe7c8b70951cd41`
 - Headless presentation pull request: `https://github.com/Holaxis-ai/superbee-portal/pull/8`
 - Docs-native diagram pull request: `https://github.com/Holaxis-ai/superbee-portal/pull/9`
 - Inline diagram pull request: `https://github.com/Holaxis-ai/superbee-portal/pull/11`
+- Neutral projection and adapter pull requests:
+  `https://github.com/Holaxis-ai/superbee-portal/pull/13`,
+  `https://github.com/Holaxis-ai/superbee-portal/pull/14`,
+  `https://github.com/Holaxis-ai/superbee-portal/pull/15`,
+  `https://github.com/Holaxis-ai/superbee-portal/pull/16`,
+  `https://github.com/Holaxis-ai/superbee-portal/pull/17`,
+  `https://github.com/Holaxis-ai/superbee-portal/pull/18`, and
+  `https://github.com/Holaxis-ai/superbee-portal/pull/19`
 - Significance: reviewed artifact v2, explicit presentation contribution, secure generic browser
-  client for genuine Views, and the final reviewed View-independent exact static SVG boundary for
-  documentation.
+  client for genuine Views, shared fail-closed projection admission, conventional MkDocs output,
+  the final reviewed View-independent exact static SVG boundary for documentation, and root-origin
+  URL validation that keeps generated routes aligned with canonical and sitemap URLs.
 
-The documentation toolchain binds a verified diagram identity and exact SVG bytes to the owning page.
-The documentation package validates their digest and safety, copies the bytes as a static asset, and
-renders a responsive inline figure without View authority. Portal's generic client remains the
-authority for exact admission, fresh sandboxed frame creation, bridge transport, source and
-generation fencing, and disposal when a client intentionally launches a genuine View.
+The documentation toolchain binds selected documents, relationships, navigation, brand, and verified
+diagram identities and exact SVG bytes into one host-neutral owned projection. Portal and MkDocs
+consume that projection through closed adapter packages. The source publication snapshot can close
+before target materialization, and neither adapter selects additional documents by recursively
+following links. Portal's generic client remains the authority for exact admission, fresh sandboxed
+frame creation, bridge transport, source and generation fencing, and disposal when a client
+intentionally launches a genuine View.
 
-The current diagram publication receipt is still View-backed: authoring proves the source, registered
-View, registration, and Portal admission before extracting the exact SVG. That receipt is a
-transitional authoring and provenance dependency, not a documentation runtime dependency. A future
-static-first receipt migration is separate work and must not silently reinterpret this receipt.
+The current v3 diagram publication receipt is static-first: authoring proves and publishes exact
+Mermaid source plus admitted static SVG. Retained registered View HTML, registrations, and Portal
+admission entries are byte-for-byte predecessor evidence only; current diagram publication and both
+documentation outputs do not update or depend on them.
 
 [supports the system context](../architecture/superbee-system-context.md)
 

@@ -108,8 +108,6 @@ the previous session's result.
 
 Continue with [Create your first durable workspace](first-durable-workspace.md).
 
-[current release evidence](../sources/current-release.md)
-
 # Re-evaluate this page when
 
 - npm's `latest` version or package platform metadata changes;

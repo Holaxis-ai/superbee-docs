@@ -4,7 +4,7 @@ title: Documentation coverage and delivery
 description: >-
   Ordered page coverage, representative slice, and readiness gates for the
   public documentation.
-superbee_updated_by: codex
+superbee_updated_by: openai/codex
 ---
 # Purpose
 
@@ -160,7 +160,8 @@ The representative slice is ready to expand when:
 - navigation works on desktop and mobile and the complete bundle remains inspectable;
 - code blocks, tables, callouts, diagrams, and registered Views have accessible presentations;
 - reference version labels agree with the installed package under test;
-- the full repository check and Portal build pass;
+- the full repository check plus Portal and strict offline MkDocs builds pass from the same owned
+  documentation projection;
 - one real product change has exercised the page-update workflow without broad unnecessary churn.
 
 [documentation operating model](../design/docs-operating-model.md)

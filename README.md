@@ -6,13 +6,24 @@ tooling that publishes it as a human site.
 ```text
 verified product evidence
   -> public .superbee bundle
-  -> superbee/publication
-  -> superbee-portal + @superbee/portal-docs + @superbee/docs-tooling
-  -> docs.getsuperbee.com
+  -> one superbee/publication snapshot
+  -> one owned @superbee/docs-projection projection
+  -> Portal site at docs.getsuperbee.com + conventional MkDocs reference output
 ```
 
 The repository is public by design. Private planning, credentials, security work, and unpublished
 communications belong elsewhere.
+
+## Documentation selection
+
+`portal.config.json` owns the ordered primary navigation. The production
+`documentation-selection.json` contract names the additional public support documents that output
+adapters must include without placing them in that navigation. The public documentation set is the
+explicit union of those two lists; adapters must not follow links to expand it implicitly.
+
+Keep the support list unique and canonically ordered. `npm run bundle:check` verifies its stable v1
+schema, confirms every selected support document exists in `.superbee`, and rejects overlap with
+the primary navigation.
 
 ## Development
 
@@ -21,13 +32,19 @@ Node.js 22.12 or newer is required.
 ```bash
 npm ci
 npm run tools:bootstrap
+npm run portal:build
+npm run mkdocs:sync
 npm run check
 ```
 
-The bootstrap command builds the exact pinned Superbee publication and Portal commits into local
-development packages. This temporary step disappears once compatible releases are available from
-npm. Before changing either exact pin, confirm that no `*.apply-intent.json` transaction journal is
-pending; finish or roll back that operation with the package version that created it first. Journals
+The bootstrap command builds the exact pinned Superbee and Portal commits into local
+development packages. The Portal build captures one source snapshot and projects the same explicit
+19-document selection, brand asset, relationships, and four admitted diagrams into both Portal and
+MkDocs target inputs. `mkdocs:sync` installs the exact locked Python environment once; subsequent
+`mkdocs:build` and repository checks are frozen and offline. This temporary packed-package step
+disappears once compatible releases are available from npm. Before changing either exact pin,
+confirm that no `*.apply-intent.json` transaction journal is pending; finish or roll back that
+operation with the package version that created it first. Journals
 contain local paths and exact recovery preimages and are intentionally ignored by Git.
 
 ## Release documentation
@@ -50,8 +67,10 @@ ordinary pages; exact versions remain available in release, evidence, and migrat
 
 ## Deployment
 
-Portal builds the public site into `dist`. Cloudflare Workers Static Assets serves that directory
-without a Worker script. Validate the generated deployment locally before uploading it:
+Portal builds the deployed public site into `dist`. The MkDocs adapter independently materializes a
+conventional reference site under ignored `.tmp/mkdocs/site` from the same owned projection; it is
+validated but not deployed by this repository. Cloudflare Workers Static Assets serves only
+`dist`, without a Worker script. Validate the generated deployment locally before uploading it:
 
 ```bash
 npm run portal:build
@@ -71,11 +90,11 @@ Preview: npx wrangler versions upload
 ## Diagrams
 
 Mermaid does not execute inside Superbee Markdown. Diagram source is compiled into a source-bound,
-self-contained View whose exact committed bytes Portal admits:
+admitted static SVG whose exact committed bytes both documentation outputs consume:
 
 ```bash
-npm run diagram:build   # apply source -> public bundle View
-npm run diagram:check   # prove checked-in source/View/admission agreement
+npm run diagram:build   # apply source -> public bundle static SVG + v3 receipt
+npm run diagram:check   # prove checked-in source/SVG/receipt agreement
 npm run portal:preview  # inspect the exact Portal artifact locally
 ```
 
@@ -85,7 +104,8 @@ source, manifest, configuration, and receipt. Diagram source uses directive-free
 without font overrides and printable ASCII in v1. Browser layout geometry may
 differ slightly across operating systems, so
 checks re-render for safety and accessibility while source-bound projection metadata detects drift;
-Portal separately pins the exact committed View bytes.
+both output adapters separately pin the exact committed static SVG bytes. The old View HTML and
+registrations remain byte-for-byte predecessor evidence; they are not maintained publication output.
 
 If `diagram:build` reports an interrupted apply, run `npm run diagram:rollback` before retrying.
 That repository command supplies the required root and config arguments. Apply never removes stale

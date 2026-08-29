@@ -1,5 +1,5 @@
 {
-  "schema": "superbee-docs-projection-selection-spike/v0",
+  "schema": "https://getsuperbee.com/schemas/superbee-docs-documentation-selection/v1",
   "supportingDocuments": [
     "design/docs-operating-model",
     "design/site-experience-contract",
