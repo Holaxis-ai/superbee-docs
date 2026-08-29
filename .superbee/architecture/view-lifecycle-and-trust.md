@@ -119,25 +119,6 @@ This active-code lifecycle is distinct from the inert Markdown document reader a
 public publication boundary. For surrounding product actors see the [system context](superbee-system-context.md);
 for confirmed writes see the [document mutation lifecycle](document-mutation-lifecycle.md).
 
-# Change triggers
-
-Re-evaluate this page when any of these source paths changes:
-
-- `packages/core/src/page.ts`
-- `packages/view-runtime/src/authorization.ts`
-- `packages/view-runtime/src/index.ts`
-- `packages/view-runtime/src/bridge.ts`
-- `packages/view-runtime/src/action-bridge.ts`
-- `packages/ui-server/src/pages.ts`
-- `packages/ui-server/src/server.ts`
-- `packages/ui/src/views/PageFrame.tsx`
-- `packages/cli/src/ui/view-authorizations.ts`
-- `packages/cli/src/ui/server.ts`
-- `packages/cli/src/commands/mcp.ts`
-- `packages/cli/src/mcp-workspace-resolver.ts`
-- `packages/mcp-app/src/contract.ts`
-- `packages/mcp-app/src/server.ts`
-- `packages/mcp-app/src/view.html`
-- `packages/mcp-app/src/view.ts`
+# Evidence
 
 [pinned implementation source](../sources/superbee-codebase-main.md)

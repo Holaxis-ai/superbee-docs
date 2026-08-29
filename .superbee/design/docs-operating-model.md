@@ -111,8 +111,7 @@ Every reader-facing page states, either explicitly or through its placement and 
 - the exact product or release evidence that governs material behavior claims;
 - the tested package version or source commit when the behavior is version-sensitive;
 - expected result and recovery guidance for procedures;
-- related concepts, next actions, and relevant registered Views;
-- the event that should cause the page to be re-evaluated.
+- related concepts, next actions, and relevant registered Views.
 
 Additional expectations depend on the mode:
 
@@ -138,11 +137,11 @@ Each maintained page names its authoritative source class:
 - npm and GitHub release receipts for released state;
 - reviewed product decisions for declared policy.
 
-A future source manifest should bind each page to exact public source identities and declared change
-triggers. Do not create a parallel JSON authority: the bundle's `Source` documents should become the
-machine-readable drift input if repeated updates prove the need. Until then, evidence links and
-version pins live visibly in the page or a linked `Source` document. Private material may inform a
-separately reviewed public explanation but is never copied into this bundle.
+Evidence links and version pins live visibly in the page or a linked `Source` document. Operational
+`Documentation Trigger` records relate maintained pages to source paths and named product events.
+They are ordinary public bundle documents, so agents and public inspection tools can query them
+without forcing maintenance instructions into reader prose. Private material may inform a separately
+reviewed public explanation but is never copied into this bundle.
 
 Generated reference is authoritative only for the exact facts its generator can prove, such as
 command syntax, options, defaults, output fields, or schemas. Authored pages own task framing,
@@ -165,6 +164,23 @@ bundle does not need duplicate workflow records. After several real pages prove 
 transitions recur, the bundle may promote the stable shape into Kinds. Until then, the coverage plan
 is the one planning projection and Git history is the audit trail.
 
+# Operational documentation records
+
+`Documentation Trigger` records live under `maintenance/documentation-triggers/`. Each record names
+its affected page, exact source-path patterns or product events, the required review action, and the
+governing evidence. They remain generic OKF documents until repeated authoring demonstrates that a
+Kind would reduce real maintenance effort.
+
+The documentation profile declares `Documentation Trigger` in `operationalTypes`. The complete
+Portal publication therefore retains every trigger under its raw bundle route, while the shared
+documentation projection rejects any attempt to select one as navigation or supporting content.
+This is a presentation rule, not an authorization or privacy boundary.
+
+Run `npm run docs:impact:check` to validate the records and their affected-page links. For a product
+change, run `npm run docs:impact -- --changed <source-path>` and add repeatable `--changed` or
+`--event` arguments as needed. Review every returned page and either update it or record why the
+verified behavior did not change.
+
 # Operational moments
 
 | Moment | Required action |
@@ -173,7 +189,7 @@ is the one planning projection and Git history is the audit trail.
 | During drafting | Verify each material behavioral claim and execute procedural checkpoints while the page is being written. |
 | Before review | Confirm the page contract, links, public boundary, package or source identity, and affected journey. |
 | Before merge | Run the repository check and inspect both the exact Portal artifact and conventional MkDocs output for pages whose presentation changed. |
-| Product behavior merge | Identify affected pages from declared evidence and change triggers; update or mark them stale. |
+| Product behavior merge | Query the operational trigger records for changed sources or events; update affected pages or mark them stale. |
 | Verified release | Reconcile release facts, compatibility, reference version labels, and migration guidance. |
 | Quarterly audit | Remove ceremonial pages and visuals, promote repeated stable structure, and test the priority journeys. |
 

@@ -144,9 +144,10 @@ on that View.
 
 # Search and discovery
 
-Search covers title, description, headings, body, aliases, type, and declared tags while returning
-human pages ahead of operational records for ordinary queries. Results show section, short context,
-content mode, and version scope when relevant.
+Documentation search covers the explicit human page selection across title, description, headings,
+body, type, and declared tags. Operational records remain available through the complete public
+bundle and do not enter the reader search index. Results show section, short context, content mode,
+and version scope when relevant.
 
 The search index is generated from the captured normalized publication snapshot at build time rather
 than from a separate Markdown parser or external crawler. Search is fully operable from the keyboard,

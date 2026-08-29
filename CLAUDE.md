@@ -56,9 +56,10 @@ the ignored journal contains local paths and exact recovery preimages.
    records before writing.
 2. Before authoring a reader-facing page, read `design/docs-operating-model` and
    `plans/docs-coverage`. Confirm the page's audience, primary content mode, successful outcome,
-   governing evidence, change triggers, and journey check. Use one active branch or pull request as
-   the observable claim on a bounded page or coupled page set; update the coverage plan when its
-   scope or status materially changes.
+   governing evidence, operational `Documentation Trigger` record, and journey check. Run
+   `npm run docs:impact -- --changed <source-path>` for relevant product changes. Use one active
+   branch or pull request as the observable claim on a bounded page or coupled page set; update the
+   coverage plan when its scope or status materially changes.
 3. Keep unknown behavior explicitly unknown. Use exact source commits and package identities.
 4. Add ordinary documents first. Introduce a Kind only after repeated documents prove stable fields
    or lifecycle needs.

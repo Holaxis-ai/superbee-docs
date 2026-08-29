@@ -93,6 +93,9 @@ async function projectionInput({ root, config, snapshot, diagramAgreement }) {
       documents: [...section.documents],
     })),
     supportingDocuments: [...supportingDocuments],
+    ...(config.documentation.operationalTypes?.length
+      ? { operationalTypes: [...config.documentation.operationalTypes] }
+      : {}),
     ...(brandMark ? { brandMark } : {}),
     diagrams,
   };

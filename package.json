@@ -13,6 +13,8 @@
     "docs:release:check": "node scripts/release-docs.mjs check",
     "architecture:check": "node scripts/architecture-docs.mjs check --source .deps/source/superbee",
     "architecture:impact": "node scripts/architecture-docs.mjs impact --source .deps/source/superbee",
+    "docs:impact": "node scripts/documentation-impact.mjs",
+    "docs:impact:check": "node scripts/documentation-impact.mjs check",
     "diagram:build": "superbee-docs diagram apply --root . --config portal.config.json",
     "diagram:upgrade-static": "superbee-docs diagram upgrade-static --root . --config portal.config.json",
     "diagram:rollback": "superbee-docs diagram rollback --root . --config portal.config.json",
@@ -28,7 +30,7 @@
     "cloudflare:preview": "wrangler versions upload",
     "cloudflare:deploy": "wrangler deploy",
     "test": "node --test test/*.test.mjs",
-    "check": "npm run diagram:check && npm run docs:release:check && npm run architecture:check && npm run prose:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run mkdocs:build && npm run cloudflare:check && npm test"
+    "check": "npm run diagram:check && npm run docs:release:check && npm run architecture:check && npm run docs:impact:check && npm run prose:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run mkdocs:build && npm run cloudflare:check && npm test"
   },
   "devDependencies": {
     "wrangler": "4.127.1"

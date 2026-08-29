@@ -124,10 +124,3 @@ authoritative.
 [CLI overview](../reference/cli-overview.md)
 
 [current release evidence](../sources/current-release.md)
-
-# Re-evaluate this page when
-
-- OKF authoring or reserved-file rules change;
-- bundle resolution precedence changes;
-- Kind, recipe, link, or version semantics change; or
-- a presentation surface becomes an independent authority.

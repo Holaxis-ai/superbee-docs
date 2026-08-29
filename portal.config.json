@@ -45,6 +45,9 @@
     },
     "versionLabel": "Latest",
     "repositoryUrl": "https://github.com/Holaxis-ai/superbee",
+    "operationalTypes": [
+      "Documentation Trigger"
+    ],
     "navigation": [
       {
         "label": "Get started",

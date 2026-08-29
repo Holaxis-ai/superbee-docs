@@ -148,7 +148,7 @@ for selection and installation failures. See
 [View lifecycle and trust](../architecture/view-lifecycle-and-trust.md) for the complete execution,
 approval, and revocation model.
 
-# Evidence and change triggers
+# Evidence
 
 The browser procedure is grounded in the tagged
 [`doc open` implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/src/commands/ui.ts)
@@ -158,6 +158,3 @@ MCP behavior is grounded in the tagged
 [`show_document` and `show_view` server](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/mcp-app/src/server.ts)
 and
 [`0.1.3` server tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/mcp-app/test/server.test.ts).
-
-Re-evaluate this page when `doc open`, `ui`, `view list`, MCP workspace selection, MCP App host
-support, the View access model, or the stable release identity changes.

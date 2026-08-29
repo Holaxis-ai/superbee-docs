@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -32,10 +32,20 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     assert.deepEqual(projectionManifest.selectedDocuments, selected);
     assert.deepEqual(projectionManifest.supportingDocuments, selection.supportingDocuments);
     assert.equal(mkdocsManifest.documents.length, 25);
-    assert.equal(artifact.manifest.counts.documents, 30);
+    const bundleMarkdown = (await readdir(".superbee", { recursive: true })).filter((file) => file.endsWith(".md"));
+    assert.equal(artifact.manifest.counts.documents, bundleMarkdown.length - 1, "the root index is reserved rather than a publication document");
     for (const omitted of ["index", ...config.portal.views.map((row) => row.id)]) {
       assert.equal(projectionManifest.selectedDocuments.includes(omitted), false, omitted);
       assert.ok(artifact.files.has(`bundle/${omitted}.md`), omitted);
+    }
+    const operational = (await readdir(".superbee/maintenance/documentation-triggers"))
+      .filter((file) => file.endsWith(".md"))
+      .map((file) => `maintenance/documentation-triggers/${file.slice(0, -3)}`);
+    assert.equal(operational.length, 15);
+    for (const id of operational) {
+      assert.equal(projectionManifest.selectedDocuments.includes(id), false, id);
+      assert.ok(artifact.files.has(`bundle/${id}.md`), id);
+      assert.equal(mkdocsManifest.documents.some((document) => document.id === id), false, id);
     }
 
     assert.equal(result.snapshotDigest, projectionManifest.snapshotDigest);
@@ -99,7 +109,7 @@ test("the real MkDocs site remains readable without JavaScript at mobile width",
   const pageFile = path.resolve(".tmp/mkdocs/site/documents/architecture/architecture-at-a-glance/index.html");
   const html = await readFile(pageFile, "utf8");
   assert.match(html, /Content-Security-Policy[^>]+default-src 'none'/);
-  assert.match(html, /<nav class="superbee-static-nav"/);
+  assert.match(html, /<nav aria-label="Documentation navigation">/);
   assert.match(html, /Open full-size diagram: Architecture at a glance/);
 
   const browser = await puppeteer.launch({ headless: true, args: ["--no-sandbox"] });
@@ -110,7 +120,7 @@ test("the real MkDocs site remains readable without JavaScript at mobile width",
     await page.goto(pathToFileURL(pageFile).href, { waitUntil: "load" });
     const observed = await page.evaluate(() => ({
       title: document.querySelector("h1")?.textContent?.trim(),
-      navLabel: document.querySelector(".superbee-static-nav")?.getAttribute("aria-label"),
+      navLabel: document.querySelector('nav[aria-label="Documentation navigation"]')?.getAttribute("aria-label"),
       diagramAlt: document.querySelector(".superbee-diagram img")?.getAttribute("alt"),
       diagramWidth: document.querySelector(".superbee-diagram img")?.naturalWidth,
       horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,

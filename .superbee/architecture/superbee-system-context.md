@@ -40,10 +40,7 @@ source bundle.
 | Superbee Portal | publishes | public documentation site |
 | Human | reads and inspects | public documentation site |
 
-# Change triggers
-
-Re-evaluate this diagram when the core storage contract, CLI installation model, publication
-snapshot contract, Portal responsibilities, or supported sharing model changes materially.
+# Evidence
 
 [product evidence](../sources/superbee-core.md)
 

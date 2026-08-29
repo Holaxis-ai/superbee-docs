@@ -206,7 +206,7 @@ superbee <command> --help
 For document or View presentation failures, continue with the
 [presentation recovery guide](../guides/show-documents-and-views.md).
 
-# Evidence and change triggers
+# Evidence
 
 These procedures are verified against
 [the current stable release evidence](../sources/current-release.md), the tagged
@@ -219,7 +219,3 @@ Bundle-health behavior is grounded in the tagged
 [`status` implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/src/commands/status.ts)
 and
 [`status` tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/test/status.test.ts).
-
-Re-evaluate this page when the stable release, installation model, supported hosts, setup plan,
-private-state migration, bundle-selection precedence, project binding format, catalog boundary, or
-status findings change.
