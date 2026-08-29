@@ -26,6 +26,12 @@
         "entry": "views/superbee-system-context.html",
         "access": "none",
         "entrySha256": "sha256:7053d2135b279f5ca2e93bfb3bedc7374fccd5fadcab4bf6d94b4055aac1c5ea"
+      },
+      {
+        "id": "views-registry/view-lifecycle-and-trust",
+        "entry": "views/view-lifecycle-and-trust.html",
+        "access": "none",
+        "entrySha256": "sha256:5d60b8d2a14c60c16af829f048223a7f3f603b275e5cf9e0b4a9bcd5ebe7a057"
       }
     ]
   },
@@ -77,7 +83,8 @@
         "documents": [
           "architecture/architecture-at-a-glance",
           "architecture/superbee-system-context",
-          "architecture/document-mutation-lifecycle"
+          "architecture/document-mutation-lifecycle",
+          "architecture/view-lifecycle-and-trust"
         ]
       }
     ]

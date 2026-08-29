@@ -1,0 +1,34 @@
+flowchart TD
+  accTitle: Superbee View lifecycle and trust
+  accDescr {
+    Registered View bytes and transient MCP HTML enter the same bounded admission and immutable
+    process-local launch pipeline. A current launch either runs without bundle access or requires
+    exact-source approval for bounded reads and proposals. Proposals still require a separate human
+    confirmation before the core mutation transaction. Expired, replaced, or unauthorized launches
+    fail closed and must be reopened.
+  }
+
+  guide["Read top to bottom<br/>scroll vertically; pan on narrow screens"] --> registered
+  guide --> transient
+  registered["Registered View<br/>durable identity and exact entry bytes"] --> admit
+  transient["Transient MCP HTML<br/>session input and explicit access"] --> admit
+
+  admit["Admission<br/>bounded UTF-8 text/html"] --> launch["Immutable process-local launch<br/>hash, access, expiry, currentness"]
+  launch --> current{"Current and unexpired?"}
+  current -->|"no"| revoked["Deny or revoke<br/>reopen from current source"]
+  current -->|"yes"| access{"Declared access"}
+
+  access -->|"none"| isolated["Opaque-origin sandbox<br/>no bundle-data access<br/>page navigation only"]
+  access -->|"bundle-read or bundle-propose"| approval["Exact launch approval<br/>source, hash, access"]
+  approval --> bridged["Opaque-origin sandbox<br/>bounded message bridge"]
+
+  bridged --> before["Before operation<br/>resolve current launch and authorization"]
+  before --> operation["Bounded query, read, or set-field proposal"]
+  operation --> after{"After operation<br/>still current and authorized?"}
+  after -->|"no"| revoked
+  after -->|"yes: read"| result["Bounded read result"]
+  after -->|"yes: proposal"| proposal["Narrow set-field proposal"]
+
+  proposal --> confirm{"Separate trusted-shell<br/>human confirmation"}
+  confirm -->|"deny"| unchanged["No bundle change"]
+  confirm -->|"approve"| mutate["Versioned core mutation<br/>freshness and validation"]

@@ -29,17 +29,19 @@ test("consumer uses only public packed package surfaces and nested versioned con
 });
 
 test("built site preserves documentation, View, diagram, and presentation agreement", async () => {
-  const [config, manifest, home, architectureGlancePage, systemContextPage, mutationLifecyclePage, diagramBindings, architectureGlanceView, systemContextView, mutationLifecycleView] = await Promise.all([
+  const [config, manifest, home, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, diagramBindings, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
     json("portal.config.json"),
     json("dist/data/portal-manifest.json"),
     readFile("dist/index.html", "utf8"),
     readFile("dist/docs/architecture/architecture-at-a-glance/index.html", "utf8"),
     readFile("dist/docs/architecture/superbee-system-context/index.html", "utf8"),
     readFile("dist/docs/architecture/document-mutation-lifecycle/index.html", "utf8"),
+    readFile("dist/docs/architecture/view-lifecycle-and-trust/index.html", "utf8"),
     json("dist/assets/docs-diagrams.json"),
     readFile(".superbee/views/architecture-at-a-glance.html"),
     readFile(".superbee/views/superbee-system-context.html"),
     readFile(".superbee/views/document-mutation-lifecycle.html"),
+    readFile(".superbee/views/view-lifecycle-and-trust.html"),
   ]);
   const paths = new Set(manifest.files.map((row) => row.path));
   for (const required of [
@@ -51,9 +53,11 @@ test("built site preserves documentation, View, diagram, and presentation agreem
     "docs/architecture/architecture-at-a-glance/index.html",
     "docs/architecture/superbee-system-context/index.html",
     "docs/architecture/document-mutation-lifecycle/index.html",
+    "docs/architecture/view-lifecycle-and-trust/index.html",
     "bundle/views/architecture-at-a-glance.html",
     "bundle/views/superbee-system-context.html",
     "bundle/views/document-mutation-lifecycle.html",
+    "bundle/views/view-lifecycle-and-trust.html",
   ]) assert.ok(paths.has(required), required);
   assert.equal(paths.has("explore/index.html"), false);
   assert.equal(manifest.presentation.contract, "https://getsuperbee.com/schemas/portal-presentation-contribution/v1");
@@ -82,12 +86,19 @@ test("built site preserves documentation, View, diagram, and presentation agreem
         title: "Superbee system context",
         viewId: "views-registry/superbee-system-context",
       },
+      {
+        diagramId: "view-lifecycle-and-trust",
+        documentId: "architecture/view-lifecycle-and-trust",
+        title: "View lifecycle and trust",
+        viewId: "views-registry/view-lifecycle-and-trust",
+      },
     ],
   });
   for (const [page, ownDiagram, otherDiagrams] of [
-    [architectureGlancePage, "architecture-at-a-glance", ["superbee-system-context", "document-mutation-lifecycle"]],
-    [systemContextPage, "superbee-system-context", ["architecture-at-a-glance", "document-mutation-lifecycle"]],
-    [mutationLifecyclePage, "document-mutation-lifecycle", ["architecture-at-a-glance", "superbee-system-context"]],
+    [architectureGlancePage, "architecture-at-a-glance", ["superbee-system-context", "document-mutation-lifecycle", "view-lifecycle-and-trust"]],
+    [systemContextPage, "superbee-system-context", ["architecture-at-a-glance", "document-mutation-lifecycle", "view-lifecycle-and-trust"]],
+    [mutationLifecyclePage, "document-mutation-lifecycle", ["architecture-at-a-glance", "superbee-system-context", "view-lifecycle-and-trust"]],
+    [viewLifecyclePage, "view-lifecycle-and-trust", ["architecture-at-a-glance", "superbee-system-context", "document-mutation-lifecycle"]],
   ]) {
     assert.equal((page.match(/data-superbee-diagram-open=/g) ?? []).length, 1);
     assert.match(page, new RegExp(`data-superbee-diagram-open="${ownDiagram}"`));
@@ -102,4 +113,5 @@ test("built site preserves documentation, View, diagram, and presentation agreem
   assert.equal(views.get("views-registry/architecture-at-a-glance").entrySha256, sha256(architectureGlanceView));
   assert.equal(views.get("views-registry/superbee-system-context").entrySha256, sha256(systemContextView));
   assert.equal(views.get("views-registry/document-mutation-lifecycle").entrySha256, sha256(mutationLifecycleView));
+  assert.equal(views.get("views-registry/view-lifecycle-and-trust").entrySha256, sha256(viewLifecycleView));
 });

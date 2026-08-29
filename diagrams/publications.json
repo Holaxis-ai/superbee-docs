@@ -5,7 +5,7 @@
     "version": "0.1.0"
   },
   "renderer": "superbee-docs-mmdc-v1+mermaid-cli@11.16.0+mermaid@11.17.2",
-  "manifestSha256": "sha256:ec1514c088b40b512f67785612bceac66ed26801cdfdfedc1f274f2a96bf695b",
+  "manifestSha256": "sha256:b3e8c5388feaf1781d31307350d3ac86bda364e3cfae3ce2168fe741b84e5246",
   "diagrams": [
     {
       "id": "architecture-at-a-glance",
@@ -39,7 +39,18 @@
       "projectionSha256": "sha256:7fa1ab48122cb0c45edc82f9edd3a9548a9fe16c19433d5c3e98f6f9f87ce2b2",
       "entrySha256": "sha256:7053d2135b279f5ca2e93bfb3bedc7374fccd5fadcab4bf6d94b4055aac1c5ea",
       "registrationSha256": "sha256:42a8a4a54f685276e75585223ddeacda02c552e38d0d61b0adfca31ecab3df70"
+    },
+    {
+      "id": "view-lifecycle-and-trust",
+      "publishedSource": "visuals/sources/view-lifecycle-and-trust.mmd",
+      "viewId": "views-registry/view-lifecycle-and-trust",
+      "entry": "views/view-lifecycle-and-trust.html",
+      "access": "none",
+      "sourceSha256": "sha256:e54eb11b847a16f6f49cf1e7fd7dddf1a45587ca2b47b9359312c3830366652c",
+      "projectionSha256": "sha256:819a0eb83250af4c18090091781888c69d4c321cb80d9d0921d261d7d71d8f3b",
+      "entrySha256": "sha256:5d60b8d2a14c60c16af829f048223a7f3f603b275e5cf9e0b4a9bcd5ebe7a057",
+      "registrationSha256": "sha256:ef64314ed86b33a41f7c86a67115716dc290a70679f3fd5d7a3c025021623369"
     }
   ],
-  "receiptDigest": "sha256:5a30f036493243a0f48d896768519c4fedf53c815d1d3db5eb1eea394617d801"
+  "receiptDigest": "sha256:fc2d66d52cc1c8d1060df1da3a087a21cbc520b492c26954e033985d71b69907"
 }
