@@ -120,7 +120,8 @@ bundle documents only if coordination or safe resume repeatedly needs them.
 1. Finalize this operating model, navigation contract, and representative page list.
 2. Author the install/setup and first-workspace tutorial as the first complete reader journey.
 3. Add the core mental-model explanation and CLI reference needed by that journey.
-4. Build the Portal navigation and page components against those real pages.
+4. Build the documentation client's navigation and page components against those real pages over
+   Portal's headless presentation contract.
 5. Run novice task testing and revise the contract before parallel authoring.
 6. Assign independent bounded page sets to content agents.
 7. Promote structured Source fields and drift automation only after the first real update
