@@ -1,0 +1,33 @@
+flowchart TB
+  accTitle: Superbee architecture at a glance
+  accDescr {
+    The installed superbee package composes private host and projection packages plus reusable
+    capabilities. Those packages depend inward on core, which owns bundle semantics and storage
+    contracts. Publication modules and built UI assets are shipped beside the CLI without making
+    private workspaces separate user installs.
+  }
+
+  subgraph distribution["Composition and distribution"]
+    cli["superbee<br/>CLI and root export"]
+    publicModules["publication exports<br/>snapshot API and bridge"]
+  end
+
+  subgraph hosts["Host and projection composites"]
+    hostAdapters["ui-server · mcp-app · ui"]
+    publication["publication"]
+  end
+
+  subgraph capabilities["Reusable capabilities"]
+    reusable["board-git · server<br/>view-runtime · markdown-renderer"]
+  end
+
+  subgraph semantics["OKF semantic and storage base"]
+    core["core"]
+  end
+
+  cli -->|"composes hosts and embeds UI"| hostAdapters
+  publicModules -. "built beside CLI" .-> publication
+
+  hostAdapters -->|"use selected capabilities"| reusable
+  publication -->|"uses reusable capabilities"| reusable
+  reusable -->|"depends inward"| core

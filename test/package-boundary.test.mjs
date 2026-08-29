@@ -29,13 +29,15 @@ test("consumer uses only public packed package surfaces and nested versioned con
 });
 
 test("built site preserves documentation, View, diagram, and presentation agreement", async () => {
-  const [config, manifest, home, systemContextPage, mutationLifecyclePage, diagramBindings, systemContextView, mutationLifecycleView] = await Promise.all([
+  const [config, manifest, home, architectureGlancePage, systemContextPage, mutationLifecyclePage, diagramBindings, architectureGlanceView, systemContextView, mutationLifecycleView] = await Promise.all([
     json("portal.config.json"),
     json("dist/data/portal-manifest.json"),
     readFile("dist/index.html", "utf8"),
+    readFile("dist/docs/architecture/architecture-at-a-glance/index.html", "utf8"),
     readFile("dist/docs/architecture/superbee-system-context/index.html", "utf8"),
     readFile("dist/docs/architecture/document-mutation-lifecycle/index.html", "utf8"),
     json("dist/assets/docs-diagrams.json"),
+    readFile(".superbee/views/architecture-at-a-glance.html"),
     readFile(".superbee/views/superbee-system-context.html"),
     readFile(".superbee/views/document-mutation-lifecycle.html"),
   ]);
@@ -46,8 +48,10 @@ test("built site preserves documentation, View, diagram, and presentation agreem
     "assets/docs-search.json",
     "assets/docs-diagrams.json",
     "sitemap.xml",
+    "docs/architecture/architecture-at-a-glance/index.html",
     "docs/architecture/superbee-system-context/index.html",
     "docs/architecture/document-mutation-lifecycle/index.html",
+    "bundle/views/architecture-at-a-glance.html",
     "bundle/views/superbee-system-context.html",
     "bundle/views/document-mutation-lifecycle.html",
   ]) assert.ok(paths.has(required), required);
@@ -60,6 +64,12 @@ test("built site preserves documentation, View, diagram, and presentation agreem
   assert.deepEqual(diagramBindings, {
     schema: "https://getsuperbee.com/schemas/portal-docs-diagrams/v1",
     diagrams: [
+      {
+        diagramId: "architecture-at-a-glance",
+        documentId: "architecture/architecture-at-a-glance",
+        title: "Architecture at a glance",
+        viewId: "views-registry/architecture-at-a-glance",
+      },
       {
         diagramId: "document-mutation-lifecycle",
         documentId: "architecture/document-mutation-lifecycle",
@@ -74,18 +84,22 @@ test("built site preserves documentation, View, diagram, and presentation agreem
       },
     ],
   });
-  for (const [page, ownDiagram, otherDiagram] of [
-    [systemContextPage, "superbee-system-context", "document-mutation-lifecycle"],
-    [mutationLifecyclePage, "document-mutation-lifecycle", "superbee-system-context"],
+  for (const [page, ownDiagram, otherDiagrams] of [
+    [architectureGlancePage, "architecture-at-a-glance", ["superbee-system-context", "document-mutation-lifecycle"]],
+    [systemContextPage, "superbee-system-context", ["architecture-at-a-glance", "document-mutation-lifecycle"]],
+    [mutationLifecyclePage, "document-mutation-lifecycle", ["architecture-at-a-glance", "superbee-system-context"]],
   ]) {
     assert.equal((page.match(/data-superbee-diagram-open=/g) ?? []).length, 1);
     assert.match(page, new RegExp(`data-superbee-diagram-open="${ownDiagram}"`));
-    assert.doesNotMatch(page, new RegExp(`data-superbee-diagram-open="${otherDiagram}"`));
+    for (const otherDiagram of otherDiagrams) {
+      assert.doesNotMatch(page, new RegExp(`data-superbee-diagram-open="${otherDiagram}"`));
+    }
     assert.match(page, /<dialog id="docs-diagram-stage"/);
     assert.match(page, /<noscript>/);
     assert.doesNotMatch(page, /href="[^"]*(?:views-registry|bundle\/views\/)/);
   }
   const views = new Map(config.portal.views.map((view) => [view.id, view]));
+  assert.equal(views.get("views-registry/architecture-at-a-glance").entrySha256, sha256(architectureGlanceView));
   assert.equal(views.get("views-registry/superbee-system-context").entrySha256, sha256(systemContextView));
   assert.equal(views.get("views-registry/document-mutation-lifecycle").entrySha256, sha256(mutationLifecycleView));
 });

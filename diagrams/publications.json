@@ -5,8 +5,19 @@
     "version": "0.1.0"
   },
   "renderer": "superbee-docs-mmdc-v1+mermaid-cli@11.16.0+mermaid@11.17.2",
-  "manifestSha256": "sha256:c0ae2aad3e271cef435219da007a318f1e67587aa663bdc9f5375cc159145f90",
+  "manifestSha256": "sha256:ec1514c088b40b512f67785612bceac66ed26801cdfdfedc1f274f2a96bf695b",
   "diagrams": [
+    {
+      "id": "architecture-at-a-glance",
+      "publishedSource": "visuals/sources/architecture-at-a-glance.mmd",
+      "viewId": "views-registry/architecture-at-a-glance",
+      "entry": "views/architecture-at-a-glance.html",
+      "access": "none",
+      "sourceSha256": "sha256:2b8483423c8fc5a65e76224f97f3d158dbb2d0c506c669592bf905daecde36be",
+      "projectionSha256": "sha256:583a2e675ef63b10fe6a035a22a46c0536654e212659ab0b515a1ce5935cc9b6",
+      "entrySha256": "sha256:bfd314680071fb81d6210d8416ed1d3858fff12fe93a395714c172ecc5612242",
+      "registrationSha256": "sha256:143ccf935e73674cd2f83705ceaf32608f93ec0eb2b3e4c19541a8cb9cf27b4c"
+    },
     {
       "id": "document-mutation-lifecycle",
       "publishedSource": "visuals/sources/document-mutation-lifecycle.mmd",
@@ -30,5 +41,5 @@
       "registrationSha256": "sha256:42a8a4a54f685276e75585223ddeacda02c552e38d0d61b0adfca31ecab3df70"
     }
   ],
-  "receiptDigest": "sha256:a8149e8d227b856cbbf9de8fe8f5f11bcc0ae30c82f3b4620beb2d0aa8905634"
+  "receiptDigest": "sha256:e1c0c713b9433577a2ba077b6692fa899efbfa2b5cf1e75b79217576e74da5b4"
 }
