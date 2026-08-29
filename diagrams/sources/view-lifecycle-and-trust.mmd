@@ -8,6 +8,8 @@ flowchart TD
     fail closed and must be reopened.
   }
 
+  guide["Read top to bottom<br/>scroll vertically; pan on narrow screens"] --> registered
+  guide --> transient
   registered["Registered View<br/>durable identity and exact entry bytes"] --> admit
   transient["Transient MCP HTML<br/>session input and explicit access"] --> admit
 
@@ -16,7 +18,7 @@ flowchart TD
   current -->|"no"| revoked["Deny or revoke<br/>reopen from current source"]
   current -->|"yes"| access{"Declared access"}
 
-  access -->|"none"| isolated["Opaque-origin sandbox<br/>no bundle bridge"]
+  access -->|"none"| isolated["Opaque-origin sandbox<br/>no bundle-data access<br/>page navigation only"]
   access -->|"bundle-read or bundle-propose"| approval["Exact launch approval<br/>source, hash, access"]
   approval --> bridged["Opaque-origin sandbox<br/>bounded message bridge"]
 

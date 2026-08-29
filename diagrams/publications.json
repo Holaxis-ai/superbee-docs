@@ -46,11 +46,11 @@
       "viewId": "views-registry/view-lifecycle-and-trust",
       "entry": "views/view-lifecycle-and-trust.html",
       "access": "none",
-      "sourceSha256": "sha256:c44972afa33fcba297c2a32ea77157c426daf906c5feec3541174c7fdba2d583",
-      "projectionSha256": "sha256:3641312f8e7e68ba197ca6ac540910b12a72e88bc2aa82f8abbd777acb79dbc5",
-      "entrySha256": "sha256:5b5eb2b12570862fc141d0f2efe104596b0a418ce70f53a9d83ca526e95cb6e4",
+      "sourceSha256": "sha256:e54eb11b847a16f6f49cf1e7fd7dddf1a45587ca2b47b9359312c3830366652c",
+      "projectionSha256": "sha256:819a0eb83250af4c18090091781888c69d4c321cb80d9d0921d261d7d71d8f3b",
+      "entrySha256": "sha256:5d60b8d2a14c60c16af829f048223a7f3f603b275e5cf9e0b4a9bcd5ebe7a057",
       "registrationSha256": "sha256:ef64314ed86b33a41f7c86a67115716dc290a70679f3fd5d7a3c025021623369"
     }
   ],
-  "receiptDigest": "sha256:3da99c8a11f3248b7c471a0c13a7b693615353bcb2e5466c3ac33b0dedb6c80d"
+  "receiptDigest": "sha256:fc2d66d52cc1c8d1060df1da3a087a21cbc520b492c26954e033985d71b69907"
 }

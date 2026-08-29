@@ -26,11 +26,11 @@ stable authority.
 | A durable `type: View` registry document names an entry blob, access level, and optional exact `entry_version`. The registry and blob are discoverable by ID. | An MCP caller supplies HTML for one process-local launch. It is not cataloged; omitted access defaults to `bundle-read`, while explicit `none` may be bundleless. |
 | A launch rereads the registry and blob, admits the current bytes, and captures registry version, entry, access, content type, and content hash. | A launch admits the supplied bytes into the same runtime and captures their hash, access, and—when data access is possible—the exact bundle identity. |
 | A CLI host may persist approval outside the bundle, but only for the identical registered subject. The launch itself is still bounded and process-local. | Approval is session/process-local and never aliases durable registered approval. Local browser UI does not launch transient Views today. |
-| Changing the registry, entry, access, or bytes makes the old approval inert and the old launch stale. | Closing, expiry, navigation, workspace change, or byte change revokes the launch. |
+| Any registry or entry change makes the old launch stale. Prior approval stops matching when the registered identity, admitted bytes or type, access, or policy changes; a metadata-only change to the same authorization subject may reuse it for a fresh launch. | Closing, expiry, navigation, workspace change, or replacement HTML revokes the launch. |
 
 Registration is fail-closed: the
 [`View` grammar](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/core/src/page.ts#L24-L60)
-accepts only the declared access levels, and
+resolves absent or unknown access to `none`, and
 [`parsePageRegistration`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/core/src/page.ts#L140-L186)
 checks safe registry and entry identities plus an optional canonical entry digest. Every launch still
 hashes and pins the admitted bytes even when registration omits that digest.
@@ -40,6 +40,10 @@ approved bytes create-only—blob before registration—and creates a new durabl
 that registered identity requires its own authorization; transient trust is never silently promoted.
 
 # One launch-and-trust pipeline
+
+Open the visual for the compact flow. Read it from top to bottom; scroll vertically and pan
+horizontally inside the viewer on a narrow screen. The numbered lifecycle below and the source table
+above are its complete readable equivalent.
 
 The complete nonvisual lifecycle is:
 
@@ -59,7 +63,8 @@ The complete nonvisual lifecycle is:
    [`mint paths`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/view-runtime/src/index.ts#L332-L449)
    make registered and transient sources converge on one runtime.
 5. For `bundle-read` or `bundle-propose`, require approval of the exact launch subject and revalidate
-   it. `none` proceeds without data approval because it receives no bundle bridge.
+   it. `none` proceeds without data approval because it receives no bundle-data access; the bridge
+   permits only capability-independent page navigation.
 6. Mount only the admitted bytes in an opaque-origin iframe with scripts but no same-origin privilege,
    credentials, or ambient bundle object. The local web host serves immutable bytes through a
    [`nonce and CSP boundary`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/ui-server/src/pages.ts#L1-L48);
@@ -75,9 +80,10 @@ The complete nonvisual lifecycle is:
 
 # Access is not write authority
 
-- `none` receives no bundle-data bridge and needs no data authorization. Registered local UI Views
-  may use it. MCP supports `none` only for explicit transient Views, including bundleless launches;
-  registered MCP Views must request `bundle-read` or `bundle-propose`.
+- `none` receives no bundle-data access and needs no data authorization. It retains only the
+  capability-independent `open-page` navigation request. Registered local UI Views may use it. MCP
+  supports `none` only for explicit transient Views, including bundleless launches; registered MCP
+  Views must request `bundle-read` or `bundle-propose`.
 - `bundle-read` requires exact-byte/access approval, then permits only bounded read, query, render,
   edge, subscription, and View-opening operations. The protocol union and limits are defined by the
   [`bounded bridge contract`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/view-runtime/src/bridge.ts#L16-L129).
