@@ -4,7 +4,7 @@ title: Document mutation lifecycle
 description: >-
   How an optimistic document update becomes durable state and is optionally
   published through Git.
-superbee_updated_by: openai/codex
+superbee_updated_by: codex
 ---
 # Question answered
 
@@ -101,7 +101,7 @@ mean a Git board has been pushed. For a shared local bundle, a later `sync` runs
 This separation prevents a network failure from erasing local work. A commit can be real even when
 a later fetch, awareness-state write, or push fails, so receipts describe partial success rather
 than pretending the entire operation rolled back. The
-[`sync` orchestrator](https://github.com/Holaxis-ai/superbee/blob/cb9c0907f2e3b36eedceb054291b5f954d402fda/packages/cli/src/commands/sync/orchestrate.ts#L629-L705)
+[`sync` orchestrator](https://github.com/Holaxis-ai/superbee/blob/cb9c0907f2e3b36eedceb054291b5f954d402fda/packages/cli/src/commands/sync/orchestrate.ts#L629-L703)
 owns that second transaction domain.
 
 # Load-bearing invariants
@@ -151,16 +151,29 @@ later transaction rather than part of document durability.
 
 # Change triggers
 
-Re-evaluate this page when any of these authorities changes:
+Re-evaluate this page when any of these source paths changes:
 
-- `packages/cli/src/cli.ts`, `packages/cli/src/commands/doc/update.ts`, or
-  `packages/cli/src/mutate.ts`;
-- `packages/core/src/document-mutation.ts`, `packages/core/src/mutation.ts`,
-  `packages/core/src/types.ts`, or a storage backend;
-- filesystem identity or lock policy;
-- `RemoteBackend`, the wire protocol, or server router write behavior;
-- history semantics; or
-- CLI sync orchestration or `board-git` transaction behavior.
+- `packages/cli/src/cli.ts`
+- `packages/cli/src/commands/doc/update.ts`
+- `packages/cli/src/mutate.ts`
+- `packages/core/src/document-mutation.ts`
+- `packages/core/src/document-write-policy.ts`
+- `packages/core/src/mutation-attribution.ts`
+- `packages/core/src/mutation.ts`
+- `packages/core/src/types.ts`
+- `packages/core/src/backend.ts`
+- `packages/core/src/filesystem-identity.ts`
+- `packages/core/src/filesystem-lock.ts`
+- `packages/core/src/remote-backend.ts`
+- `packages/server/src/router.ts`
+- `packages/cli/src/commands/sync/orchestrate.ts`
+- `packages/cli/src/commands/sync/converge.ts`
+- `packages/cli/src/commands/sync/establish.ts`
+- `packages/board-git/src/porcelain.ts`
+- `packages/board-git/src/diff.ts`
+- `packages/board-git/src/channel.ts`
+- `packages/board-git/src/engine.ts`
+- `packages/board-git/src/flow.ts`
 
 [pinned implementation evidence](../sources/superbee-codebase-main.md)
 
