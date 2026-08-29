@@ -35,7 +35,7 @@ resolves absent or unknown access to `none`, and
 checks safe registry and entry identities plus an optional canonical entry digest. Every launch still
 hashes and pins the admitted bytes even when registration omits that digest.
 
-Saving a transient View does not accept replacement HTML. It persists the server-owned approved
+Saving a transient View does not accept replacement HTML. It persists the server-owned exact approved
 bytes in create-only order, with the blob before registration, and creates a new registered identity. Launching
 that registered identity requires its own authorization; transient trust is never silently promoted.
 

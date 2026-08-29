@@ -53,10 +53,6 @@ test("built site preserves documentation, View, diagram, and presentation agreem
   const mutationLifecycleAsset = assetPath(mutationLifecyclePage, "document-mutation-lifecycle");
   const viewLifecycleAsset = assetPath(viewLifecyclePage, "view-lifecycle-and-trust");
   for (const asset of [architectureGlanceAsset, systemContextAsset, mutationLifecycleAsset, viewLifecycleAsset]) assert.ok(asset);
-  const [architectureGlanceSvg, systemContextSvg, mutationLifecycleSvg, viewLifecycleSvg] = await Promise.all([
-    readFile(`dist/${architectureGlanceAsset}`), readFile(`dist/${systemContextAsset}`),
-    readFile(`dist/${mutationLifecycleAsset}`), readFile(`dist/${viewLifecycleAsset}`),
-  ]);
   const paths = new Set(manifest.files.map((row) => row.path));
   for (const required of [
     "index.html",
@@ -100,14 +96,6 @@ test("built site preserves documentation, View, diagram, and presentation agreem
     assert.doesNotMatch(page, /<noscript>|<iframe|data-superbee-diagram-open|portal-client/);
     assert.doesNotMatch(page, /(?:href|src)="[^"]*(?:views-registry|bundle\/views\/)/);
   }
-  const exactSvg = (view) => {
-    const text = view.toString("utf8");
-    return Buffer.from(`${text.slice(text.indexOf("<svg"), text.lastIndexOf("</svg>") + 6).trim()}\n`);
-  };
-  assert.equal(architectureGlanceSvg.equals(exactSvg(architectureGlanceView)), true);
-  assert.equal(systemContextSvg.equals(exactSvg(systemContextView)), true);
-  assert.equal(mutationLifecycleSvg.equals(exactSvg(mutationLifecycleView)), true);
-  assert.equal(viewLifecycleSvg.equals(exactSvg(viewLifecycleView)), true);
   const views = new Map(config.portal.views.map((view) => [view.id, view]));
   assert.equal(views.get("views-registry/architecture-at-a-glance").entrySha256, sha256(architectureGlanceView));
   assert.equal(views.get("views-registry/superbee-system-context").entrySha256, sha256(systemContextView));

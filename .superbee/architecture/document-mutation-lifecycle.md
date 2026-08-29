@@ -93,7 +93,7 @@ board publication happens later when a shared local bundle runs `sync`:
 1. heal and classify the selected channel;
 2. commit already-persisted local changes;
 3. fetch and converge with upstream;
-4. export the local conflict bytes to private state when reconciliation is needed;
+4. export the exact local conflict bytes to private state when reconciliation is needed;
 5. push when safe; and
 6. report committed, pulled, pushed, incoming, or partial-success state.
 

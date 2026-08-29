@@ -101,7 +101,7 @@ site.
 - Searchable and deep-linkable entries.
 - Exact syntax, defaults, constraints, output shape, exit behavior, and examples.
 - Generated facts visibly identified and bound to a package version.
-- Authored explanation linked once and reused across entries.
+- Link shared explanations from reference entries.
 
 ## Release or migration
 
@@ -121,7 +121,8 @@ The documentation presentation should provide reader-facing rendering for:
 - responsive tables with an accessible small-screen alternative;
 - build-time technical diagrams as responsive inline static figures, with optional expansion for detail;
 - registered Views, when a page genuinely needs an interactive or executable presentation, with an obvious launch action and return path;
-- image or artifact downloads that remain inert unless admitted through an existing safe pathway;
+- image and artifact downloads that remain inert; executable presentation requires admission by
+  Portal's registered-View runtime;
 - source citations, version badges, and last-reviewed metadata;
 - empty, unavailable, stale, and superseded states.
 

@@ -74,7 +74,9 @@ and dependencies.
   site; outer packages may combine inner capabilities.
 - The CLI is the composition and distribution root. Its aliases allow one self-contained executable
   while the workspace graph remains modular for development.
-- Publication is read-only and Views are projections. Both lack write access to the source bundle.
+- Publication is read-only. Views cannot mutate the source bundle on their own. A `bundle-propose`
+  View may submit one versioned proposal; the trusted shell applies it only after separate human
+  confirmation and version checks.
 
 For how these layers meet humans, agents, Git, and public sites, continue to the
 [system context](superbee-system-context.md). For the write path and its transaction authorities,

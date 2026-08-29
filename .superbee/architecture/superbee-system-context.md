@@ -22,7 +22,7 @@ multi-user collaboration, internal package dependencies, or every supported host
 A human directs work through an AI agent host. The host invokes a locally installed Superbee CLI.
 The CLI reads and writes a user-owned bundle containing Markdown documents, relationships, and
 opaque artifacts. Git and GitHub may share and review that bundle, while npm distributes the CLI.
-For public human presentation, Superbee captures a verified read-only publication snapshot and Portal
+For public human presentation, Superbee captures an exact read-only publication snapshot and Portal
 turns it into an inspectable site. Publication does not grant the site authority to mutate the
 source bundle.
 
