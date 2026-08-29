@@ -148,6 +148,22 @@ command syntax, options, defaults, output fields, or schemas. Authored pages own
 explanation, examples, limitations, and recovery. Generated text must not overwrite authored prose,
 and authored prose must not duplicate generated facts where a stable link or projection will do.
 
+## Page freshness
+
+Page freshness is computed by the publication workflow, not typed into prose or frontmatter for
+display. `Last updated` means the document's OKF meaningful-change clock (`generated.at`, with the
+legacy `timestamp` fallback) when present. Otherwise it is the commit time of the exact clean,
+tracked document source in the repository's full Git history. The fact is bound to that document's
+source version before entering the shared documentation projection, so unchanged inputs rebuild to
+the same output. Dirty files, untracked files, shallow history, and other unknown sources emit no
+date.
+
+`Last verified` is a different claim. It may be published only when an independent immutable
+verification input exists; an evidence-only verification must not change `Last updated`. Product
+release applicability remains the configured version label and is not inferred from either date.
+Portal and MkDocs render the same available facts with native, accessible `<time>` elements and
+omit missing facts.
+
 # Lifecycle
 
 The persisted lifecycle is deliberately small:

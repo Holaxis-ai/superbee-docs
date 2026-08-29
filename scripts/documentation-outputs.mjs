@@ -27,6 +27,7 @@ import {
 } from "superbee-portal";
 
 import { validateDocumentationSelection } from "./documentation-selection.mjs";
+import { deriveDocumentationFreshness } from "./documentation-freshness.mjs";
 
 export const DOCUMENTATION_OUTPUTS_RESULT_V1 =
   "https://getsuperbee.com/schemas/superbee-docs/documentation-outputs-result/v1";
@@ -74,6 +75,15 @@ async function projectionInput({ root, config, snapshot, diagramAgreement }) {
     documentation: config.documentation,
   }, root);
   const diagrams = exactDiagramRows(diagramManifest, diagramAgreement.bindings);
+  const freshness = await deriveDocumentationFreshness({
+    root,
+    bundle: config.bundle,
+    snapshot,
+    documentIds: [...new Set([
+      ...config.documentation.navigation.flatMap((section) => section.documents),
+      ...supportingDocuments,
+    ])],
+  });
   let brandMark;
   if (config.documentation.brandMark) {
     const blob = snapshot.manifest.blobs.find((row) => row.key === config.documentation.brandMark.blob);
@@ -96,6 +106,7 @@ async function projectionInput({ root, config, snapshot, diagramAgreement }) {
     ...(config.documentation.operationalTypes?.length
       ? { operationalTypes: [...config.documentation.operationalTypes] }
       : {}),
+    ...(freshness.length ? { freshness } : {}),
     ...(brandMark ? { brandMark } : {}),
     diagrams,
   };
