@@ -132,6 +132,18 @@ test("broken anchors, mixed citation pins, and unmatched or unsafe triggers fail
 
     await writeFile(page, architecturePage(value.pin, { trigger: "../packages/core/src/backend.ts" }));
     await assert.rejects(checkArchitecture({ root: value.docs, source: value.source }), /invalid architecture change trigger/);
+
+    await writeFile(page, architecturePage(value.pin).replace(
+      "# Change triggers",
+      `[floating](https://github.com/Holaxis-ai/superbee/blob/main/packages/core/src/backend.ts#L1)\n\n# Change triggers`,
+    ));
+    await assert.rejects(checkArchitecture({ root: value.docs, source: value.source }), /noncanonical or floating/);
+
+    await writeFile(page, architecturePage(value.pin).replace("# Change triggers", `[missing anchor](https://github.com/Holaxis-ai/superbee/blob/${value.pin}/packages/core/src/backend.ts)\n\n# Change triggers`));
+    await assert.rejects(checkArchitecture({ root: value.docs, source: value.source }), /noncanonical or floating/);
+
+    await writeFile(page, architecturePage(value.pin).replace("- `packages/core/src/backend.ts`", "- `packages/core/src/backend.ts`\n- packages/core/src/ignored.ts"));
+    await assert.rejects(checkArchitecture({ root: value.docs, source: value.source }), /invalid Change triggers entry/);
   } finally {
     await rm(value.root, { recursive: true, force: true });
   }

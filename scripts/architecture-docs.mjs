@@ -14,7 +14,8 @@ const REPOSITORY = "https://github.com/Holaxis-ai/superbee";
 const SCHEMA = "https://getsuperbee.com/schemas/architecture-freshness-result/v1";
 const FULL_SHA = /^[0-9a-f]{40}$/u;
 const SAFE_PATH = /^(?![-!])(?=.{1,240}$)[A-Za-z0-9._/*-]+$/u;
-const CITATION = /https:\/\/github\.com\/Holaxis-ai\/superbee\/blob\/([0-9a-f]{40})\/([A-Za-z0-9._/-]+)#L([1-9][0-9]*)(?:-L([1-9][0-9]*))?/gu;
+const SUPERBEE_BLOB_URL = /https:\/\/github\.com\/Holaxis-ai\/superbee\/blob\/[^\s)<>"']+/gu;
+const CITATION = /https:\/\/github\.com\/Holaxis-ai\/superbee\/blob\/([0-9a-f]{40})\/([A-Za-z0-9._/-]+)#L([1-9][0-9]*)(?:-L([1-9][0-9]*))?(?=[\s)])/gu;
 
 function fail(message) {
   throw new Error(message);
@@ -82,15 +83,24 @@ function triggerSection(body, pageId) {
   if (!matches || body.indexOf("# Change triggers", matches.index + matches[0].length) >= 0) {
     fail(`${pageId} requires exactly one Change triggers section`);
   }
-  const triggers = [...matches[1].matchAll(/^- `([^`]+)`$/gmu)].map((match) => validateTrigger(match[1]));
+  const lines = matches[1].split("\n").map((line) => line.trim()).filter(Boolean);
+  const triggers = [];
+  for (const line of lines) {
+    if (line === "Review exact source paths:" || line === "Re-evaluate this page when any of these source paths changes:") continue;
+    const match = line.match(/^- `([^`]+)`$/u);
+    if (!match) fail(`${pageId} has an invalid Change triggers entry '${line}'`);
+    triggers.push(validateTrigger(match[1]));
+  }
   if (triggers.length === 0) fail(`${pageId} requires at least one exact change trigger`);
-  return [...new Set(triggers)];
+  if (new Set(triggers).size !== triggers.length) fail(`${pageId} has duplicate change triggers`);
+  return triggers;
 }
 
 export function parseArchitecturePage(raw, pageId) {
   const body = bodyOf(raw, pageId);
   const sourceLinks = [...body.matchAll(/\]\(\.\.\/sources\/superbee-codebase-main\.md\)/gu)];
   if (sourceLinks.length !== 1) fail(`${pageId} requires exactly one governing Source link`);
+  const blobUrls = [...body.matchAll(SUPERBEE_BLOB_URL)].map((match) => match[0]);
   const citations = [...body.matchAll(CITATION)].map((match) => ({
     sha: match[1],
     path: validateTrigger(match[2]),
@@ -98,6 +108,9 @@ export function parseArchitecturePage(raw, pageId) {
     end: Number(match[4] ?? match[3]),
     url: match[0],
   }));
+  if (blobUrls.length !== citations.length || blobUrls.some((url, index) => url !== citations[index]?.url)) {
+    fail(`${pageId} has a noncanonical or floating Superbee source citation`);
+  }
   if (citations.length === 0) fail(`${pageId} requires at least one source citation`);
   return { id: pageId, triggers: triggerSection(body, pageId), citations };
 }
