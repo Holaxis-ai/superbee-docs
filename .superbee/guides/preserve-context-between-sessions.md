@@ -140,16 +140,13 @@ body read.
 - If a note contains a settled decision or reusable evidence, preserve that knowledge in a focused
   document and link the handoff to it.
 
-# Evidence and change triggers
+# Evidence
 
 The released implementation and tests for this journey are:
 
 - [Context Note recipe definition](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/cli/src/recipes.ts)
 - [Kind creation and validation tests](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/cli/test/kinds.test.ts)
 - [Recipe and freshness tests](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/cli/test/recipes.test.ts)
-
-Re-evaluate this page when the Context Note convention, recipe application, freshness behavior,
-session overview, or optimistic update contract changes.
 
 [understand reusable domain structure](../concepts/reusable-domain-structure.md)
 

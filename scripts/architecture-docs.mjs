@@ -6,6 +6,8 @@ import { basename, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
+import { loadDocumentationTriggerRecords } from "./documentation-impact.mjs";
+
 const execFileAsync = promisify(execFile);
 const SOURCE_ID = "sources/superbee-codebase-main";
 const SOURCE_FILE = ".superbee/sources/superbee-codebase-main.md";
@@ -78,24 +80,6 @@ function globRegex(pattern) {
   return new RegExp(`${result}$`, "u");
 }
 
-function triggerSection(body, pageId) {
-  const matches = body.match(/(?:^|\n)# Change triggers\n([\s\S]*?)(?=\n# |\n\[[^\n]+\]\([^\n]+\)|$)/u);
-  if (!matches || body.indexOf("# Change triggers", matches.index + matches[0].length) >= 0) {
-    fail(`${pageId} requires exactly one Change triggers section`);
-  }
-  const lines = matches[1].split("\n").map((line) => line.trim()).filter(Boolean);
-  const triggers = [];
-  for (const line of lines) {
-    if (line === "Review exact source paths:" || line === "Re-evaluate this page when any of these source paths changes:") continue;
-    const match = line.match(/^- `([^`]+)`$/u);
-    if (!match) fail(`${pageId} has an invalid Change triggers entry '${line}'`);
-    triggers.push(validateTrigger(match[1]));
-  }
-  if (triggers.length === 0) fail(`${pageId} requires at least one exact change trigger`);
-  if (new Set(triggers).size !== triggers.length) fail(`${pageId} has duplicate change triggers`);
-  return triggers;
-}
-
 export function parseArchitecturePage(raw, pageId) {
   const body = bodyOf(raw, pageId);
   const sourceLinks = [...body.matchAll(/\]\(\.\.\/sources\/superbee-codebase-main\.md\)/gu)];
@@ -112,7 +96,7 @@ export function parseArchitecturePage(raw, pageId) {
     fail(`${pageId} has a noncanonical or floating Superbee source citation`);
   }
   if (citations.length === 0) fail(`${pageId} requires at least one source citation`);
-  return { id: pageId, triggers: triggerSection(body, pageId), citations };
+  return { id: pageId, citations };
 }
 
 async function commitExists(sourceRoot, sha) {
@@ -147,6 +131,7 @@ async function loadPages(root) {
   const directory = resolve(root, ARCHITECTURE_DIR);
   const names = (await readdir(directory)).filter((name) => name.endsWith(".md")).sort();
   const pages = [];
+  const triggerRecords = await loadDocumentationTriggerRecords(root);
   for (const name of names) {
     const raw = await readFile(resolve(directory, name), "utf8");
     if (!raw.includes("../sources/superbee-codebase-main.md")) {
@@ -157,7 +142,12 @@ async function loadPages(root) {
       SUPERBEE_BLOB_URL.lastIndex = 0;
       continue;
     }
-    pages.push(parseArchitecturePage(raw, `architecture/${basename(name, ".md")}`));
+    const page = parseArchitecturePage(raw, `architecture/${basename(name, ".md")}`);
+    const records = triggerRecords.filter((record) => record.pages.includes(page.id));
+    if (records.length === 0) fail(`${page.id} requires at least one Documentation Trigger record`);
+    const triggers = [...new Set(records.flatMap((record) => record.sources).map(validateTrigger))];
+    if (triggers.length === 0) fail(`${page.id} requires at least one exact source-path trigger`);
+    pages.push({ ...page, triggers });
   }
   if (pages.length === 0) fail("no architecture pages are governed by the Superbee codebase Source");
   return pages;

@@ -115,10 +115,3 @@ pages identify the package they verify and keep unreleased source behavior separ
 [system context](../architecture/superbee-system-context.md)
 
 [current release evidence](../sources/current-release.md)
-
-# Re-evaluate this page when
-
-- the product's local/shared/public authority model changes;
-- Kinds, recipes, Views, or artifacts change their role;
-- the storage or concurrency contract changes materially; or
-- a stable release changes the product's maturity claim.

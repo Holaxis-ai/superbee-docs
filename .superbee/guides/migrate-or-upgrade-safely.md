@@ -216,11 +216,3 @@ Test this page with one current Superbee installation and one disposable, Kind-g
 workspace. The reader should preserve the same bundle path, use logical `progress_status`
 successfully, and finish with a verified host setup. Test legacy private-state migration only in an
 isolated home directory that contains a supported legacy fixture.
-
-# Re-evaluate this page when
-
-- the npm installation or update command changes;
-- setup changes its host or private-state migration flow;
-- workspace discovery drops a legacy path;
-- Superbee adds an automated OKF edition migration; or
-- legacy View migration becomes a packaged command.

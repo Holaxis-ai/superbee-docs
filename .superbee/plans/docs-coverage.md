@@ -104,7 +104,7 @@ workflow before broad generation.
 Architecture pages answer stable system questions and omit exhaustive package-tree detail. Every
 page pins the reviewed source identity, cites governing entry points, states critical constraints
 and honest failure behavior, provides a nonvisual equivalent for each diagram, and declares the
-source-path change triggers.
+source-path change triggers in an operational `Documentation Trigger` record.
 
 | Priority | Page and question | Scope | Visual | Status |
 | --- | --- | --- | --- | --- |
@@ -131,7 +131,7 @@ Before drafting a planned page, record:
 4. Governing public sources and exact identities.
 5. Material claims or command sequences that require verification.
 6. Related pages and relevant View or diagram.
-7. Change triggers.
+7. An operational `Documentation Trigger` record with source paths or named product events.
 8. The journey test that will determine whether the page works.
 9. How readers can report a failure or missing case after publication.
 

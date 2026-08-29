@@ -107,10 +107,3 @@ a host restart, ask the agent to run the verification command again. The previou
 verify the restarted host.
 
 Continue with [Create your first durable workspace](first-durable-workspace.md).
-
-# Re-evaluate this page when
-
-- npm's `latest` version or package platform metadata changes;
-- the supported host list changes;
-- setup's capability requirements or completion fields change; or
-- the persistent installation command changes.

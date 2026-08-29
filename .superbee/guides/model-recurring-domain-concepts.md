@@ -200,7 +200,7 @@ results out of the recipe so each bundle retains its own instance data.
 - If the new Kind creates widespread conformance debt, pause the rollout and agree on a migration
   before tightening the convention.
 
-# Evidence and change triggers
+# Evidence
 
 The released implementation and tests for this journey are:
 
@@ -208,9 +208,6 @@ The released implementation and tests for this journey are:
 - [Strict Kind instance creation](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/cli/src/commands/new.ts)
 - [External recipe application and drift tests](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/cli/test/recipes.test.ts)
 - [Bundle-wide conformance tests](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/cli/test/status.test.ts)
-
-Re-evaluate this page when convention vocabulary, recipe admission, strict instance creation,
-typed-link validation, or conformance reporting changes.
 
 [understand reusable domain structure](../concepts/reusable-domain-structure.md)
 

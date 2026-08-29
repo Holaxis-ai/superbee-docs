@@ -135,10 +135,3 @@ and defaults.
 [bundles, documents, and relationships](../concepts/bundles-documents-and-relationships.md)
 
 [current release evidence](../sources/current-release.md)
-
-# Re-evaluate this page when
-
-- a command moves between ownership areas;
-- generated help or output conventions change;
-- bundle-selection precedence changes; or
-- installation or sharing ownership changes.

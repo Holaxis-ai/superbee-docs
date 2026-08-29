@@ -117,7 +117,7 @@ is still weak, keep a representative document and revisit the decision after use
 - Different purposes may deserve separate bundles when their privacy, participants, or lifecycle
   differ.
 
-# Evidence and change triggers
+# Evidence
 
 The released implementation and tests for these boundaries are:
 
@@ -125,9 +125,6 @@ The released implementation and tests for these boundaries are:
 - [Recipe parser](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/cli/src/recipe-parser.ts)
 - [Typed relationship tests](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/cli/test/link.test.ts)
 - [Registered View implementation](https://github.com/Holaxis-ai/superbee/tree/f4e1c37349627030f8201ff52028f71a9c92570a/packages/view-runtime)
-
-Re-evaluate this page when Kind vocabulary, recipe ownership, relationship semantics, View
-authority, or the current Skill's modeling guidance changes.
 
 [bundles, documents, and relationships](bundles-documents-and-relationships.md)
 

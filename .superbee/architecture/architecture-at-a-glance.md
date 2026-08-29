@@ -82,15 +82,6 @@ For how these layers meet humans, agents, Git, and public sites, continue to the
 [system context](superbee-system-context.md). For the write path and its transaction authorities,
 continue to the [document mutation lifecycle](document-mutation-lifecycle.md).
 
-# Change triggers
-
-Re-evaluate this page when any of these source paths changes:
-
-- `package.json`
-- `packages/*/package.json`
-- `packages/cli/build.mjs`
-- `packages/cli/scripts/build-bundle.mjs`
-- `packages/cli/scripts/prepare-bundle-inputs.mjs`
-- `packages/cli/scripts/embed-ui-assets.mjs`
+# Evidence
 
 [pinned implementation source](../sources/superbee-codebase-main.md)

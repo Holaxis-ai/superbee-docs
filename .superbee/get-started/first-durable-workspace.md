@@ -123,10 +123,3 @@ chosen the participants, privacy boundary, and repository.
 [find a command](../reference/cli-overview.md)
 
 [inspect the system context](../architecture/superbee-system-context.md)
-
-# Re-evaluate this page when
-
-- initialization defaults or refusal rules change;
-- the current OKF authoring version changes;
-- document display behavior changes; or
-- local-to-shared publication authority changes.

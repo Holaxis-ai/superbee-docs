@@ -148,31 +148,7 @@ version receipt. History reads from the selected backend. A dotted edge from the
 to optional `sync`, emphasizing that attributed Git commit, convergence, push, and awareness are a
 a later transaction, separate from document persistence.
 
-# Change triggers
-
-Re-evaluate this page when any of these source paths changes:
-
-- `packages/cli/src/cli.ts`
-- `packages/cli/src/commands/doc/update.ts`
-- `packages/cli/src/mutate.ts`
-- `packages/core/src/document-mutation.ts`
-- `packages/core/src/document-write-policy.ts`
-- `packages/core/src/mutation-attribution.ts`
-- `packages/core/src/mutation.ts`
-- `packages/core/src/types.ts`
-- `packages/core/src/backend.ts`
-- `packages/core/src/filesystem-identity.ts`
-- `packages/core/src/filesystem-lock.ts`
-- `packages/core/src/remote-backend.ts`
-- `packages/server/src/router.ts`
-- `packages/cli/src/commands/sync/orchestrate.ts`
-- `packages/cli/src/commands/sync/converge.ts`
-- `packages/cli/src/commands/sync/establish.ts`
-- `packages/board-git/src/porcelain.ts`
-- `packages/board-git/src/diff.ts`
-- `packages/board-git/src/channel.ts`
-- `packages/board-git/src/engine.ts`
-- `packages/board-git/src/flow.ts`
+# Evidence and related reading
 
 [pinned implementation evidence](../sources/superbee-codebase-main.md)
 

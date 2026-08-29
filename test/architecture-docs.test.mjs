@@ -32,7 +32,7 @@ title: Source
 `;
 }
 
-function architecturePage(pin, { anchor = "L1-L2", trigger = "packages/core/src/backend.ts", citationSha = pin } = {}) {
+function architecturePage(pin, { anchor = "L1-L2", citationSha = pin } = {}) {
   return `---
 type: Diagram
 title: Mutation
@@ -41,14 +41,39 @@ title: Mutation
 
 [backend](https://github.com/Holaxis-ai/superbee/blob/${citationSha}/packages/core/src/backend.ts#${anchor})
 
-# Change triggers
-
-Review exact source paths:
-
-- \`${trigger}\`
-
 [pinned implementation evidence](../sources/superbee-codebase-main.md)
 `;
+}
+
+function triggerDocument(triggers = ["packages/core/src/backend.ts"]) {
+  return `---
+type: Documentation Trigger
+title: Mutation trigger
+---
+# Affected pages
+
+[Mutation](../../architecture/mutation.md)
+
+# Source paths
+
+${triggers.map((trigger) => `- \`${trigger}\``).join("\n")}
+
+# Product events
+
+None.
+
+# Review action
+
+Review the page.
+
+# Evidence
+
+[source](../../sources/superbee-codebase-main.md)
+`;
+}
+
+async function writeTrigger(docs, triggers) {
+  await writeFile(join(docs, ".superbee/maintenance/documentation-triggers/mutation.md"), triggerDocument(triggers));
 }
 
 async function fixture() {
@@ -59,6 +84,7 @@ async function fixture() {
   await mkdir(join(source, "packages/board-git/src"), { recursive: true });
   await mkdir(join(docs, ".superbee/sources"), { recursive: true });
   await mkdir(join(docs, ".superbee/architecture"), { recursive: true });
+  await mkdir(join(docs, ".superbee/maintenance/documentation-triggers"), { recursive: true });
   await run("git", ["init", source]);
   await git(source, "config", "user.name", "Architecture test");
   await git(source, "config", "user.email", "architecture@example.test");
@@ -70,6 +96,7 @@ async function fixture() {
   const pin = await commit(source, "initial source");
   await writeFile(join(docs, ".superbee/sources/superbee-codebase-main.md"), sourceDocument(pin));
   await writeFile(join(docs, ".superbee/architecture/mutation.md"), architecturePage(pin));
+  await writeTrigger(docs, ["packages/core/src/backend.ts"]);
   return { root, source, docs, pin };
 }
 
@@ -114,11 +141,7 @@ test("forward impact distinguishes no impact from semantic review and supports o
     assert.equal(historical.status, "semantic_review_required");
     assert.deepEqual(historical.changed, [{ status: "M", path: "packages/core/src/backend.ts" }]);
 
-    const governedPage = architecturePage(value.pin).replace(
-      "- `packages/core/src/backend.ts`",
-      "- `packages/core/src/backend.ts`\n- `packages/core/src/document-write-policy.ts`",
-    );
-    await writeFile(join(value.docs, ".superbee/architecture/mutation.md"), governedPage);
+    await writeTrigger(value.docs, ["packages/core/src/backend.ts", "packages/core/src/document-write-policy.ts"]);
     await writeFile(join(value.source, "packages/core/src/document-write-policy.ts"), "export const policy = 2;\n");
     const policyHead = await commit(value.source, "change mutation write policy");
     const policyImpact = await architectureImpact({ root: value.docs, source: value.source, head: policyHead });
@@ -128,13 +151,11 @@ test("forward impact distinguishes no impact from semantic review and supports o
       { status: "M", path: "packages/core/src/document-write-policy.ts" },
     ]);
 
-    await writeFile(
-      join(value.docs, ".superbee/architecture/mutation.md"),
-      governedPage.replace(
-        "- `packages/core/src/document-write-policy.ts`",
-        "- `packages/core/src/document-write-policy.ts`\n- `packages/board-git/src/porcelain.ts`",
-      ),
-    );
+    await writeTrigger(value.docs, [
+      "packages/core/src/backend.ts",
+      "packages/core/src/document-write-policy.ts",
+      "packages/board-git/src/porcelain.ts",
+    ]);
     await writeFile(join(value.source, "packages/board-git/src/porcelain.ts"), "export const push = 2;\n");
     const porcelainHead = await commit(value.source, "change board-git porcelain");
     const porcelainImpact = await architectureImpact({ root: value.docs, source: value.source, change: porcelainHead });
@@ -159,29 +180,35 @@ test("broken anchors, mixed citation pins, and unmatched or unsafe triggers fail
     await writeFile(page, architecturePage(value.pin, { citationSha: other }));
     await assert.rejects(checkArchitecture({ root: value.docs, source: value.source }), /different source commit/);
 
-    await writeFile(page, architecturePage(value.pin, { trigger: "packages/server/src/*.ts" }));
+    await writeFile(page, architecturePage(value.pin));
+    await writeTrigger(value.docs, ["packages/server/src/*.ts"]);
     await assert.rejects(checkArchitecture({ root: value.docs, source: value.source }), /matches no regular file/);
 
-    await writeFile(page, architecturePage(value.pin, { trigger: "../packages/core/src/backend.ts" }));
-    await assert.rejects(checkArchitecture({ root: value.docs, source: value.source }), /invalid architecture change trigger/);
+    await writeTrigger(value.docs, ["../packages/core/src/backend.ts"]);
+    await assert.rejects(checkArchitecture({ root: value.docs, source: value.source }), /invalid source path/);
+
+    await writeTrigger(value.docs, ["packages/core/src/backend.ts"]);
 
     await writeFile(page, architecturePage(value.pin).replace(
-      "# Change triggers",
-      `[floating](https://github.com/Holaxis-ai/superbee/blob/main/packages/core/src/backend.ts#L1)\n\n# Change triggers`,
+      "# Evidence",
+      `# Evidence\n\n[floating](https://github.com/Holaxis-ai/superbee/blob/main/packages/core/src/backend.ts#L1)`,
     ));
     await assert.rejects(checkArchitecture({ root: value.docs, source: value.source }), /noncanonical or floating/);
 
     await writeFile(page, architecturePage(value.pin).replace(
-      "# Change triggers",
-      `[case-variant floating](https://github.com/holaxis-ai/superbee/blob/main/packages/core/src/backend.ts#L1)\n\n# Change triggers`,
+      "# Evidence",
+      `# Evidence\n\n[case-variant floating](https://github.com/holaxis-ai/superbee/blob/main/packages/core/src/backend.ts#L1)`,
     ));
     await assert.rejects(checkArchitecture({ root: value.docs, source: value.source }), /noncanonical or floating/);
 
-    await writeFile(page, architecturePage(value.pin).replace("# Change triggers", `[missing anchor](https://github.com/Holaxis-ai/superbee/blob/${value.pin}/packages/core/src/backend.ts)\n\n# Change triggers`));
+    await writeFile(page, architecturePage(value.pin).replace("# Evidence", `# Evidence\n\n[missing anchor](https://github.com/Holaxis-ai/superbee/blob/${value.pin}/packages/core/src/backend.ts)`));
     await assert.rejects(checkArchitecture({ root: value.docs, source: value.source }), /noncanonical or floating/);
 
-    await writeFile(page, architecturePage(value.pin).replace("- `packages/core/src/backend.ts`", "- `packages/core/src/backend.ts`\n- packages/core/src/ignored.ts"));
-    await assert.rejects(checkArchitecture({ root: value.docs, source: value.source }), /invalid Change triggers entry/);
+    await writeFile(
+      join(value.docs, ".superbee/maintenance/documentation-triggers/mutation.md"),
+      triggerDocument().replace("- `packages/core/src/backend.ts`", "- `packages/core/src/backend.ts`\n- packages/core/src/ignored.ts"),
+    );
+    await assert.rejects(checkArchitecture({ root: value.docs, source: value.source }), /invalid Source paths entry/);
   } finally {
     await rm(value.root, { recursive: true, force: true });
   }
