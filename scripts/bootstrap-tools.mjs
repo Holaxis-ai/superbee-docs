@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
 import { removeBootstrappedPackages } from "./bootstrap-package-state.mjs";
+import { ensureCompleteRepositoryHistory } from "./bootstrap-repository-history.mjs";
 
 const execFileAsync = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -14,6 +15,8 @@ const pins = {
   superbee: { repository: "https://github.com/Holaxis-ai/superbee.git", commit: "070426446c00bc1f04ae54007930ce726fec913c" },
   portal: { repository: "https://github.com/Holaxis-ai/superbee-portal.git", commit: "7c14371ae2f2b697443b5f32db8b2ee5a7c6446c" },
 };
+
+await ensureCompleteRepositoryHistory(root);
 
 async function run(command, args, cwd = root) {
   const result = await execFileAsync(command, args, { cwd, maxBuffer: 16 * 1024 * 1024 });
