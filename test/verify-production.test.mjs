@@ -108,6 +108,7 @@ test("a faithful deployment passes every published-byte comparison", async () =>
       "no unadvertised content negotiation",
       "entry redirect /docs",
       "entry redirect /docs/",
+      "declared media types",
     ]);
   } finally { await rm(dist, { recursive: true, force: true }); }
 });
@@ -147,17 +148,21 @@ test("an unexpected status is never reported as media type drift", async () => {
   } finally { await rm(dist, { recursive: true, force: true }); }
 });
 
-test("media type drift is reported without being confused for a byte regression", async () => {
+test("media type drift fails its own check without being confused for a byte regression", async () => {
   const dist = await artifact();
   try {
     const result = await verifyDocumentationDeploymentV1({
       baseUrl: ORIGIN, dist, fetchImpl: origin({ plainTextLlms: true }),
     });
-    assert.equal(result.ok, true, "an extension-derived Content-Type is not a published-byte failure");
+    // The deployment declares this path's type, so an extension-derived Content-Type is now a
+    // regression in that configuration; the published bytes still arrived intact.
+    assert.equal(result.ok, false);
+    assert.deepEqual(result.results.filter((row) => !row.ok).map((row) => row.name), ["declared media types"]);
     assert.deepEqual(result.mediaTypeDrift, [
       { path: "/llms.txt", declared: "text/markdown", observed: "text/plain" },
     ]);
     const row = result.results.find((candidate) => candidate.name === "agent entry point");
+    assert.equal(row.ok, true, "the agent entry point still served its exact published bytes");
     assert.equal(row.declaredMediaType, "text/markdown");
     assert.equal(row.observedMediaType, "text/plain");
   } finally { await rm(dist, { recursive: true, force: true }); }

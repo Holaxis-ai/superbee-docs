@@ -18,7 +18,9 @@ into this repository or its `.superbee/` bundle.
   the bundle and declared source inputs.
 - `scripts/deployment-assets.mjs` owns host deployment configuration and assembles the uploaded
   `deploy` directory from the exact `dist` artifact. Change a routing rule in that rule table; never
-  hand-edit a generated `_redirects` file or add a file to the inventory-exact artifact.
+  hand-edit a generated `_redirects` or `_headers` file or add a file to the inventory-exact
+  artifact. Served media types come from the artifact's declared inventory, never from a hand-kept
+  list, and the table of what this host derives per extension records measurements, never guesses.
 - Page freshness is a derived publication fact, never hand-authored display text. `Last updated`
   means the document's OKF meaningful-change clock when one exists; otherwise it is the last commit
   time for the exact clean, tracked source file in a full Git history. `Last verified` is reserved
