@@ -39,7 +39,7 @@ test("consumer uses only public packed package surfaces and nested versioned con
 });
 
 test("built site preserves documentation, View, diagram, discovery, and presentation agreement", async () => {
-  const [config, manifest, home, llms, portalRobots, mkdocsLlms, mkdocsRobots, homeSource, domainModelSource, privacySource, sharingSource, search, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
+  const [config, manifest, home, llms, portalRobots, mkdocsLlms, mkdocsRobots, homeSource, domainModelSource, privacySource, sharingSource, search, domainModelPage, privacyPage, sharingPage, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
     json("portal.config.json"),
     json("dist/data/portal-manifest.json"),
     readFile("dist/index.html", "utf8"),
@@ -52,6 +52,9 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
     readFile(".superbee/guides/choose-privacy-and-bundle-boundaries.md"),
     readFile(".superbee/guides/share-and-synchronize-git-bundle.md"),
     json("dist/assets/docs-search.json"),
+    readFile("dist/docs/guides/model-recurring-domain-concepts/index.html", "utf8"),
+    readFile("dist/docs/guides/choose-privacy-and-bundle-boundaries/index.html", "utf8"),
+    readFile("dist/docs/guides/share-and-synchronize-git-bundle/index.html", "utf8"),
     readFile("dist/docs/architecture/architecture-at-a-glance/index.html", "utf8"),
     readFile("dist/docs/architecture/superbee-system-context/index.html", "utf8"),
     readFile("dist/docs/architecture/document-mutation-lifecycle/index.html", "utf8"),
@@ -97,6 +100,9 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.equal(manifest.presentation.producer.name, "superbee-portal-docs");
   assert.match(home, /Superbee/);
   assert.match(home, /In a supported host with the Superbee Skill/);
+  assert.match(domainModelPage, /Create an Experiment Model recipe and an Experiment kind/);
+  assert.match(privacyPage, /An agent can help inspect existing bundle locations/);
+  assert.match(sharingPage, /Ask an agent to assess sharing before it acts/);
   assert.match(home, /<link rel="alternate" type="text\/markdown" href="\/bundle\/learn\/start-here\.md">/);
   assert.match(home, /<link rel="describedby" href="\/llms\.txt">/);
   assert.match(llms, /^# Superbee\n/m);
