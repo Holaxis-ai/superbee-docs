@@ -25,6 +25,10 @@ Keep the support list unique and canonically ordered. `npm run bundle:check` ver
 schema, confirms every selected support document exists in `.superbee`, and rejects overlap with
 the primary navigation.
 
+Both outputs publish a bounded `llms.txt` over that exact selection. Documentation pages advertise
+their byte-exact Markdown source and the root discovery index; operational maintenance records stay
+inspectable in the complete public bundle without entering these curated agent surfaces.
+
 ## Development
 
 Node.js 22.12 or newer is required.

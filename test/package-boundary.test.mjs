@@ -33,11 +33,14 @@ test("consumer uses only public packed package surfaces and nested versioned con
   await assert.rejects(readFile("spikes/mkdocs/materialize.mjs"), (error) => error.code === "ENOENT");
 });
 
-test("built site preserves documentation, View, diagram, and presentation agreement", async () => {
-  const [config, manifest, home, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
+test("built site preserves documentation, View, diagram, discovery, and presentation agreement", async () => {
+  const [config, manifest, home, llms, mkdocsLlms, homeSource, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
     json("portal.config.json"),
     json("dist/data/portal-manifest.json"),
     readFile("dist/index.html", "utf8"),
+    readFile("dist/llms.txt", "utf8"),
+    readFile(".tmp/mkdocs/site/llms.txt", "utf8"),
+    readFile(".superbee/learn/start-here.md"),
     readFile("dist/docs/architecture/architecture-at-a-glance/index.html", "utf8"),
     readFile("dist/docs/architecture/superbee-system-context/index.html", "utf8"),
     readFile("dist/docs/architecture/document-mutation-lifecycle/index.html", "utf8"),
@@ -58,6 +61,7 @@ test("built site preserves documentation, View, diagram, and presentation agreem
     "index.html",
     "docs/learn/start-here/index.html",
     "assets/docs-search.json",
+    "llms.txt",
     architectureGlanceAsset,
     systemContextAsset,
     mutationLifecycleAsset,
@@ -77,6 +81,19 @@ test("built site preserves documentation, View, diagram, and presentation agreem
   assert.equal(manifest.presentation.id, "documentation");
   assert.equal(manifest.presentation.producer.name, "superbee-portal-docs");
   assert.match(home, /Superbee/);
+  assert.match(home, /<link rel="alternate" type="text\/markdown" href="\/bundle\/learn\/start-here\.md">/);
+  assert.match(home, /<link rel="describedby" href="\/llms\.txt">/);
+  assert.match(llms, /^# Superbee\n/m);
+  assert.match(llms, /## Get started\n/);
+  assert.match(llms, /\]\(https:\/\/docs\.getsuperbee\.com\/bundle\/learn\/start-here\.md\)/);
+  assert.match(llms, /## Optional\n/);
+  assert.doesNotMatch(llms, /maintenance\/documentation-triggers|Documentation Trigger/);
+  assert.equal(Buffer.compare(await readFile("dist/bundle/learn/start-here.md"), homeSource), 0);
+  assert.match(mkdocsLlms, /^# Superbee\n/m);
+  const mkdocsHomeUrl = mkdocsLlms.match(/\]\((https:\/\/docs\.getsuperbee\.com\/assets\/source\/learn\/start-here\.[0-9a-f]{64}\.md\.txt)\)/)?.[1];
+  assert.ok(mkdocsHomeUrl);
+  assert.equal(Buffer.compare(await readFile(`.tmp/mkdocs/site${new URL(mkdocsHomeUrl).pathname}`), homeSource), 0);
+  assert.doesNotMatch(mkdocsLlms, /maintenance\/documentation-triggers|Documentation Trigger/);
   assert.doesNotMatch(home, /href="\/explore\/"/);
   assert.equal(paths.has("assets/docs-diagrams.json"), false);
   await assert.rejects(readFile("dist/assets/docs-diagrams.json"), (error) => error.code === "ENOENT");
