@@ -46,6 +46,15 @@
       "publishedSource": "visuals/sources/public-publication-boundary.mmd",
       "publishedSvg": "visuals/diagrams/public-publication-boundary.svg",
       "documentId": "architecture/public-publication-boundary"
+    },
+    {
+      "id": "sharing-synchronization-and-freshness",
+      "title": "Sharing, synchronization, and freshness",
+      "description": "How Superbee classifies bundle channels, refreshes reads, converges shared changes, and preserves conflicting work.",
+      "source": "diagrams/sources/sharing-synchronization-and-freshness.mmd",
+      "publishedSource": "visuals/sources/sharing-synchronization-and-freshness.mmd",
+      "publishedSvg": "visuals/diagrams/sharing-synchronization-and-freshness.svg",
+      "documentId": "architecture/sharing-synchronization-and-freshness"
     }
   ]
 }

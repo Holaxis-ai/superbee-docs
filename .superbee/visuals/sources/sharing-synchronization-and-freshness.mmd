@@ -1,0 +1,38 @@
+flowchart TD
+  accTitle: Superbee sharing synchronization and freshness
+  accDescr {
+    Superbee classifies a bundle from Git evidence as local-only, in-tree, or a dedicated board
+    branch. Local-only stays local until establishment. In-tree awareness fetches the configured
+    tracking upstream while normal Git delivers changes. A stale branch-mode read may perform a
+    bounded fast-forward pull. A failed pull preserves content, cursor, and awareness cache while
+    recording a retry throttle and board marker. Full sync commits, converges, preserves conflicts
+    as exports, pushes safe results, and records awareness.
+  }
+
+  evidence["Repository evidence<br/>worktree, tracked folder, refs, remote probe"] --> decide{"Channel classification"}
+  decide -->|"no shared evidence"| local["Local-only<br/>state remains local"]
+  decide -->|"bundle committed with code"| intree["In-tree<br/>configured upstream awareness"]
+  decide -->|"dedicated board evidence"| branch["Board branch<br/>linked worktree"]
+  decide -->|"unknown or competing"| refuse["Refuse mode-sensitive action<br/>preserve both locations"]
+
+  local --> establish["Explicit sync --establish"]
+  establish --> branch
+
+  intree --> fetch["Fetch tracked upstream<br/>record delta and cursor"]
+  fetch --> gitflow["Normal git pull and push<br/>deliver and publish"]
+
+  branch --> read{"Read cache stale?"}
+  read -->|"yes"| ff["Bounded ff-only pull"]
+  read -->|"no"| serve["Serve selected local state"]
+  ff -->|"success"| record["Advance cursor and cache"]
+  ff -->|"offline, dirty, diverged"| attempt["Keep content, cursor, and cache<br/>record attempt and board marker"]
+  attempt --> serve
+  record --> serve
+
+  branch --> sync["Full sync<br/>commit, fetch, rebase"]
+  sync --> conflict{"Same-path conflict?"}
+  conflict -->|"no"| push["Push board branch"]
+  conflict -->|"yes"| export["Keep incoming version<br/>export local bytes"]
+  export --> reconcile["Human or agent reconciles<br/>then runs sync again"]
+  reconcile --> sync
+  push --> awareness["Receipt, cursor, awareness cache"]

@@ -29,9 +29,9 @@ stable authority.
 | Any registry or entry change makes the old launch stale. Prior approval stops matching when the registered identity, admitted bytes or type, access, or policy changes; a metadata-only change to the same authorization subject may reuse it for a fresh launch. | Closing, expiry, navigation, workspace change, or replacement HTML revokes the launch. |
 
 Registration is fail-closed: the
-[`View` grammar](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/core/src/page.ts#L24-L60)
+[`View` grammar](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/core/src/page.ts#L24-L60)
 resolves absent or unknown access to `none`, and
-[`parsePageRegistration`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/core/src/page.ts#L140-L186)
+[`parsePageRegistration`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/core/src/page.ts#L140-L186)
 checks safe registry and entry identities plus an optional canonical entry digest. Every launch still
 hashes and pins the admitted bytes even when registration omits that digest.
 
@@ -51,27 +51,27 @@ The complete nonvisual lifecycle is:
    context.
 2. Admit bounded UTF-8 `text/html` bytes (at most 512 KiB) and copy them into an immutable launch
    source. The
-   [`authorization subject`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/view-runtime/src/authorization.ts#L3-L80)
+   [`authorization subject`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/view-runtime/src/authorization.ts#L3-L80)
    binds source identity, exact content version and type, capability, execution state, and policy.
 3. Mint a process-local launch with bounded lifetime and registry capacity. The
-   [`launch registry`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/view-runtime/src/index.ts#L154-L253)
+   [`launch registry`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/view-runtime/src/index.ts#L154-L253)
    owns expiry and revocation; a web-host nonce is only a short-lived page-byte credential, never a
    bundle-data credential or universal MCP mechanism.
 4. Re-read the registered source or transient bundle identity and byte hash before use. The shared
-   [`currentness check`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/view-runtime/src/index.ts#L300-L329)
+   [`currentness check`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/view-runtime/src/index.ts#L300-L329)
    and
-   [`mint paths`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/view-runtime/src/index.ts#L332-L449)
+   [`mint paths`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/view-runtime/src/index.ts#L332-L449)
    make registered and transient sources converge on one runtime.
 5. For `bundle-read` or `bundle-propose`, require approval of the exact launch subject and revalidate
    it. `none` proceeds without data approval because it receives no bundle-data access; the bridge
    permits only capability-independent page navigation.
 6. Mount only the admitted bytes in an opaque-origin iframe with scripts but no same-origin privilege,
    credentials, or ambient bundle object. The local web host serves immutable bytes through a
-   [`nonce and CSP boundary`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/ui-server/src/pages.ts#L1-L48);
+   [`nonce and CSP boundary`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/ui-server/src/pages.ts#L1-L48);
    MCP uses a fixed trusted App shell and blob-backed child.
 7. Around every bounded bridge request, resolve launch currentness and authorization before work and
    again before replying. The
-   [`bridge fence`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/view-runtime/src/bridge.ts#L325-L400)
+   [`bridge fence`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/view-runtime/src/bridge.ts#L325-L400)
    revokes stale work before data can cross a changed authorization scope.
 8. Return a bounded read result, or pass a narrow proposal to the trusted shell. A proposal mutates
    nothing until the shell displays it, receives a separate one-shot human confirmation, rechecks
@@ -86,10 +86,10 @@ The complete nonvisual lifecycle is:
   Views must request `bundle-read` or `bundle-propose`.
 - `bundle-read` requires exact-byte/access approval, then permits only bounded read, query, render,
   edge, subscription, and View-opening operations. The protocol union and limits are defined by the
-  [`bounded bridge contract`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/view-runtime/src/bridge.ts#L16-L129).
+  [`bounded bridge contract`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/view-runtime/src/bridge.ts#L16-L129).
 - `bundle-propose` includes reads and may propose one versioned `document.set-field` action. View code
   never writes directly. The
-  [`trusted action gate`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/view-runtime/src/index.ts#L729-L795)
+  [`trusted action gate`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/view-runtime/src/index.ts#L729-L795)
   requires separate confirmation and version checks; trusted writes are local-bundle behavior, not a
   claim about remote web UI mutation.
 
@@ -98,19 +98,19 @@ The complete nonvisual lifecycle is:
 The local UI launches registered Views only. Its authenticated shell mints one nonce, serves
 immutable launch bytes with no-store/CSP/nosniff/no-referrer headers, and mounts an iframe with
 `sandbox="allow-scripts"` but not same-origin. The server's
-[`immutable serve and authorization payload`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/ui-server/src/server.ts#L189-L315)
+[`immutable serve and authorization payload`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/ui-server/src/server.ts#L189-L315)
 and the UI's
-[`source and frame-generation fences`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/ui/src/views/PageFrame.tsx#L247-L335)
+[`source and frame-generation fences`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/ui/src/views/PageFrame.tsx#L247-L335)
 independently reject stale delivery. Registry or blob changes revoke browser state and require a
 fresh launch.
 
 MCP `show_view` supports registered and transient sources. Its
-[`launch and approval flow`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/mcp-app/src/server.ts#L1004-L1152)
+[`launch and approval flow`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/mcp-app/src/server.ts#L1004-L1152)
 keeps bundle-capable transient Views bound to the selected workspace. The fixed App shell constrains
 the child with
-[`CSP and sandbox policy`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/mcp-app/src/view.ts#L87-L100)
+[`CSP and sandbox policy`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/mcp-app/src/view.ts#L87-L100)
 and validates child source, epoch, visibility, and server-owned freshness through the
-[`active-child fences`](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/mcp-app/src/view.ts#L946-L1026).
+[`active-child fences`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/mcp-app/src/view.ts#L946-L1026).
 Close, navigation, expiry, delivery discontinuity, changed source/access, or lost authorization all
 deny, revoke, reload, or require a replacement launch. A stale persistent approval record may remain
 on disk, but its exact subject no longer matches and therefore grants nothing.

@@ -22,9 +22,9 @@ reader experience, while the Portal artifact retains the complete public bundle 
 Superbee publication has no document-level privacy filter. Capture inventories every concept
 document, reserved OKF file, and blob in the selected bundle, excluding dot-prefixed implementation
 entries such as `.git`. The exact-byte inventory and default limits are defined by the
-[snapshot capture](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/publication/src/capture.ts#L33-L48)
+[snapshot capture](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/publication/src/capture.ts#L33-L48)
 and its
-[complete inventory walk](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/publication/src/capture.ts#L161-L216).
+[complete inventory walk](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/publication/src/capture.ts#L161-L216).
 
 This makes source selection consequential. A public site must capture a dedicated public bundle.
 Private strategy, credentials, personal data, embargoed material, and security findings must stay in
@@ -39,19 +39,19 @@ Capture authorizes one real, non-aliased filesystem root, rejects unsafe tree en
 inventory twice, and retries only when the source changed during capture. Every accepted object is
 content-addressed. Documents carry exact Markdown and canonical inert rendered HTML; relationships
 are derived from the captured documents; registered Views bind their exact entry object. The
-[snapshot construction](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/publication/src/capture.ts#L302-L443)
+[snapshot construction](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/publication/src/capture.ts#L302-L443)
 and
-[two-pass currentness check](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/publication/src/capture.ts#L446-L517)
+[two-pass currentness check](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/publication/src/capture.ts#L446-L517)
 make the snapshot the stable handoff between mutable bundle authority and downstream consumers.
 
 The snapshot backend is read-only. Every write and delete method refuses with
 `CAPABILITY_UNAVAILABLE`, as shown by the
-[publication storage adapter](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/publication/src/snapshot-backend.ts#L28-L64).
+[publication storage adapter](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/publication/src/snapshot-backend.ts#L28-L64).
 Published Views may receive `none` or `bundle-read`; `bundle-propose` is refused. The
-[publication bridge admission](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/publication/src/bridge.ts#L26-L54)
+[publication bridge admission](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/publication/src/bridge.ts#L26-L54)
 binds a View to its exact snapshot registration and entry digest, then disables actions and polling
 in the
-[read-only bridge service](https://github.com/Holaxis-ai/superbee/blob/54a63382506a1180c7aad96f46c6503f4d7a3a18/packages/publication/src/bridge.ts#L55-L98).
+[read-only bridge service](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/publication/src/bridge.ts#L55-L98).
 
 # Projection, runtime, and consumer ownership
 
