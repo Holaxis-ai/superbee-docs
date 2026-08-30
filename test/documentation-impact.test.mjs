@@ -9,7 +9,7 @@ const script = path.resolve("scripts/documentation-impact.mjs");
 
 test("documentation trigger records are valid operational records", async () => {
   const result = JSON.parse((await run(process.execPath, [script, "check"])).stdout);
-  assert.deepEqual(result, { ok: true, command: "documentation impact check", records: 21 });
+  assert.deepEqual(result, { ok: true, command: "documentation impact check", records: 25 });
 });
 
 test("source changes and product events resolve affected reader pages", async () => {
