@@ -6,7 +6,7 @@
   },
   "renderer": "superbee-docs-mmdc-v1+mermaid-cli@11.16.0+mermaid@11.17.2",
   "admission": "https://getsuperbee.com/schemas/documentation-static-svg/v1",
-  "manifestSha256": "sha256:38b80a55d38b8b0d3039d76e72b2a323fde5c0f85784f0b15f9a810ba843e424",
+  "manifestSha256": "sha256:df870201097013b4f5a22ad17cd8c4103d9d6ea6a9a01263e987ce934f96578c",
   "predecessor": {
     "receipt": {
       "digest": "sha256:aaafe7dd024a8d1078d7a8f4f4bb81ef5921b6ebd439b7f1fd4bfeb31fca735d",
@@ -30,6 +30,19 @@
       "svgSha256": "sha256:bcc2e387fd74c68d2aad803a6d7d1a2d2adcd3241a6660517f0c72f707b2845a",
       "sourceSize": 1261,
       "svgSize": 21092
+    },
+    {
+      "id": "core-mental-model",
+      "title": "Superbee core mental model",
+      "description": "How humans and agents use typed Markdown records, Kind definitions, and explicit relationships in one bundle.",
+      "documentId": "concepts/what-superbee-is",
+      "publishedSource": "visuals/sources/core-mental-model.mmd",
+      "publishedSvg": "visuals/diagrams/core-mental-model.svg",
+      "sourceSha256": "sha256:845ea3f7379cd84caa4fa60c1e0ba171ab34c5beccdd515170af3c633aa44923",
+      "projectionSha256": "sha256:2b8b221718b6d76fc354e7ef1421a35578f1478957623b4975ce9dd01468838a",
+      "svgSha256": "sha256:c86f28a7bc489151f55fde85a63e593c3bb14c4c3309bd14d224b1b21dc54f89",
+      "sourceSize": 1655,
+      "svgSize": 31401
     },
     {
       "id": "document-mutation-lifecycle",
@@ -97,5 +110,5 @@
       "svgSize": 42048
     }
   ],
-  "receiptDigest": "sha256:405d84a65a2771600a6e66b1630e3cefd0420bc14e5d2477fe3b5c83d02ee864"
+  "receiptDigest": "sha256:2abbd1ad78330407a8d5ebcd0887d33c5c0c24421ade5663bc8a1914ee916ecf"
 }

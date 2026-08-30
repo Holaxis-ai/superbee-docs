@@ -85,7 +85,7 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     assert.equal(projectionManifest.relationships.some((row) => !selected.includes(row.from) || !selected.includes(row.to)), false);
 
     const publishedById = new Map(publication.diagrams.map((row) => [row.id, row]));
-    assert.equal(projectionManifest.assets.diagrams.length, 6);
+    assert.equal(projectionManifest.assets.diagrams.length, 7);
     assert.deepEqual(result.diagrams, result.mkdocs.diagrams);
     for (const diagram of projectionManifest.assets.diagrams) {
       const published = publishedById.get(diagram.id);
