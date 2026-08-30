@@ -133,6 +133,12 @@ approve its current access when a launch becomes stale.
 | Saving a transient View fails after retaining an entry | Read the reported key and version. Retry only with the same current approved launch and intended durable ID, or resolve the destination conflict. |
 | A proposed change is rejected | Confirm `bundle-propose`, current authorization, a supported scalar field, Kind conformance, and the exact current document version. |
 
+# Related
+
+[Show documents and Views to a human](../guides/show-documents-and-views.md)
+
+[View lifecycle and trust](../architecture/view-lifecycle-and-trust.md)
+
 # Authoritative sources
 
 - [Registry grammar and access resolution](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/core/src/page.ts)

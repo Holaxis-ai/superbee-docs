@@ -58,6 +58,12 @@ authoring, permissive consumption, reserved files, standard metadata, link resol
 progress compatibility, normalization, and presentation bounds. Update the page only for behavior
 established by released source and tests.
 
+Journey check: use one disposable v0.2 bundle, one disposable governed v0.1 bundle, and one
+hand-authored v0.2 fixture. Confirm that a reader can identify the edition, explain reserved files,
+inspect standard metadata, resolve both supported inline-link forms, retrieve a complete document
+through the byte channel, and stop a v0.1 edition change while workflow `status` still collides with
+the v0.2 lifecycle field.
+
 # Evidence
 
 [current release evidence](../../sources/current-release.md)

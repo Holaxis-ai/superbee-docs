@@ -209,6 +209,8 @@ Before changing a v0.1 bundle's root edition:
 Stable Superbee does not perform this multi-document edition migration automatically. Continue to
 use a v0.1 bundle when the audit is incomplete.
 
+# Related
+
 [Migrate or upgrade safely](../guides/migrate-or-upgrade-safely.md)
 
 [Bundles, documents, and relationships](../concepts/bundles-documents-and-relationships.md)
@@ -230,10 +232,3 @@ use a v0.1 bundle when the audit is incomplete.
 - [Workflow progress compatibility tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/core/test/progress-status.test.ts)
 - [Stable status implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/src/commands/status.ts)
 - [Stable document-read implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/src/commands/doc/read.ts)
-
-# Journey check
-
-Use one disposable v0.2 bundle, one disposable governed v0.1 bundle, and one hand-authored v0.2
-fixture. The reader should identify the edition, explain reserved files, inspect standard metadata,
-resolve both link forms, retrieve a complete document through the byte channel, and stop a v0.1
-edition change when workflow `status` still collides with the v0.2 lifecycle field.

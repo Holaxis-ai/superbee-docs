@@ -2,6 +2,9 @@
 type: Reference
 title: Configuration and bundle resolution
 superbee_updated_by: openai/codex
+description: >-
+  Exact local, project-bound, remote, catalog, and MCP bundle selection
+  precedence and recovery.
 ---
 # Scope
 
@@ -229,6 +232,8 @@ Private state and stored remote credentials are grounded in the tagged
 [`user-state.ts`](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/cli/src/user-state.ts)
 and
 [`credentials.ts`](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/cli/src/credentials.ts).
+
+# Related
 
 [choose privacy and bundle boundaries](../guides/choose-privacy-and-bundle-boundaries.md)
 

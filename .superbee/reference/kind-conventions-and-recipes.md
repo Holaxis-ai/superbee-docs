@@ -2,6 +2,9 @@
 type: Reference
 title: Kind conventions and recipe formats
 superbee_updated_by: openai/codex
+description: >-
+  Exact Convention schemas, recipe formats, validation modes, installation, and
+  safe evolution.
 ---
 # Scope
 
@@ -297,6 +300,8 @@ The pinned sources and tests governing this reference are:
 - [Shared document mutation validation](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/core/src/document-mutation.ts)
 - [Kind behavior tests](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/core/test/kinds.test.ts)
 - [Recipe behavior tests](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/cli/test/recipes.test.ts)
+
+# Related
 
 [understand reusable domain structure](../concepts/reusable-domain-structure.md)
 
