@@ -43,8 +43,9 @@ npm run check
 
 The bootstrap command builds the exact pinned Superbee and Portal commits into local
 development packages. The Portal build captures one source snapshot and projects the same explicit
-19-document selection, brand asset, relationships, and four admitted diagrams into both Portal and
-MkDocs target inputs. `mkdocs:sync` installs the exact locked Python environment once; subsequent
+27-document selection (19 navigated and eight supporting), brand asset, relationships, and six
+admitted diagrams into both Portal and MkDocs target inputs. `mkdocs:sync` installs the exact locked
+Python environment once; subsequent
 `mkdocs:build` and repository checks are frozen and offline. This temporary packed-package step
 disappears once compatible releases are available from npm. Before changing either exact pin,
 confirm that no `*.apply-intent.json` transaction journal is pending; finish or roll back that
