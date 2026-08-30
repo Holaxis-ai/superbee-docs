@@ -25,13 +25,17 @@ workflow before broad generation.
 | P0 | Start here | Structural navigation | Evaluator and first-time user | current | Product statement and current verified journeys |
 | P0 | What Superbee is | Explanation | Evaluator | current | Current stable release evidence, current Skill, product source |
 | P0 | Install and set up Superbee | Tutorial | First-time user | current | Current stable release evidence, CLI help, isolated setup plans |
+| P0 | Verify host setup | How-to | First-time user and integrator | current | Current stable setup plans, integration status commands, and live-host restart boundary |
 | P0 | Create your first durable workspace | Tutorial | First-time user | current | Current stable release disposable init, write/read, discovery, home, status, and tagged doc-open behavior |
 | P0 | Bundles, documents, and relationships | Explanation | New and active user | current | Current stable release help, OKF semantics, product source |
 | P0 | Preserve context between sessions | How-to | Active user | current | Stable Context Note recipe plus a disposable create, edit, link, and resume journey |
 | P0 | Understand reusable domain structure | Explanation | Active user and agent | current | Stable Kinds, recipes, validation, View behavior, and current Skill |
 | P0 | Model recurring domain concepts | How-to | Active user and agent | current | Stable recipe and Kind commands plus a disposable modeled-domain journey |
 | P0 | Show documents and Views to a human | How-to | Active user and agent | current | Stable CLI help, tagged browser and MCP implementations, and live host probes |
+| P0 | Choose privacy and bundle boundaries | How-to | Active user and operator | current | Tagged bundle selection, catalog, MCP workspace, and public-publication behavior |
+| P0 | Share and synchronize a Git-backed bundle | How-to | Active user and operator | current | Stable board-git state machine, sync CLI behavior, and conflict recovery tests |
 | P0 | CLI overview | Reference | Active user and integrator | current | Generated current-release help and installed package |
+| P0 | Host and platform support | Reference | First-time user and integrator | current | Current stable npm metadata, setup plans, and release verification evidence |
 | P0 | Troubleshoot setup and bundle resolution | How-to | First-time user and integrator | current | Stable setup conductor, bundle resolution tests, and isolated failure probes |
 | P0 | Current release | Reference | Existing user | current | npm/GitHub release receipts |
 | P0 | Migrate or upgrade safely | How-to | Existing user | current | Stable release receipts, private-state source, and disposable OKF v0.1 compatibility journey |
@@ -39,13 +43,6 @@ workflow before broad generation.
 | P0 | Document mutation lifecycle | Explanation | Contributor and integrator | current | Superbee codebase at `cb9c0907f2e3b36eedceb054291b5f954d402fda`; verified read/update/history sequence; registered diagram |
 
 # Next coverage
-
-## Get started
-
-- Join an existing shared bundle safely.
-- Understand what setup installs in each supported host.
-- Verify that Skill, hook, MCP, and CLI surfaces are working.
-- Choose privacy and sharing boundaries before creating durable structure.
 
 ## Core concepts
 
@@ -60,10 +57,10 @@ workflow before broad generation.
 
 - Evolve a bundle as the user's domain changes.
 - Coordinate several agents or humans through shared structure.
-- Share and synchronize a Git-backed bundle.
 - Create a useful human representation of the work.
 - Recover from conflicts, stale state, interrupted setup, or a moved bundle.
-- Maintain multiple bundles for distinct purposes.
+- Evolve the privacy and bundle-boundary guide with multi-bundle workflows after stable product
+  support expands.
 
 ## Integrations
 
@@ -88,7 +85,6 @@ workflow before broad generation.
 - OKF compatibility.
 - Kind convention and recipe formats.
 - View contract, access levels, and actions.
-- Host support matrix.
 - Exit codes and structured errors.
 - Security, trust, and local state boundaries.
 

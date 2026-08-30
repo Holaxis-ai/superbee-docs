@@ -75,14 +75,9 @@ Repeat until setup reports both `ready: true` and `complete: true`.
 
 # What setup verifies
 
-| Capability | Codex | Claude Code | Claude Desktop | OpenCode |
-| --- | --- | --- | --- | --- |
-| Installed npm CLI | required | required | required | required |
-| Agent Skill | required | required | not available | not available |
-| MCP registration | required | required | required | required |
-| SessionStart orientation hook | recommended | recommended | not available | recommended |
-| Current project bundle | recommended | recommended | recommended | recommended |
-| Private workspace catalog | required for bundle-unbound MCP selection | required for bundle-unbound MCP selection | required for bundle-unbound MCP selection | required for bundle-unbound MCP selection |
+Setup checks the installed CLI plus the Skill, MCP registration, SessionStart hook, project bundle,
+and private workspace catalog capabilities that apply to the selected host. See
+[Host and platform support](../reference/host-and-platform-support.md) for the current stable matrix.
 
 The catalog makes a workspace available for explicit selection. It never makes that workspace the
 active context of an unrelated project.
