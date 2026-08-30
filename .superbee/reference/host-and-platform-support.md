@@ -30,12 +30,12 @@ support.
 
 # AI host integrations
 
-| Host | Agent Skill | MCP registration | SessionStart hook | Setup selector |
-| --- | --- | --- | --- | --- |
-| Codex | Required | Required | Recommended | `codex` |
-| Claude Code | Required | Required | Recommended | `claude-code` |
-| Claude Desktop | Not available | Required | Not available | `claude-desktop` |
-| OpenCode | Not available | Required | Recommended | `opencode` |
+| Host | Stable platform path | Agent Skill | MCP registration | SessionStart hook | Setup selector |
+| --- | --- | --- | --- | --- | --- |
+| Codex | macOS and Linux | Required | Required | Recommended | `codex` |
+| Claude Code | macOS and Linux | Required | Required | Recommended | `claude-code` |
+| Claude Desktop | macOS | Not available | Required | Not available | `claude-desktop` |
+| OpenCode | macOS and Linux | Not available | Required | Recommended | `opencode` |
 
 Inspect one host explicitly:
 
