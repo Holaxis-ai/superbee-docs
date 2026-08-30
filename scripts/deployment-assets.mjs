@@ -21,6 +21,7 @@ export const DEPLOYMENT_ASSEMBLY_RESULT_V1 =
   "https://getsuperbee.com/schemas/superbee-docs/deployment-assembly-result/v1";
 
 const MANIFEST_PATH = "data/portal-manifest.json";
+const HOSTING_REQUIREMENTS_PATH = "data/hosting-requirements.json";
 
 /** Cloudflare's own configuration limits, restated so a generated file cannot silently exceed them. */
 const MAX_STATIC_REDIRECT_RULES = 2000;
@@ -92,6 +93,29 @@ function assertExactRoute(value, field) {
   }
 }
 
+function assertHeaderRoute(value, field) {
+  if (value === "/*") return;
+  if (typeof value !== "string" || !value.startsWith("/") || /\s/u.test(value)) {
+    throw new Error(`${field} must be one absolute whitespace-free path or suffix wildcard; got ${JSON.stringify(value)}`);
+  }
+  if (value.includes(":")) throw new Error(`${field} '${value}' must not use a placeholder`);
+  const stars = [...value].filter((character) => character === "*").length;
+  if (stars > 1 || (stars === 1 && !value.endsWith("*"))) {
+    throw new Error(`${field} '${value}' may use only one terminal wildcard`);
+  }
+}
+
+function patternsOverlap(left, right) {
+  const leftPrefix = left.endsWith("*") ? left.slice(0, -1) : null;
+  const rightPrefix = right.endsWith("*") ? right.slice(0, -1) : null;
+  if (leftPrefix !== null && rightPrefix !== null) {
+    return leftPrefix.startsWith(rightPrefix) || rightPrefix.startsWith(leftPrefix);
+  }
+  if (leftPrefix !== null) return right.startsWith(leftPrefix);
+  if (rightPrefix !== null) return left.startsWith(rightPrefix);
+  return left === right;
+}
+
 /** Render the exact `_redirects` bytes Cloudflare parses, refusing any rule it would discard. */
 export function renderRedirects(rules = DEPLOYMENT_REDIRECTS) {
   if (rules.length > MAX_STATIC_REDIRECT_RULES) {
@@ -154,40 +178,110 @@ export function declaredMediaTypeOverrides(manifest) {
   return rules.sort((left, right) => (left.path < right.path ? -1 : left.path > right.path ? 1 : 0));
 }
 
-/** Render the exact `_headers` bytes that restore each drifting path's declared media type. */
-export function renderHeaders(manifest) {
-  const rules = declaredMediaTypeOverrides(manifest);
-  if (rules.length > MAX_HEADER_RULES) {
-    throw new Error(`at most ${MAX_HEADER_RULES} header rules are supported; ${rules.length} paths drift`);
+/** Resolve one declared response-header selector into the paths Cloudflare must match. */
+function responseHeaderPaths(selector, requirements) {
+  if (selector === "*") return ["/*"];
+  if (selector.startsWith("/")) return [selector];
+  const matches = requirements.routes.filter((route) => route.disposition === selector);
+  if (matches.length === 0) throw new Error(`response header selector '${selector}' names no declared route disposition`);
+
+  /*
+   * Documentation pages are an intentionally uniform route family. One proven `/docs/*` rule
+   * replaces two exact rules per page, keeping this Worker-less deployment comfortably below
+   * Cloudflare's hundred-rule limit as the documentation grows. Refuse the compression if a later
+   * presentation assigns any route below that prefix to another disposition.
+   */
+  const documentation = matches.filter((route) => route.pattern.startsWith("/docs/"));
+  const paths = matches.filter((route) => !route.pattern.startsWith("/docs/")).map((route) => route.pattern);
+  if (documentation.length > 0) {
+    const conflict = requirements.routes.find((route) => (
+      route.pattern.startsWith("/docs/") && route.disposition !== selector
+    ));
+    if (conflict) {
+      throw new Error(`cannot apply '${selector}' response headers through /docs/*; '${conflict.pattern}' is ${conflict.disposition}`);
+    }
+    paths.push("/docs/*");
   }
-  const seen = new Set();
+  return [...new Set(paths)].sort();
+}
+
+function declaredResponseHeaderRules(requirements) {
+  if (!requirements || !Array.isArray(requirements.routes) || !Array.isArray(requirements.responseHeaders)) {
+    throw new Error("hosting requirements must declare routes and responseHeaders arrays");
+  }
+  const byPath = new Map();
+  for (const declaration of requirements.responseHeaders) {
+    if (typeof declaration.name !== "string" || !/^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/u.test(declaration.name)) {
+      throw new Error(`invalid declared response header name ${JSON.stringify(declaration.name)}`);
+    }
+    if (typeof declaration.value !== "string" || declaration.value.length === 0 || /[\r\n]/u.test(declaration.value)) {
+      throw new Error(`declared response header '${declaration.name}' has an invalid value`);
+    }
+    if (typeof declaration.route !== "string" || declaration.route.length === 0) {
+      throw new Error(`declared response header '${declaration.name}' has no route selector`);
+    }
+    for (const route of responseHeaderPaths(declaration.route, requirements)) {
+      assertHeaderRoute(route, "response header route");
+      const headers = byPath.get(route) ?? new Map();
+      const key = declaration.name.toLowerCase();
+      if (headers.has(key)) throw new Error(`duplicate declared response header '${declaration.name}' for '${route}'`);
+      headers.set(key, { name: declaration.name, value: declaration.value });
+      byPath.set(route, headers);
+    }
+  }
+  return byPath;
+}
+
+/** Render the exact `_headers` bytes that enforce declared response policy and media types. */
+export function renderHeaders(manifest, requirements) {
+  const byPath = declaredResponseHeaderRules(requirements);
+  for (const rule of declaredMediaTypeOverrides(manifest)) {
+    const headers = byPath.get(rule.path) ?? new Map();
+    if (headers.has("content-type")) throw new Error(`duplicate Content-Type rule for '${rule.path}'`);
+    headers.set("content-type", { name: "Content-Type", value: rule.mediaType });
+    byPath.set(rule.path, headers);
+  }
+  const rules = [...byPath.entries()]
+    .map(([route, headers]) => ({
+      route,
+      headers: [...headers.values()].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)),
+    }))
+    .sort((left, right) => (
+      left.route === "/*" ? -1 : right.route === "/*" ? 1 : left.route < right.route ? -1 : left.route > right.route ? 1 : 0
+    ));
+  if (rules.length > MAX_HEADER_RULES) {
+    throw new Error(`at most ${MAX_HEADER_RULES} header rules are supported; ${rules.length} are required`);
+  }
   const lines = [
-    "# Generated by scripts/deployment-assets.mjs from the artifact's declared media types.",
-    "# Edit the published inventory or the host media type table, never a deployed copy.",
+    "# Generated by scripts/deployment-assets.mjs from the artifact's hosting requirements and media types.",
+    "# Edit those declarations or the host media type table, never a deployed copy.",
   ];
   for (const rule of rules) {
-    /*
-     * Two rules matching one request append their values into one `Content-Type` instead of
-     * replacing it, which would serve a header no client can parse. Exact unique paths cannot
-     * overlap, so refuse a wildcard, a placeholder, or a repeat before one can be deployed.
-     */
-    assertExactRoute(rule.path, "media type path");
-    if (seen.has(rule.path)) throw new Error(`duplicate media type rule for '${rule.path}'`);
-    seen.add(rule.path);
-    if (/[\r\n]/u.test(rule.mediaType)) throw new Error(`media type for '${rule.path}' spans lines`);
-    const value = `  Content-Type: ${rule.mediaType}`;
-    if (rule.path.length > MAX_LINE_LENGTH || value.length > MAX_LINE_LENGTH) {
-      throw new Error(`media type rule for '${rule.path}' exceeds ${MAX_LINE_LENGTH} characters`);
+    if (rule.route.length > MAX_LINE_LENGTH) throw new Error(`header route '${rule.route}' exceeds ${MAX_LINE_LENGTH} characters`);
+    lines.push(rule.route);
+    for (const header of rule.headers) {
+      const overlapping = rules.find((other) => (
+        other !== rule
+        && patternsOverlap(rule.route, other.route)
+        && other.headers.some((candidate) => candidate.name.toLowerCase() === header.name.toLowerCase())
+      ));
+      if (overlapping) {
+        throw new Error(`overlapping rules '${rule.route}' and '${overlapping.route}' both emit '${header.name}'`);
+      }
+      const value = `  ${header.name}: ${header.value}`;
+      if (value.length > MAX_LINE_LENGTH) {
+        throw new Error(`header '${header.name}' for '${rule.route}' exceeds ${MAX_LINE_LENGTH} characters`);
+      }
+      lines.push(value);
     }
-    lines.push(rule.path, value);
   }
   return `${lines.join("\n")}\n`;
 }
 
 /** The host configuration files Cloudflare consumes from the uploaded assets directory root. */
-export function deploymentConfigurationFiles(manifest) {
+export function deploymentConfigurationFiles(manifest, requirements) {
   return new Map([
-    ["_headers", renderHeaders(manifest)],
+    ["_headers", renderHeaders(manifest, requirements)],
     ["_redirects", renderRedirects()],
   ]);
 }
@@ -256,7 +350,12 @@ export async function assembleDeployment({ artifact = "dist", output = "deploy" 
   if (JSON.stringify(observed) !== JSON.stringify(expected)) {
     throw new Error(`'${artifactRoot}' does not exactly match its declared portal inventory; rebuild it`);
   }
-  const configuration = deploymentConfigurationFiles(manifest);
+  const requirementsBytes = await readFile(path.join(artifactRoot, ...HOSTING_REQUIREMENTS_PATH.split("/")));
+  if (sha256(requirementsBytes) !== manifest.hostingRequirementsDigest) {
+    throw new Error("hosting requirements do not match the digest declared by the portal manifest");
+  }
+  const requirements = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(requirementsBytes));
+  const configuration = deploymentConfigurationFiles(manifest, requirements);
   for (const name of configuration.keys()) {
     if (expected.includes(name)) throw new Error(`deployment configuration '${name}' collides with a published asset`);
   }
