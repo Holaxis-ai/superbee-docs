@@ -15,8 +15,9 @@ preparing a public bundle.
 
 The local selection procedures are verified against
 [the current stable release](../sources/current-release.md). Public snapshot behavior follows the
-[pinned publication implementation](../sources/superbee-codebase-main.md), which is reviewed
-separately from the stable CLI release.
+[pinned publication implementation](../sources/superbee-codebase-main.md). Complete site-artifact
+behavior follows the separately pinned [Superbee Portal source](../sources/superbee-portal.md).
+Both are reviewed separately from the stable CLI release.
 
 # Start with the disclosure boundary
 
@@ -198,6 +199,9 @@ Complete-bundle capture and coherent immutable snapshots are grounded in the pin
 [`capture.ts`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/publication/src/capture.ts)
 implementation and
 [`publication tests`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/publication/test/publication.test.mjs).
+Complete Portal artifact retention is grounded in the pinned
+[`artifact.ts`](https://github.com/Holaxis-ai/superbee-portal/blob/7b2cbac2e229963616a01c9d58a6b59423a8bbf6/src/artifact.ts#L84-L126)
+implementation.
 
 [understand bundles, documents, and relationships](../concepts/bundles-documents-and-relationships.md)
 

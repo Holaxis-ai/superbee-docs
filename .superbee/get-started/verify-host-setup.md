@@ -33,18 +33,9 @@ host-specific. Setup also inspects Superbee's private operational state, the cur
 and the private workspace catalog. A catalog entry makes a workspace available for explicit MCP
 selection. It does not select that workspace as the current project's context.
 
-The stable release supports this host matrix:
-
-| Host selector | Released platform path | Agent Skill | SessionStart hook | MCP registration |
-| --- | --- | --- | --- | --- |
-| `codex` | macOS and Linux | yes | recommended | required |
-| `claude-code` | macOS and Linux | yes | recommended | required |
-| `claude-desktop` | macOS | unavailable | unavailable | required |
-| `opencode` | macOS and Linux | unavailable | recommended | required |
-
-The stable package excludes Windows. Its Claude Desktop registration adapter has no Linux local
-configuration path. The MCP registration rows describe configuration support. App panel support is
-verified separately below because it also depends on the host version.
+Use [Host and platform support](../reference/host-and-platform-support.md) for the current stable
+host matrix, operating-system limits, and required or recommended surfaces. App panel support must
+be tested separately because it also depends on the host version.
 
 Restart the selected host after a Skill, hook, or MCP change. Verification in an already running
 session cannot establish that the host loaded the new integration.
@@ -63,7 +54,7 @@ For the stable npm installation, confirm:
 - `identity.artifact.channel` is `npm-package`;
 - `identity.package.version`, `identity.source.commit`, and `identity.artifact.sha256` agree with
   [the current release evidence](../sources/current-release.md); and
-- `runtime.launch_confidence` is `certain`.
+- `identity.runtime.launch_confidence` is `certain`.
 
 If the command is missing or the identity disagrees, reinstall from the npm prefix owned by the
 running Node installation. Follow the exact inspection command returned by setup when it reports a
@@ -170,7 +161,8 @@ A complete setup reports:
 - `setup.ready: true` for all required capabilities;
 - `setup.complete: true` after recommended capabilities are ready or unavailable for that host;
 - no `setup.next`; and
-- `setup.verify.command` equal to the command you just ran.
+- `setup.verify.command` names the same host and scope you just inspected. Output-format flags such
+  as `--json` are not included in that verification command.
 
 `ready: true` can appear while a recommended hook still needs attention. Use `complete: true` as the
 end of the full setup loop.

@@ -15,6 +15,9 @@ superbee_updated_by: openai/codex
 - `packages/cli/test/setup-plan.test.ts`
 - `packages/cli/src/commands/setup.ts`
 - `packages/cli/src/commands/version.ts`
+- `packages/cli/src/build-identity.ts`
+- `packages/cli/test/build-identity.test.ts`
+- `packages/cli/test/version.test.ts`
 - `packages/cli/src/commands/skill.ts`
 - `packages/cli/test/skill-command.test.ts`
 - `packages/cli/src/commands/hook.ts`

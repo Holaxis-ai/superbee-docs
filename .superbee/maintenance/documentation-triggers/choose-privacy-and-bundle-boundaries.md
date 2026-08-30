@@ -32,6 +32,8 @@ superbee_updated_by: openai/codex
 - `mcp-workspace-selection`
 - `publication-inventory`
 - `public-bundle-exposure`
+- `portal-complete-bundle-artifact`
+- `documentation-projection`
 - `sharing-model`
 
 # Review action
@@ -45,5 +47,7 @@ and recovery guidance when verified behavior changes.
 [current release evidence](../../sources/current-release.md)
 
 [pinned implementation source](../../sources/superbee-codebase-main.md)
+
+[pinned Portal source](../../sources/superbee-portal.md)
 
 [public publication boundary](../../architecture/public-publication-boundary.md)

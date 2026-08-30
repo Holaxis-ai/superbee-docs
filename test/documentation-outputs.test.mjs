@@ -31,6 +31,14 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     assert.equal(result.supportingDocuments, 8);
     assert.deepEqual(projectionManifest.selectedDocuments, selected);
     assert.deepEqual(projectionManifest.supportingDocuments, selection.supportingDocuments);
+    for (const id of [
+      "get-started/verify-host-setup",
+      "guides/choose-privacy-and-bundle-boundaries",
+      "guides/share-and-synchronize-git-bundle",
+      "reference/host-and-platform-support",
+    ]) {
+      assert.equal(projectionManifest.selectedDocuments.includes(id), true, id);
+    }
     assert.equal(mkdocsManifest.documents.length, 31);
     const startHere = projectionManifest.documents.find((document) => document.id === "learn/start-here");
     assert.ok(startHere?.freshness?.updatedAt);

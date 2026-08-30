@@ -23,3 +23,16 @@ test("source changes and product events resolve affected reader pages", async ()
   assert.equal(pages.has("troubleshooting/setup-and-bundle-resolution"), true);
   assert.equal(pages.has("architecture/architecture-at-a-glance"), false);
 });
+
+test("operational guide sources and events select their reader pages", async () => {
+  const result = JSON.parse((await run(process.execPath, [
+    script,
+    "--changed", "packages/cli/src/build-identity.ts",
+    "--changed", "packages/cli/src/commands/doc/read.ts",
+    "--event", "portal-complete-bundle-artifact",
+  ])).stdout);
+  const pages = new Set(result.affected.flatMap((row) => row.pages));
+  assert.equal(pages.has("get-started/verify-host-setup"), true);
+  assert.equal(pages.has("guides/share-and-synchronize-git-bundle"), true);
+  assert.equal(pages.has("guides/choose-privacy-and-bundle-boundaries"), true);
+});

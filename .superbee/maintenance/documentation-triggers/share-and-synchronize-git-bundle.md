@@ -19,6 +19,11 @@ superbee_updated_by: openai/codex
 - `packages/cli/src/autopull.ts`
 - `packages/cli/src/cursor.ts`
 - `packages/cli/src/commands/home.ts`
+- `packages/cli/src/commands/list.ts`
+- `packages/cli/src/commands/doc/read.ts`
+- `packages/cli/src/commands/status.ts`
+- `packages/cli/src/commands/link.ts`
+- `packages/cli/src/commands/view.ts`
 - `packages/cli/src/commands/session-start.ts`
 - `packages/cli/src/commands/sync/orchestrate.ts`
 - `packages/cli/src/commands/sync/converge.ts`

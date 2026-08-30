@@ -124,6 +124,10 @@ Resolve each document deliberately:
    superbee doc update <id> --body-file <merged-body-file>
    ```
 
+   If the conflict receipt reports frontmatter differences, apply the intended `--title`, `--type`,
+   or Kind-declared field flags in the same update. Use a complete read, edit, and promote loop when
+   the intended frontmatter cannot be expressed by those patch flags.
+
 4. Inspect the document, then share the resolved version:
 
    ```sh

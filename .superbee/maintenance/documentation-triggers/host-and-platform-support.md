@@ -16,6 +16,10 @@ superbee_updated_by: openai/codex
 - `packages/cli/src/setup-plan.ts`
 - `packages/cli/src/commands/setup.ts`
 - `packages/cli/src/mcp-install-targets.ts`
+- `packages/cli/src/host-config.ts`
+- `packages/cli/test/host-config-root-agreement.test.ts`
+- `packages/cli/src/mcp-registration.ts`
+- `packages/cli/test/mcp-registration.test.ts`
 - `packages/cli/src/commands/skill.ts`
 - `packages/cli/src/commands/hook.ts`
 - `packages/cli/test/setup-plan.test.ts`
