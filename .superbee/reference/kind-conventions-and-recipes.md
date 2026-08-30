@@ -36,7 +36,7 @@ headings, and link guidance for one declared Kind.
 
 # Convention document format
 
-This example uses every supported declaration group:
+This example uses every supported declaration group in recipe-source syntax:
 
 ```yaml
 ---
@@ -71,6 +71,14 @@ browse_collapsed: true
 ---
 ```
 
+Recipe application materializes the logical `progress_status` declaration to the bundle edition's
+physical field: `status` for v0.1 and `superbee_progress_status` for v0.2. When authoring a
+Convention directly inside a bundle, declare that edition-specific physical field in
+`required`, `optional`, `values`, `value_descriptions`, `terminal`, and `descriptions`. Agents still
+use the logical `progress_status` input when the Kind declares the physical coordinate. A direct
+`progress_status` declaration creates an ordinary field and disables this compatibility alias. See
+[OKF compatibility](okf-compatibility.md) for the lifecycle-field boundary.
+
 The Markdown body is guidance for people and agents. The frontmatter fields below drive product
 behavior.
 
@@ -101,8 +109,9 @@ keys `enum`, `enums`, `values`, and `constraints` produce warnings because enum 
 under `fields.values`.
 
 Core filters `type`, `dir`, `remote`, `json`, `help`, `body`, and `body-file` from declared fields.
-The `new` command also consumes `actor`, `link`, and `no-prefix` as controls, so recipe authors
-should avoid all of those names for fields intended for `superbee new`.
+The `new` command also consumes `link` and `no-prefix` as controls, so recipe authors should avoid
+those names for fields intended for `superbee new`. `actor` is a supported control-backed field:
+`--actor <name>` supplies mutation attribution and can satisfy a Kind that requires `actor`.
 
 # Validation modes
 
@@ -134,8 +143,8 @@ experiment-model/
     experiment.md
 ```
 
-A strict portable recipe may also carry declared Reference documents and self-contained View
-definitions:
+A strict portable recipe may also carry declared Reference documents and View definitions. Recipe
+authors should make each View entry self-contained for portability:
 
 ```text
 experiment-model/
@@ -176,7 +185,7 @@ pages:
 | `offer` | Optional one-line outcome used by setup or orientation surfaces. Defaults to `title`. |
 | `content_policy` | Optional. `definitions-only` is the only accepted value in the current stable release. |
 | `references` | Optional list of `.md` paths below `references/`. Requires `definitions-only`; each document must declare `type: Reference` and a title. |
-| `pages` | Optional list of `{registry, entry}` maps. Requires `definitions-only`; each registry is a `type: View` document and each entry is self-contained HTML at the matching declared path. |
+| `pages` | Optional list of `{registry, entry}` maps. Requires `definitions-only`; each registry is a `type: View` document and each entry is non-empty HTML at the matching declared path. |
 
 `composes`, `seeds`, and `requires` are reserved manifest keys in this release. They produce a
 warning and have no application behavior.
@@ -185,6 +194,10 @@ With `content_policy: definitions-only`, every file must be a declared Conventio
 registry, or View entry. Unsafe paths, missing declared files, duplicate governed types, malformed
 conventions, and undeclared files reject the recipe. Without that policy, legacy folders may carry
 ignored files outside `conventions/`; portable recipes should use the strict policy.
+
+`recipe add` checks that each declared View entry is non-empty and matches a valid registry. It does
+not inspect the HTML for network dependencies, so self-containment remains a recipe-author
+portability responsibility.
 
 # Built-in and external recipes
 

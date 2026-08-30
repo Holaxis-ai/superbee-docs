@@ -1,6 +1,7 @@
 ---
 type: Documentation Trigger
 title: Kind conventions and recipe formats change trigger
+superbee_updated_by: openai/codex
 ---
 # Affected pages
 
@@ -13,7 +14,9 @@ title: Kind conventions and recipe formats change trigger
 - `packages/core/src/document-mutation.ts`
 - `packages/core/test/document-mutation.test.ts`
 - `packages/core/test/kinds.test.ts`
+- `packages/core/test/progress-status.test.ts`
 - `packages/cli/src/recipe-parser.ts`
+- `packages/cli/src/recipe-ref.ts`
 - `packages/cli/src/recipe-source-builtin.ts`
 - `packages/cli/src/recipe-source-filesystem.ts`
 - `packages/cli/src/recipe-resolver.ts`
@@ -21,6 +24,8 @@ title: Kind conventions and recipe formats change trigger
 - `packages/cli/src/commands/kind.ts`
 - `packages/cli/src/commands/kinds.ts`
 - `packages/cli/src/commands/new.ts`
+- `packages/cli/src/commands/pull.ts`
+- `packages/cli/src/commands/promote.ts`
 - `packages/cli/src/commands/doc/update.ts`
 - `packages/cli/src/commands/doc/write.ts`
 - `packages/cli/src/commands/link.ts`
@@ -32,6 +37,8 @@ title: Kind conventions and recipe formats change trigger
 - `packages/cli/test/new-cli-integration.test.ts`
 - `packages/cli/test/link.test.ts`
 - `packages/cli/test/recipes.test.ts`
+- `packages/cli/test/recipe-ref.test.ts`
+- `packages/cli/test/promote-pull.test.ts`
 - `packages/cli/test/status.test.ts`
 
 # Product events
@@ -44,6 +51,8 @@ title: Kind conventions and recipe formats change trigger
 - `recipe-inventory`
 - `recipe-application`
 - `kind-instance-creation`
+- `kind-evolution`
+- `logical-progress-coordinate`
 
 # Review action
 
