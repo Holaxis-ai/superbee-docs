@@ -17,12 +17,23 @@ superbee_updated_by: openai/codex
 - `packages/view-runtime/src/bridge.ts`
 - `packages/view-runtime/src/action-bridge.ts`
 - `packages/view-runtime/src/transient-save.ts`
+- `packages/cli/src/commands/status.ts`
+- `packages/cli/src/commands/view.ts`
+- `packages/cli/src/ui/view-authorizations.ts`
 - `packages/ui-server/src/pages.ts`
 - `packages/ui-server/src/server.ts`
 - `packages/ui/src/views/PageFrame.tsx`
 - `packages/mcp-app/src/contract.ts`
 - `packages/mcp-app/src/server.ts`
 - `packages/mcp-app/src/view.ts`
+- `packages/view-runtime/test/bridge.test.mjs`
+- `packages/view-runtime/test/catalog.test.mjs`
+- `packages/view-runtime/test/launch.test.mjs`
+- `packages/view-runtime/test/transient-save.test.mjs`
+- `packages/cli/test/status.test.ts`
+- `packages/cli/test/view.test.ts`
+- `packages/cli/test/view-authorizations.test.ts`
+- `packages/mcp-app/test/server.test.ts`
 
 # Product events
 

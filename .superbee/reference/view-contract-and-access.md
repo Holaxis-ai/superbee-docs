@@ -8,11 +8,12 @@ superbee_updated_by: openai/codex
 ---
 # Scope and supported version
 
-This reference describes the active View contract in Superbee `0.1.3`. It covers durable registered
-Views, process-local transient Views, access levels, admission, discovery, approval, saving, and
-recovery. See [Show documents and Views to a human](../guides/show-documents-and-views.md) for a
-task-oriented procedure and [View lifecycle and trust](../architecture/view-lifecycle-and-trust.md)
-for the complete security model.
+This reference describes the active View contract in the
+[current stable release](../sources/current-release.md). It covers durable registered Views,
+process-local transient Views, access levels, admission, discovery, approval, saving, and recovery.
+See [Show documents and Views to a human](../guides/show-documents-and-views.md) for a task-oriented
+procedure and [View lifecycle and trust](../architecture/view-lifecycle-and-trust.md) for the
+complete security model.
 
 # Registered View document
 
@@ -88,7 +89,7 @@ The MCP Apps integration exposes these model-visible operations:
 | --- | --- | --- |
 | `list_views` | Selected workspace plus optional cursor when the MCP server uses the private catalog. | Returns only registered, admissible `bundle-read` and `bundle-propose` Views. Results are bounded and paginated. |
 | `show_view`, registered | Exactly `viewId`, plus workspace for a catalog-backed server. | Registered `none` Views are excluded from the MCP catalog and rejected by active MCP launch. |
-| `show_view`, transient | `mode: transient`, `title` of 1 to 120 characters, non-empty `html`, and optional `access`. | In a fixed-bundle server, omitted access defaults to `bundle-read`. In a catalog-backed server, explicit `none` may omit workspace and stays bundleless; every other case requires a workspace. |
+| `show_view`, transient | `mode: transient`, `title` of 1 to 120 characters, non-empty `html`, and optional `access`. | A fixed-bundle server accepts `bundle-read` or `bundle-propose`; omission defaults to `bundle-read`. A catalog-backed server also accepts `none`. Explicit `none` always uses the bundleless runtime, even when a workspace is supplied; every bundle-capable case requires a workspace. |
 | `save_transient_view` | Exact transient `launchId`, a new safe `views-registry/...` ID, and optional description of at most 500 characters. | The launch must still be current, bundle-backed, and locally approved. The server saves its own admitted bytes and does not accept replacement HTML. |
 
 App-only bridge and approval tools carry launch traffic and trusted-shell decisions. Agents should
@@ -111,11 +112,13 @@ transient launch does not authorize the new durable identity.
 # Launch lifetime and invalidation
 
 The default active launch lifetime is one hour, with at most 256 launches in one process. Local web
-delivery nonces live for two minutes. Host adapters may provide their own approval store, while the
-runtime fallback is process-local.
+delivery nonces live for two minutes. A separately prepared trusted-action confirmation also expires
+after two minutes. Host adapters may provide their own approval store, while the runtime fallback is
+process-local.
 
 A launch becomes unusable after expiry, close, navigation, workspace replacement, changed registry
-version, changed entry bytes or content type, changed access, lost authorization, or revocation.
+version, changed entry bytes, an entry that no longer passes HTML admission, changed access, lost
+authorization, or revocation.
 The bridge checks launch currentness and approval around each request. Reopen the current View and
 approve its current access when a launch becomes stale.
 
@@ -139,4 +142,3 @@ approve its current access when a launch becomes stale.
 - [Bounded read bridge](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/view-runtime/src/bridge.ts)
 - [MCP inputs and tool registration](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/mcp-app/src/server.ts)
 - [Current release evidence](../sources/current-release.md)
-
