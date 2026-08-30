@@ -34,12 +34,14 @@ test("consumer uses only public packed package surfaces and nested versioned con
 });
 
 test("built site preserves documentation, View, diagram, discovery, and presentation agreement", async () => {
-  const [config, manifest, home, llms, mkdocsLlms, homeSource, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
+  const [config, manifest, home, llms, portalRobots, mkdocsLlms, mkdocsRobots, homeSource, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
     json("portal.config.json"),
     json("dist/data/portal-manifest.json"),
     readFile("dist/index.html", "utf8"),
     readFile("dist/llms.txt", "utf8"),
+    readFile("dist/robots.txt", "utf8"),
     readFile(".tmp/mkdocs/site/llms.txt", "utf8"),
+    readFile(".tmp/mkdocs/site/robots.txt", "utf8"),
     readFile(".superbee/learn/start-here.md"),
     readFile("dist/docs/architecture/architecture-at-a-glance/index.html", "utf8"),
     readFile("dist/docs/architecture/superbee-system-context/index.html", "utf8"),
@@ -62,6 +64,7 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
     "docs/learn/start-here/index.html",
     "assets/docs-search.json",
     "llms.txt",
+    "robots.txt",
     architectureGlanceAsset,
     systemContextAsset,
     mutationLifecycleAsset,
@@ -89,6 +92,9 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.match(llms, /## Optional\n/);
   assert.doesNotMatch(llms, /maintenance\/documentation-triggers|Documentation Trigger/);
   assert.equal(Buffer.compare(await readFile("dist/bundle/learn/start-here.md"), homeSource), 0);
+  const expectedRobots = "User-agent: *\nAllow: /\nSitemap: https://docs.getsuperbee.com/sitemap.xml\n";
+  assert.equal(portalRobots, expectedRobots);
+  assert.equal(mkdocsRobots, expectedRobots);
   assert.match(mkdocsLlms, /^# Superbee\n/m);
   const mkdocsHomeUrl = mkdocsLlms.match(/\]\((https:\/\/docs\.getsuperbee\.com\/assets\/source\/learn\/start-here\.[0-9a-f]{64}\.md\.txt)\)/)?.[1];
   assert.ok(mkdocsHomeUrl);
