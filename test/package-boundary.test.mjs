@@ -39,15 +39,20 @@ test("consumer uses only public packed package surfaces and nested versioned con
 });
 
 test("built site preserves documentation, View, diagram, discovery, and presentation agreement", async () => {
-  const [config, manifest, home, llms, portalRobots, mkdocsLlms, mkdocsRobots, homeSource, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
+  const [config, selection, manifest, home, llms, portalRobots, mkdocsLlms, mkdocsRobots, search, domainModelPage, privacyPage, sharingPage, handoffPage, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
     json("portal.config.json"),
+    json("documentation-selection.json"),
     json("dist/data/portal-manifest.json"),
     readFile("dist/index.html", "utf8"),
     readFile("dist/llms.txt", "utf8"),
     readFile("dist/robots.txt", "utf8"),
     readFile(".tmp/mkdocs/site/llms.txt", "utf8"),
     readFile(".tmp/mkdocs/site/robots.txt", "utf8"),
-    readFile(".superbee/learn/start-here.md"),
+    json("dist/assets/docs-search.json"),
+    readFile("dist/docs/guides/model-recurring-domain-concepts/index.html", "utf8"),
+    readFile("dist/docs/guides/choose-privacy-and-bundle-boundaries/index.html", "utf8"),
+    readFile("dist/docs/guides/share-and-synchronize-git-bundle/index.html", "utf8"),
+    readFile("dist/docs/guides/preserve-context-between-sessions/index.html", "utf8"),
     readFile("dist/docs/architecture/architecture-at-a-glance/index.html", "utf8"),
     readFile("dist/docs/architecture/superbee-system-context/index.html", "utf8"),
     readFile("dist/docs/architecture/document-mutation-lifecycle/index.html", "utf8"),
@@ -67,6 +72,9 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   for (const required of [
     "index.html",
     "docs/learn/start-here/index.html",
+    "docs/guides/model-recurring-domain-concepts/index.html",
+    "docs/guides/choose-privacy-and-bundle-boundaries/index.html",
+    "docs/guides/share-and-synchronize-git-bundle/index.html",
     "assets/docs-search.json",
     "llms.txt",
     "robots.txt",
@@ -89,6 +97,11 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.equal(manifest.presentation.id, "documentation");
   assert.equal(manifest.presentation.producer.name, "superbee-portal-docs");
   assert.match(home, /Superbee/);
+  assert.match(home, /In Codex or Claude Code with the Superbee Skill installed/);
+  assert.match(domainModelPage, /Create an Experiment Model recipe and an Experiment kind/);
+  assert.match(privacyPage, /an agent can help inspect existing bundle\s+locations/);
+  assert.match(sharingPage, /ask an agent to inspect the repository/);
+  assert.match(handoffPage, /Ask an agent to prepare the handoff/);
   assert.match(home, /<link rel="alternate" type="text\/markdown" href="\/bundle\/learn\/start-here\.md">/);
   assert.match(home, /<link rel="describedby" href="\/llms\.txt">/);
   assert.match(llms, /^# Superbee\n/m);
@@ -96,14 +109,30 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.match(llms, /\]\(https:\/\/docs\.getsuperbee\.com\/bundle\/learn\/start-here\.md\)/);
   assert.match(llms, /## Optional\n/);
   assert.doesNotMatch(llms, /maintenance\/documentation-triggers|Documentation Trigger/);
-  assert.equal(Buffer.compare(await readFile("dist/bundle/learn/start-here.md"), homeSource), 0);
+  const searchById = new Map(search.documents.map((document) => [document.id, document]));
+  const selectedDocuments = [...new Set([
+    ...config.documentation.navigation.flatMap((section) => section.documents),
+    ...selection.supportingDocuments,
+  ])];
+  for (const id of selectedDocuments) {
+    const source = await readFile(`.superbee/${id}.md`);
+    const digest = sha256(source).slice("sha256:".length);
+    const [published, mkdocsSource] = await Promise.all([
+      readFile(`dist/bundle/${id}.md`),
+      readFile(`.tmp/mkdocs/site/assets/source/${id}.${digest}.md.txt`),
+    ]);
+    assert.equal(Buffer.compare(published, source), 0, `${id} (Portal)`);
+    assert.equal(Buffer.compare(mkdocsSource, source), 0, `${id} (MkDocs)`);
+    const searchDocument = searchById.get(id);
+    assert.ok(searchDocument, `search is missing ${id}`);
+    assert.notEqual(searchDocument.body.trim(), "", `search body is empty for ${id}`);
+  }
   const expectedRobots = "User-agent: *\nAllow: /\nSitemap: https://docs.getsuperbee.com/sitemap.xml\n";
   assert.equal(portalRobots, expectedRobots);
   assert.equal(mkdocsRobots, expectedRobots);
   assert.match(mkdocsLlms, /^# Superbee\n/m);
   const mkdocsHomeUrl = mkdocsLlms.match(/\]\((https:\/\/docs\.getsuperbee\.com\/assets\/source\/learn\/start-here\.[0-9a-f]{64}\.md\.txt)\)/)?.[1];
   assert.ok(mkdocsHomeUrl);
-  assert.equal(Buffer.compare(await readFile(`.tmp/mkdocs/site${new URL(mkdocsHomeUrl).pathname}`), homeSource), 0);
   assert.doesNotMatch(mkdocsLlms, /maintenance\/documentation-triggers|Documentation Trigger/);
   assert.doesNotMatch(home, /href="\/explore\/"/);
   assert.equal(paths.has("assets/docs-diagrams.json"), false);

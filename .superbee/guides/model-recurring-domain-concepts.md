@@ -24,6 +24,25 @@ The procedure is verified against [the current stable release](../sources/curren
 Use one generic document first when the shape is still uncertain. A Kind begins governing every
 document with its declared type as soon as the convention is installed.
 
+# Ask an agent to plan the model
+
+In Codex or Claude Code with the Superbee Skill installed, you can direct this work by outcome
+instead of first learning every command. See [Install and set up
+Superbee](../get-started/install-and-setup.md) for the installation path. For example:
+
+> Create an Experiment Model recipe and an Experiment kind for experiment records; inspect what
+> already exists, propose the fields and relationships, then create it after I approve the durable
+> structure.
+
+The agent should inspect the current bundle, conventions, recipes, and related records; explain the
+smallest useful model and its migration cost; then wait for your approval before adding a Kind or
+recipe. It can use the supported CLI steps below and report the created files, validation results,
+and unresolved questions. You retain the authority to choose the structure, privacy boundary, and
+whether any completed bundle work is shared or published.
+
+Use the direct CLI procedure when you want to execute or verify each operation yourself. An agent
+cannot exceed the capabilities of its current host or your explicit approval.
+
 # 1. Inspect the existing domain
 
 This example models recurring experiments. Inspect documents, conventions, recipes, and links

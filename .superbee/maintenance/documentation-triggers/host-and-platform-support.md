@@ -10,6 +10,16 @@ superbee_updated_by: openai/codex
 
 [Host and platform support](../../reference/host-and-platform-support.md)
 
+[Start here](../../learn/start-here.md)
+
+[Model recurring domain concepts](../../guides/model-recurring-domain-concepts.md)
+
+[Choose privacy and bundle boundaries](../../guides/choose-privacy-and-bundle-boundaries.md)
+
+[Share and synchronize a Git-backed bundle](../../guides/share-and-synchronize-git-bundle.md)
+
+[Preserve context between sessions](../../guides/preserve-context-between-sessions.md)
+
 # Source paths
 
 - `packages/cli/package.json`

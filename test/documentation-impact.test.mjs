@@ -24,6 +24,24 @@ test("source changes and product events resolve affected reader pages", async ()
   assert.equal(pages.has("architecture/architecture-at-a-glance"), false);
 });
 
+test("host and Skill events cover every agent-directed entry point", async () => {
+  const result = JSON.parse((await run(process.execPath, [
+    script,
+    "--event", "supported-hosts",
+    "--event", "skill-installation",
+  ])).stdout);
+  const pages = new Set(result.affected.flatMap((row) => row.pages));
+  for (const id of [
+    "get-started/install-and-setup",
+    "guides/choose-privacy-and-bundle-boundaries",
+    "guides/model-recurring-domain-concepts",
+    "guides/preserve-context-between-sessions",
+    "guides/share-and-synchronize-git-bundle",
+    "learn/start-here",
+    "reference/host-and-platform-support",
+  ]) assert.equal(pages.has(id), true, id);
+});
+
 test("operational guide sources and events select their reader pages", async () => {
   const result = JSON.parse((await run(process.execPath, [
     script,
