@@ -4,8 +4,9 @@ flowchart TD
     Superbee classifies a bundle from Git evidence as local-only, in-tree, or a dedicated board
     branch. Local-only stays local until establishment. In-tree awareness fetches the configured
     tracking upstream while normal Git delivers changes. A stale branch-mode read may perform a
-    bounded fast-forward pull. Full sync commits, converges, preserves conflicts as exports, pushes
-    safe results, and records awareness.
+    bounded fast-forward pull. A failed pull preserves content, cursor, and awareness cache while
+    recording a retry throttle and board marker. Full sync commits, converges, preserves conflicts
+    as exports, pushes safe results, and records awareness.
   }
 
   evidence["Repository evidence<br/>worktree, tracked folder, refs, remote probe"] --> decide{"Channel classification"}
@@ -24,7 +25,8 @@ flowchart TD
   read -->|"yes"| ff["Bounded ff-only pull"]
   read -->|"no"| serve["Serve selected local state"]
   ff -->|"success"| record["Advance cursor and cache"]
-  ff -->|"offline, dirty, diverged"| serve
+  ff -->|"offline, dirty, diverged"| attempt["Keep content, cursor, and cache<br/>record attempt and board marker"]
+  attempt --> serve
   record --> serve
 
   branch --> sync["Full sync<br/>commit, fetch, rebase"]

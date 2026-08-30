@@ -38,12 +38,16 @@ On a provisioned `branch` channel, board-reading commands consult a per-clone aw
 the cache is older than five minutes, the triggering read may perform one inline, two-second-budget,
 fast-forward-only pull. A successful pull advances the cursor and rewrites the cache before the read
 continues. An offline, dirty, busy, detached, or diverged checkout stays on its last known state and
-the failed pull writes no newer cursor. This behavior keeps reads available while preserving an
-honest boundary around what was actually fetched. The
+the failed pull writes no newer cursor or awareness cache. The attempt timestamp and board marker are
+still refreshed so later reads back off for the rest of the staleness window and retain evidence that
+the board checkout was confirmed. This behavior keeps reads available while preserving an honest
+boundary around what was actually fetched. The
 [`opportunistic pull contract`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/board-git/src/autopull.ts#L1-L67)
 and
-[`pull-and-record transaction`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/board-git/src/autopull.ts#L149-L203)
-govern this path.
+[`pull-and-record transaction`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/board-git/src/autopull.ts#L149-L207)
+govern content, cursor, and cache updates. The
+[`attempt and marker writes`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/board-git/src/autopull.ts#L295-L337)
+govern retry throttling on both successful and failed attempts.
 
 An `in-tree` bundle uses its current branch's configured tracking upstream as the comparison basis.
 Superbee fetches that exact upstream, counts bundle-touching commits in both directions, and records a
@@ -84,8 +88,8 @@ complete nonvisual equivalent is:
 3. Keep local-only state local until an explicit establishment request.
 4. For in-tree state, fetch only the configured tracking upstream, record awareness, and leave
    delivery and publication to the repository's normal Git workflow.
-5. For branch state, a stale read may run a bounded fast-forward-only pull; failure preserves the
-   last known state and does not advance freshness metadata.
+5. For branch state, a stale read may run a bounded fast-forward-only pull. Failure preserves bundle
+   content, cursor, and awareness cache while recording the attempt throttle and board marker.
 6. A full sync commits local bundle changes, fetches and converges remote history, exports local
    conflicting bytes when needed, pushes only a conflict-free result, and records the resulting
    awareness state.
@@ -95,7 +99,8 @@ complete nonvisual equivalent is:
 - Channel detection is evidence-based and read-only. Establishment is the explicit publication
   boundary.
 - Opportunistic freshness is best-effort. A successful read means the selected local state was
-  readable; it does not prove the remote was reachable during that command.
+  readable; it does not prove the remote was reachable during that command. A failed pull leaves the
+  last successful awareness cache intact while its attempt timestamp prevents repeated network work.
 - Awareness is per clone and mode-scoped. It reports what that clone has observed since its cursor;
   it is not a global event ledger.
 - Fast-forward-only refresh never reconciles divergence. Full sync owns rebase and conflict export.

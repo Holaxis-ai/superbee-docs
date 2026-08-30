@@ -64,11 +64,11 @@
       "documentId": "architecture/sharing-synchronization-and-freshness",
       "publishedSource": "visuals/sources/sharing-synchronization-and-freshness.mmd",
       "publishedSvg": "visuals/diagrams/sharing-synchronization-and-freshness.svg",
-      "sourceSha256": "sha256:0bc65d4cf8c8993b6ea17df30490afea9287e0aee2980427491f31026cca8c5f",
-      "projectionSha256": "sha256:b7cfde5ce170b2da19d895b3e2f102899c0a74cb9c7054fef857916851318693",
-      "svgSha256": "sha256:6287f8481fc290a8bc9acd72e610b42dce6145764dc8fb088b0c1e7b247f0493",
-      "sourceSize": 1858,
-      "svgSize": 44326
+      "sourceSha256": "sha256:a85fdf12af1c646b3ae381b3a71d2df6e30967db13486210902646106e997f13",
+      "projectionSha256": "sha256:02c21bc955a46a6ed6e8168bce4cd262ab2af914a42ebbabb0ba6cc279db59e7",
+      "svgSha256": "sha256:6431847ad9c399a5310b2e239574fb71ad4c1fe6839426d00c4986c437f444e1",
+      "sourceSize": 2067,
+      "svgSize": 45771
     },
     {
       "id": "superbee-system-context",
@@ -97,5 +97,5 @@
       "svgSize": 42048
     }
   ],
-  "receiptDigest": "sha256:933f430fd00cf76fd356cc36daf884c6e826d9852033616a921cb830b448fea8"
+  "receiptDigest": "sha256:405d84a65a2771600a6e66b1630e3cefd0420bc14e5d2477fe3b5c83d02ee864"
 }
