@@ -1,0 +1,9 @@
+flowchart LR
+  A[Dedicated public bundle<br/>Audience-approved knowledge] -->|capture complete inventory| B[Immutable publication snapshot<br/>Exact objects and semantic model]
+  B -->|validate complete exposure| C[Portal core<br/>Checks and deterministic artifact]
+  B -->|select reader material| D[Documentation projection<br/>Navigation, support, operational exclusions]
+  D -->|consume same contract| E[Portal docs presentation]
+  D -->|consume same contract| F[MkDocs output]
+  C -->|compose with presentation| G[Verified hosting artifact<br/>Complete public bundle plus reader UI]
+  E -->|presentation contribution| G
+  A -. private content stays outside .-> H[Private or embargoed bundle]
