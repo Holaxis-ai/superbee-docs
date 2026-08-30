@@ -44,10 +44,6 @@ workflow before broad generation.
 
 # Next coverage
 
-## Get started
-
-- Join an existing shared bundle from its remote source safely.
-
 ## Core concepts
 
 - Kinds and validation.
