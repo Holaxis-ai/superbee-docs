@@ -17,6 +17,19 @@
         "type": "string",
         "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*(?:/[A-Za-z0-9][A-Za-z0-9._-]*)*$"
       }
+    },
+    "agentGuidance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["documentId", "heading", "label"],
+      "properties": {
+        "documentId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]*(?:/[A-Za-z0-9][A-Za-z0-9._-]*)*$"
+        },
+        "heading": { "type": "string", "minLength": 1 },
+        "label": { "type": "string", "minLength": 1 }
+      }
     }
   }
 }

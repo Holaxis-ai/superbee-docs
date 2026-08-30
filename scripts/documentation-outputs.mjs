@@ -72,7 +72,7 @@ async function projectionInput({ root, config, snapshot, diagramAgreement }) {
     json(selectionFile, "documentation selection"),
     json(config.diagrams.manifest, "static diagram manifest"),
   ]);
-  const supportingDocuments = await validateDocumentationSelection(selection, {
+  const { supportingDocuments, agentGuidance } = await validateDocumentationSelection(selection, {
     documentation: config.documentation,
   }, root);
   const diagrams = exactDiagramRows(diagramManifest, diagramAgreement.bindings);
@@ -92,6 +92,7 @@ async function projectionInput({ root, config, snapshot, diagramAgreement }) {
     brandMark = { blob: blob.key, digest: blob.object.digest };
   }
   return {
+    agentGuidance,
     schema: DOCUMENTATION_PROJECTION_CONFIG_V1,
     product: {
       name: config.documentation.productName,
@@ -138,12 +139,13 @@ export async function composeDocumentationOutputs({
   try {
     assertSnapshotReleaseVersionLabel(config.documentation, snapshot);
     const diagramAgreement = await checkPublishedAgreement({ root: realRoot, configPath: config.file });
-    const input = await projectionInput({ root: realRoot, config, snapshot, diagramAgreement });
+    const { agentGuidance, ...input } = await projectionInput({ root: realRoot, config, snapshot, diagramAgreement });
     projection = await createDocumentationProjectionV1(snapshot, input);
     contribution = await createDocumentationPresentationContributionFromProjectionV1(projection, {
       schema: DOCUMENTATION_PORTAL_TARGET_V1,
       siteUrl: config.documentation.siteUrl,
       indexing: "public",
+      ...(agentGuidance ? { guidance: agentGuidance } : {}),
       ...(config.portal.title ? { title: config.portal.title } : {}),
       ...(config.portal.description ? { description: config.portal.description } : {}),
       attribution: config.portal.attribution ?? { mode: "superbee" },
@@ -162,6 +164,7 @@ export async function composeDocumentationOutputs({
         schema: MKDOCS_DOCUMENTATION_CONFIG_V1,
         siteUrl: config.documentation.siteUrl,
         indexing: "public",
+        ...(agentGuidance ? { guidance: agentGuidance } : {}),
       },
       output: path.resolve(mkdocsOutput),
     });
@@ -173,6 +176,7 @@ export async function composeDocumentationOutputs({
       selectedDocuments: projection.manifest.selectedDocuments.length,
       navigatedDocuments: projection.manifest.navigation.reduce((total, section) => total + section.documents.length, 0),
       supportingDocuments: projection.manifest.supportingDocuments.length,
+      ...(agentGuidance ? { agentGuidance: { documentId: agentGuidance.documentId, heading: agentGuidance.heading } } : {}),
       relationships: projection.manifest.relationships.length,
       diagrams: projection.manifest.assets.diagrams.map((row) => ({ id: row.id, digest: row.object.digest })),
       ...(projection.manifest.assets.brandMark ? { brandDigest: projection.manifest.assets.brandMark.object.digest } : {}),

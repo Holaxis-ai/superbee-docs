@@ -46,7 +46,7 @@ const [selection, portalConfig] = await Promise.all([
   readFile(resolve(root, "documentation-selection.json"), "utf8").then(JSON.parse),
   readFile(resolve(root, "portal.config.json"), "utf8").then(JSON.parse),
 ]);
-const supportingDocuments = await validateDocumentationSelection(selection, portalConfig, root);
+const { supportingDocuments } = await validateDocumentationSelection(selection, portalConfig, root);
 
 const { stdout } = await execFileAsync("superbee", ["status", "--dir", resolve(root, ".superbee"), "--json"], { maxBuffer: 4 * 1024 * 1024 });
 const status = JSON.parse(stdout);

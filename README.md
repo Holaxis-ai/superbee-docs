@@ -29,6 +29,35 @@ Both outputs publish a bounded `llms.txt` over that exact selection. Documentati
 their byte-exact Markdown source and the root discovery index; operational maintenance records stay
 inspectable in the complete public bundle without entering these curated agent surfaces.
 
+`documentation-selection.json` also carries the optional `agentGuidance` binding: the document id,
+heading, and label of one section of one already-selected page that `llms.txt` quotes as its "when
+to use" guidance. Only the pointer lives here. The quoted bytes and every link inside them come from
+that published document, so the entry point can never become a second content authority, and the
+build fails closed if the heading moves, is duplicated, gains a nested heading or code fence, or
+links to something outside the selection. It also refuses any link or markup shape the renderer
+cannot resolve into an absolute published URL -- a titled or angle-bracketed inline target, a
+reference-style link or its definition, an autolink, a raw HTML element or comment, or an indented
+code block -- because a page-relative link copied into `llms.txt` resolves against `/llms.txt`
+instead of the page it came from.
+
+## Agent-facing responses
+
+An unknown documentation URL returns a real 404 carrying `404.html`, whose Markdown twin `404.md`
+holds the same recovery facts. Both link to the documentation index, `llms.txt`, and the sitemap
+with absolute URLs, because a recovery response is served from whatever path the reader requested.
+Cloudflare selects those bytes through the `not_found_handling: "404-page"` asset setting.
+
+The Markdown access contract is explicit URLs, not `Accept:` content negotiation. The reviewed
+evidence in `research/agent-docs-discovery-surfaces` ruled negotiation a layer violation for this
+stack — it would make the edge a second renderer over digest-bound bytes — so the origin serves the
+`.md` sibling every page advertises and deliberately emits no `Vary: Accept`. Advertising a
+negotiation the origin does not perform would fragment every shared cache in front of it while
+changing nothing an agent receives. `npm run verify:production` asserts that absence.
+
+Documentation pages carry canonical, Open Graph, Twitter card, and product JSON-LD built only from
+the projection's own product facts and this site's URL. No postal address, contact, social image, or
+legal identity is emitted here; those facts belong to the public marketing site, which owns them.
+
 ## Development
 
 Node.js 22.12 or newer is required.
@@ -81,6 +110,19 @@ validated but not deployed by this repository. Cloudflare Workers Static Assets 
 npm run portal:build
 npm run cloudflare:check
 ```
+
+After a deployment, compare the live origin against the exact artifact this repository built:
+
+```bash
+npm run verify:production -- --base https://docs.getsuperbee.com --dist dist
+```
+
+Every check is a read-only GET whose expectation is a digest of the built bytes, so a pass means the
+origin serves what was published. Content-Type drift is reported as `mediaTypeDrift` rather than
+failed: this site deploys as Cloudflare static assets with no Worker, so the edge derives
+Content-Type from the file extension instead of from the artifact's declared inventory. Drift is
+recorded only for a response that reached its expected status carrying a Content-Type of its own,
+so a missing route is reported once, as the byte failure it is.
 
 Cloudflare Workers Builds uses these commands:
 
