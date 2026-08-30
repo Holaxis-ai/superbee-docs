@@ -9,10 +9,11 @@ const json = async (file) => JSON.parse(await readFile(file, "utf8"));
 const sha256 = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
 
 test("consumer uses only public packed package surfaces and nested versioned config", async () => {
-  const [consumer, config, diagram] = await Promise.all([
+  const [consumer, config, diagram, wrangler] = await Promise.all([
     json("package.json"),
     json("portal.config.json"),
     json("diagrams/manifest.json"),
+    json("wrangler.jsonc"),
   ]);
   assert.equal(consumer.workspaces, undefined);
   assert.equal(config.schema, "https://getsuperbee.com/schemas/docs-site/v1");
@@ -29,6 +30,10 @@ test("consumer uses only public packed package surfaces and nested versioned con
   assert.equal(consumer.scripts["diagram:build"], "superbee-docs diagram apply --root . --config portal.config.json");
   assert.equal(consumer.scripts["portal:build"], "node scripts/documentation-outputs.mjs build");
   assert.equal(consumer.scripts["mkdocs:build"], "node scripts/mkdocs-runtime.mjs build");
+  assert.deepEqual(wrangler.routes, [{
+    pattern: "docs.getsuperbee.com",
+    custom_domain: true,
+  }]);
   await assert.rejects(readFile("scripts/apply-diagrams.mjs"), (error) => error.code === "ENOENT");
   await assert.rejects(readFile("spikes/mkdocs/materialize.mjs"), (error) => error.code === "ENOENT");
 });
