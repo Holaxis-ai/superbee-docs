@@ -33,7 +33,33 @@ const FIXTURE = {
   "data/objects/0f0f": { body: "opaque\n", mediaType: "application/octet-stream" },
 };
 
-async function artifact(files = FIXTURE) {
+const SHELL_CSP = "default-src 'self'; frame-ancestors 'none'";
+const VIEW_CSP = "sandbox allow-scripts; default-src 'none'";
+const HOSTING_REQUIREMENTS = {
+  schema: "https://getsuperbee.com/schemas/hosting-requirements/v1",
+  audience: "public",
+  routes: [
+    { pattern: "/", disposition: "shell", methods: ["GET", "HEAD"] },
+    { pattern: "/404.html", disposition: "shell", methods: ["GET", "HEAD"] },
+    { pattern: "/docs/learn/start-here/", disposition: "shell", methods: ["GET", "HEAD"] },
+    { pattern: "/docs/learn/start-here/index.html", disposition: "shell", methods: ["GET", "HEAD"] },
+    { pattern: "/assets/*", disposition: "asset", methods: ["GET", "HEAD"] },
+    { pattern: "/data/*", disposition: "data", methods: ["GET", "HEAD"] },
+    { pattern: "/bundle/views/example.html", disposition: "view", methods: ["GET", "HEAD"] },
+    { pattern: "/bundle/*", disposition: "raw", methods: ["GET", "HEAD"] },
+  ],
+  responseHeaders: [
+    { route: "*", name: "X-Content-Type-Options", value: "nosniff" },
+    { route: "*", name: "Referrer-Policy", value: "no-referrer" },
+    { route: "shell", name: "Content-Security-Policy", value: SHELL_CSP },
+    { route: "view", name: "Content-Security-Policy", value: VIEW_CSP },
+  ],
+  cachePolicies: [],
+  fallbackPolicy: "declared-shell-routes-only",
+  requiredCapabilities: ["response-headers.v1"],
+};
+
+async function artifact(files = FIXTURE, hostingRequirements = HOSTING_REQUIREMENTS) {
   const directory = await mkdtemp(path.join(tmpdir(), "superbee-docs-deployment-"));
   const rows = [];
   for (const [relative, { body, mediaType }] of Object.entries(files)) {
@@ -43,8 +69,17 @@ async function artifact(files = FIXTURE) {
     rows.push({ path: relative, mediaType, digest: sha256(Buffer.from(body)), size: Buffer.byteLength(body) });
   }
   await mkdir(path.join(directory, "data"), { recursive: true });
+  const requirementsBody = `${JSON.stringify(hostingRequirements)}\n`;
+  await writeFile(path.join(directory, "data", "hosting-requirements.json"), requirementsBody);
+  rows.push({
+    path: "data/hosting-requirements.json",
+    mediaType: "application/json; charset=utf-8",
+    digest: sha256(Buffer.from(requirementsBody)),
+    size: Buffer.byteLength(requirementsBody),
+  });
   await writeFile(path.join(directory, "data", "portal-manifest.json"), JSON.stringify({
     artifactDigest: "sha256:1111111111111111111111111111111111111111111111111111111111111111",
+    hostingRequirementsDigest: sha256(Buffer.from(requirementsBody)),
     files: rows,
   }));
   return directory;
@@ -87,7 +122,7 @@ test("the rendered redirects file carries exactly the declared rules in Cloudfla
     assert.ok([301, 302, 303, 307, 308].includes(Number(tokens[2])), line);
     assert.ok(line.length <= 2000, line);
   }
-  assert.equal(deploymentConfigurationFiles({ files: [] }).get("_redirects"), rendered);
+  assert.equal(deploymentConfigurationFiles({ files: [] }, HOSTING_REQUIREMENTS).get("_redirects"), rendered);
 });
 
 test("a rule Cloudflare would discard or widen is refused before it can be deployed", () => {
@@ -118,6 +153,23 @@ function parseGeneratedHeaders(rendered) {
   return rules;
 }
 
+function effectiveHeaders(rendered, requestPath) {
+  const effective = new Map();
+  for (const rule of parseGeneratedHeaders(rendered)) {
+    const matches = rule.path.endsWith("*")
+      ? requestPath.startsWith(rule.path.slice(0, -1))
+      : requestPath === rule.path;
+    if (!matches) continue;
+    for (const line of rule.headers) {
+      const colon = line.indexOf(":");
+      const name = line.slice(0, colon).toLowerCase();
+      assert.equal(effective.has(name), false, `${requestPath} receives ${name} twice`);
+      effective.set(name, line.slice(colon + 1).trim());
+    }
+  }
+  return effective;
+}
+
 test("only a path whose served type would disagree with its declaration earns a rule", () => {
   /*
    * The host derives `text/html` and `text/markdown` from those extensions already, and serves a
@@ -132,33 +184,58 @@ test("only a path whose served type would disagree with its declaration earns a 
   ]);
 });
 
-test("every rendered header rule restates a declared type verbatim and cannot overlap another", () => {
+test("rendered rules enforce declared global and disposition headers without duplicate values", () => {
   const manifest = inventory();
   const declared = new Map(manifest.files.map((file) => [`/${file.path}`, file.mediaType]));
-  const rules = parseGeneratedHeaders(renderHeaders(manifest));
-  assert.deepEqual(rules.map((rule) => rule.path), [
-    "/assets/unmeasured.zzz",
-    "/bundle/visuals/diagrams/example.svg",
-    "/llms.txt",
+  const rendered = renderHeaders(manifest, HOSTING_REQUIREMENTS);
+  const rules = parseGeneratedHeaders(rendered);
+  assert.deepEqual(rules.find((rule) => rule.path === "/*").headers, [
+    "Referrer-Policy: no-referrer",
+    "X-Content-Type-Options: nosniff",
   ]);
-  for (const rule of rules) {
-    assert.deepEqual(rule.headers, [`Content-Type: ${declared.get(rule.path)}`], rule.path);
-    // Two rules matching one request append their values instead of replacing them.
-    assert.doesNotMatch(rule.path, /[*]|:[A-Za-z]/u, rule.path);
+  assert.deepEqual(rules.find((rule) => rule.path === "/docs/*").headers, [
+    `Content-Security-Policy: ${SHELL_CSP}`,
+  ]);
+  assert.deepEqual(rules.find((rule) => rule.path === "/bundle/views/example.html").headers, [
+    `Content-Security-Policy: ${VIEW_CSP}`,
+  ]);
+  for (const path of ["/assets/unmeasured.zzz", "/bundle/visuals/diagrams/example.svg", "/llms.txt"]) {
+    assert.ok(rules.find((rule) => rule.path === path).headers.includes(`Content-Type: ${declared.get(path)}`), path);
   }
   assert.equal(new Set(rules.map((rule) => rule.path)).size, rules.length);
-  assert.equal(deploymentConfigurationFiles(manifest).get("_headers"), renderHeaders(manifest));
+  for (const [requestPath, csp] of [
+    ["/", SHELL_CSP],
+    ["/docs/learn/start-here/", SHELL_CSP],
+    ["/bundle/views/example.html", VIEW_CSP],
+  ]) {
+    const headers = effectiveHeaders(rendered, requestPath);
+    assert.equal(headers.get("x-content-type-options"), "nosniff");
+    assert.equal(headers.get("referrer-policy"), "no-referrer");
+    assert.equal(headers.get("content-security-policy"), csp);
+  }
+  assert.equal(deploymentConfigurationFiles(manifest, HOSTING_REQUIREMENTS).get("_headers"), rendered);
 });
 
-test("an undeclared type, or more drift than Cloudflare can carry, fails the build", () => {
-  assert.throws(() => renderHeaders({ files: [{ path: "llms.txt" }] }), /declares no media type/u);
+test("invalid, injected, duplicate, or over-budget header declarations fail the build", () => {
+  assert.throws(() => renderHeaders({ files: [{ path: "llms.txt" }] }, HOSTING_REQUIREMENTS), /declares no media type/u);
+  const requirements = (responseHeaders) => ({ ...HOSTING_REQUIREMENTS, responseHeaders });
+  assert.throws(() => renderHeaders(inventory(), requirements([
+    { route: "*", name: "Unsafe\nName", value: "value" },
+  ])), /invalid declared response header name/u);
+  assert.throws(() => renderHeaders(inventory(), requirements([
+    { route: "*", name: "X-Test", value: "safe\r\nX-Evil: yes" },
+  ])), /invalid value/u);
+  assert.throws(() => renderHeaders(inventory(), requirements([
+    { route: "*", name: "Content-Security-Policy", value: SHELL_CSP },
+    { route: "shell", name: "Content-Security-Policy", value: SHELL_CSP },
+  ])), /overlapping rules/u);
   const crowded = {
     files: Array.from({ length: 101 }, (_, index) => ({
       path: `bundle/raw/${index}.unmeasured`,
       mediaType: "text/html; charset=utf-8",
     })),
   };
-  assert.throws(() => renderHeaders(crowded), /at most 100 header rules/u);
+  assert.throws(() => renderHeaders(crowded, { routes: [], responseHeaders: [] }), /at most 100 header rules/u);
 });
 
 test("assembly carries the exact declared inventory plus the host configuration, and repeats", async () => {
@@ -170,7 +247,7 @@ test("assembly carries the exact declared inventory plus the host configuration,
     assert.equal(receipt.ok, true);
     assert.deepEqual(receipt.configuration, ["_headers", "_redirects"]);
     assert.deepEqual(await tree(output), [
-      ...[...Object.keys(FIXTURE), "data/portal-manifest.json", "_headers", "_redirects"].sort(),
+      ...[...Object.keys(FIXTURE), "data/hosting-requirements.json", "data/portal-manifest.json", "_headers", "_redirects"].sort(),
     ]);
     for (const [relative, { body }] of Object.entries(FIXTURE)) {
       assert.equal(await readFile(path.join(output, ...relative.split("/")), "utf8"), body, relative);
@@ -180,7 +257,7 @@ test("assembly carries the exact declared inventory plus the host configuration,
     const again = await assembleDeployment({ artifact: dist, output });
     assert.deepEqual(again, receipt);
     assert.deepEqual(await tree(output), [
-      ...[...Object.keys(FIXTURE), "data/portal-manifest.json", "_headers", "_redirects"].sort(),
+      ...[...Object.keys(FIXTURE), "data/hosting-requirements.json", "data/portal-manifest.json", "_headers", "_redirects"].sort(),
     ]);
     assert.equal(await readFile(path.join(output, "_redirects"), "utf8"), renderRedirects());
   } finally {
@@ -200,6 +277,12 @@ test("assembly refuses an artifact or an output directory it does not own", asyn
     assert.deepEqual(await tree(output), ["someone-elses-file"]);
 
     await rm(output, { recursive: true, force: true });
+    const requirementsPath = path.join(dist, "data", "hosting-requirements.json");
+    const requirementsBytes = await readFile(requirementsPath);
+    await writeFile(requirementsPath, `${requirementsBytes.toString("utf8").trim()} \n`);
+    await assert.rejects(assembleDeployment({ artifact: dist, output }), /hosting requirements do not match/u);
+
+    await writeFile(requirementsPath, requirementsBytes);
     await writeFile(path.join(dist, "stray.txt"), "not in the manifest\n");
     await assert.rejects(assembleDeployment({ artifact: dist, output }), /does not exactly match its declared portal inventory/u);
 
@@ -214,17 +297,18 @@ test("assembly refuses an artifact or an output directory it does not own", asyn
   }
 });
 
-test("the built deployment carries the redirects and the declared types of the real artifact", async () => {
+test("the built deployment carries redirects, declared types, and declared response policy", async () => {
   // Requires a prior `npm run portal:build`, like every other check over the built outputs.
-  const [redirects, headers, deployedIndex, publishedIndex, manifest] = await Promise.all([
+  const [redirects, headers, deployedIndex, publishedIndex, manifest, requirements] = await Promise.all([
     readFile("deploy/_redirects", "utf8"),
     readFile("deploy/_headers", "utf8"),
     readFile("deploy/index.html"),
     readFile("dist/index.html"),
     readFile("dist/data/portal-manifest.json", "utf8").then(JSON.parse),
+    readFile("dist/data/hosting-requirements.json", "utf8").then(JSON.parse),
   ]);
   assert.equal(redirects, renderRedirects());
-  assert.equal(headers, renderHeaders(manifest));
+  assert.equal(headers, renderHeaders(manifest, requirements));
   assert.equal(Buffer.compare(deployedIndex, publishedIndex), 0);
   const published = new Map(manifest.files.map((file) => [file.path, file.mediaType]));
   for (const rule of DEPLOYMENT_REDIRECTS) {
@@ -232,15 +316,26 @@ test("the built deployment carries the redirects and the declared types of the r
     assert.equal(published.has(rule.from.replace(/^\//, "")), false, rule.from);
   }
   const rules = parseGeneratedHeaders(headers);
-  for (const rule of rules) {
+  for (const rule of rules.filter((candidate) => candidate.headers.some((header) => header.startsWith("Content-Type:")))) {
     const relative = rule.path.replace(/^\//, "");
     assert.ok(published.has(relative), `${rule.path} is not a published path`);
-    assert.deepEqual(rule.headers, [`Content-Type: ${published.get(relative)}`], rule.path);
+    assert.ok(rule.headers.includes(`Content-Type: ${published.get(relative)}`), rule.path);
   }
-  const covered = new Set(rules.map((rule) => rule.path));
+  const covered = new Set(rules
+    .filter((rule) => rule.headers.some((header) => header.startsWith("Content-Type:")))
+    .map((rule) => rule.path));
   // The standing drift this work closes, and the paths the host already labels correctly.
   assert.ok(covered.has("/llms.txt"));
   for (const settled of ["/robots.txt", "/sitemap.xml", "/index.html", "/404.html", "/404.md"]) {
     assert.equal(covered.has(settled), false, settled);
   }
+  for (const declaration of requirements.responseHeaders.filter((header) => header.route === "*")) {
+    for (const route of ["/", "/llms.txt", "/data/portal-manifest.json", "/bundle/views/architecture-at-a-glance.html"]) {
+      assert.equal(effectiveHeaders(headers, route).get(declaration.name.toLowerCase()), declaration.value, route);
+    }
+  }
+  const shellPolicy = requirements.responseHeaders.find((header) => header.route === "shell");
+  const viewPolicy = requirements.responseHeaders.find((header) => header.route === "view");
+  assert.equal(effectiveHeaders(headers, "/docs/learn/start-here/").get("content-security-policy"), shellPolicy.value);
+  assert.equal(effectiveHeaders(headers, "/bundle/views/architecture-at-a-glance.html").get("content-security-policy"), viewPolicy.value);
 });
