@@ -48,7 +48,29 @@ If `superbee` is not found, make sure npm's global binary directory is on `PATH`
 terminal. Do not use `npx` for persistent host integrations: MCP, Skills, and hooks need an
 installed executable.
 
-# 2. Ask your agent to conduct setup
+# 2. Install the Agent Skill
+
+The CLI and the Agent Skill are separate integrations. The Skill teaches an agent how to work with
+Superbee; it does not grant MCP access, select a bundle, or authorize writes or sharing.
+
+For Codex and Claude Code, install the managed Skill after the CLI:
+
+```sh
+superbee skill install --scope user
+```
+
+OpenCode discovers that standard Claude-compatible installation after restart. For Claude Desktop,
+locate the portable archive shipped with the installed package, then import it through Claude
+Desktop's Skill flow:
+
+```sh
+superbee skill path --json
+```
+
+See the host and platform support reference below for the current host-specific path. Restart the
+host after a Skill installation or import.
+
+# 3. Ask your agent to conduct setup
 
 In the host you want to use, ask:
 

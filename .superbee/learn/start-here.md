@@ -12,7 +12,10 @@ agents; the bundle remains readable without Superbee.
 
 # Work by directing an agent
 
-In a supported host with the Superbee Skill, start by describing the outcome and your constraints.
+In a supported host with the Superbee Skill installed, start by describing the outcome and your
+constraints. The Skill is a separate host integration: follow [Install and set up
+Superbee](../get-started/install-and-setup.md) and check [Host and platform
+support](../reference/host-and-platform-support.md) before relying on this path.
 The agent can inspect the current bundle and documentation, propose the smallest supported plan,
 perform approved operations, and show you the resulting files and receipts. The CLI remains the
 direct path when you want to inspect, script, verify, or recover an operation yourself.
