@@ -109,7 +109,7 @@ should avoid all of those names for fields intended for `superbee new`.
 The same Kind validator checks required fields, enum membership and scalar arity, and declared
 level-one sections. The command determines whether findings warn or block.
 
-| Surface | Behavior in `0.1.3` |
+| Surface | Current stable behavior |
 | --- | --- |
 | Registry load | Skips malformed Convention documents and reports warnings. A malformed declaration does not invalidate the rest of the registry. |
 | `superbee new "<Kind>"` | Strict and create-only. Missing fields, unknown fields, invalid enum values, missing headings, or an existing ID reject the write. |
@@ -174,7 +174,7 @@ pages:
 | `type` | Required and exactly `Recipe`. |
 | `id`, `title`, `version`, `summary` | Required non-empty strings. The version is reported with the recipe identity. |
 | `offer` | Optional one-line outcome used by setup or orientation surfaces. Defaults to `title`. |
-| `content_policy` | Optional. `definitions-only` is the only accepted value in `0.1.3`. |
+| `content_policy` | Optional. `definitions-only` is the only accepted value in the current stable release. |
 | `references` | Optional list of `.md` paths below `references/`. Requires `definitions-only`; each document must declare `type: Reference` and a title. |
 | `pages` | Optional list of `{registry, entry}` maps. Requires `definitions-only`; each registry is a `type: View` document and each entry is self-contained HTML at the matching declared path. |
 
@@ -232,7 +232,7 @@ Use this sequence when the domain model changes:
    deliberately before tightening another constraint.
 5. Update the reusable recipe only after the bundle-owned model and its instances prove the new
    shape. Reapplying the recipe reports drift for existing installations; it does not migrate
-   them automatically in `0.1.3`.
+   them automatically in the current stable release.
 
 Adding an optional field preserves conformance for existing instances. Adding a required field,
 narrowing an enum, or adding a required section can create conformance work immediately. The
@@ -272,7 +272,7 @@ reported separately because the create may already have succeeded.
 
 # Evidence
 
-The exact `0.1.3` sources and tests governing this reference are:
+The pinned sources and tests governing this reference are:
 
 - [Kind parser and validator](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/core/src/kinds.ts)
 - [Kind registry discovery](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/core/src/kinds-load.ts)
