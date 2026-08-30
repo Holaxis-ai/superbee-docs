@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -102,6 +102,25 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     assert.equal((await json("wrangler.jsonc")).assets.directory, "./dist");
   } finally {
     await rm(temporary, { recursive: true, force: true });
+  }
+});
+
+test("the publication path rejects a release label that disagrees with its captured bundle", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "superbee-docs-release-label-"));
+  try {
+    await mkdir(path.join(root, ".superbee", "releases"), { recursive: true });
+    await writeFile(path.join(root, ".superbee", "index.md"), "---\nokf_version: '0.2'\n---\n# Test bundle\n");
+    await writeFile(path.join(root, ".superbee", "releases", "current.md"), "---\ntype: Release\nversion: 1.2.3\n---\n# Current release\n");
+    const config = await json("portal.config.json");
+    config.documentation.versionLabel = "v9.9.9";
+    await writeFile(path.join(root, "portal.config.json"), JSON.stringify(config));
+
+    await assert.rejects(
+      composeDocumentationOutputs({ root, mkdocsOutput: path.join(root, "mkdocs") }),
+      /versionLabel must equal v1\.2\.3 from releases\/current/,
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
   }
 });
 

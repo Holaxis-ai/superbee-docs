@@ -28,6 +28,7 @@ import {
 
 import { validateDocumentationSelection } from "./documentation-selection.mjs";
 import { deriveDocumentationFreshness } from "./documentation-freshness.mjs";
+import { assertSnapshotReleaseVersionLabel } from "./release-version-label.mjs";
 
 export const DOCUMENTATION_OUTPUTS_RESULT_V1 =
   "https://getsuperbee.com/schemas/superbee-docs/documentation-outputs-result/v1";
@@ -127,7 +128,6 @@ export async function composeDocumentationOutputs({
   if (!config.diagrams) throw new Error("dual documentation outputs require verified static diagram configuration");
   const authority = writePortal ? await authorizePortalWrite(config.bundle, config.output) : undefined;
   const sourceDirectory = authority?.sourceDirectory ?? config.bundle;
-  const diagramAgreement = await checkPublishedAgreement({ root: realRoot, configPath: config.file });
   const snapshot = await capturePublicationSnapshot({
     schema: PUBLICATION_SNAPSHOT_V1,
     source: { kind: "filesystem", root: sourceDirectory },
@@ -136,6 +136,8 @@ export async function composeDocumentationOutputs({
   let contribution;
   let snapshotClosed = false;
   try {
+    assertSnapshotReleaseVersionLabel(config.documentation, snapshot);
+    const diagramAgreement = await checkPublishedAgreement({ root: realRoot, configPath: config.file });
     const input = await projectionInput({ root: realRoot, config, snapshot, diagramAgreement });
     projection = await createDocumentationProjectionV1(snapshot, input);
     contribution = await createDocumentationPresentationContributionFromProjectionV1(projection, {

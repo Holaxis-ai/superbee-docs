@@ -47,8 +47,12 @@ test("release update is idempotent, advances stable identities, and preserves im
     await writeFile(firstManifest, JSON.stringify(input("1.2.3")));
     const first = JSON.parse((await invoke(root, "update", ["--manifest", firstManifest])).stdout);
     assert.equal(first.changed.length, 4);
+    assert.equal(first.versionLabel, "v1.2.3");
+    assert.equal(first.portalConfigChanged, true);
+    assert.equal(JSON.parse(await readFile(path.join(root, "portal.config.json"), "utf8")).documentation.versionLabel, "v1.2.3");
     const repeat = JSON.parse((await invoke(root, "update", ["--manifest", firstManifest])).stdout);
     assert.deepEqual(repeat.changed, []);
+    assert.equal(repeat.portalConfigChanged, false);
     await invoke(root, "check");
     await writeFile(firstManifest, JSON.stringify({ ...input("1.2.3"), summary: "A changed account of an already published release." }));
     await assert.rejects(invoke(root, "update", ["--manifest", firstManifest]), /refusing to replace immutable release document/);
@@ -75,6 +79,9 @@ test("release update is idempotent, advances stable identities, and preserves im
     await writeFile(nextManifest, JSON.stringify(input("1.2.4")));
     const next = JSON.parse((await invoke(root, "update", ["--manifest", nextManifest])).stdout);
     assert.deepEqual(next.changed.sort(), ["releases/1.2.4", "releases/current", "sources/current-release", "sources/superbee-release-1.2.4"].sort());
+    assert.equal(next.versionLabel, "v1.2.4");
+    assert.equal(next.portalConfigChanged, true);
+    assert.equal(JSON.parse(await readFile(path.join(root, "portal.config.json"), "utf8")).documentation.versionLabel, "v1.2.4");
     assert.deepEqual(await readFile(path.join(root, ".superbee", "releases", "1.2.3.md")), oldRelease);
     assert.deepEqual(await readFile(path.join(root, ".superbee", "releases", "current.md")), await readFile(path.join(root, ".superbee", "releases", "1.2.4.md")));
     assert.deepEqual(await readFile(path.join(root, ".superbee", "sources", "current-release.md")), await readFile(path.join(root, ".superbee", "sources", "superbee-release-1.2.4.md")));
@@ -84,6 +91,16 @@ test("release update is idempotent, advances stable identities, and preserves im
     await assert.rejects(invoke(root, "check"), /semantically identical/);
     const resumed = JSON.parse((await invoke(root, "update", ["--manifest", nextManifest])).stdout);
     assert.deepEqual(resumed.changed, ["releases/current"]);
+    await invoke(root, "check");
+
+    const configPath = path.join(root, "portal.config.json");
+    const staleConfig = JSON.parse(await readFile(configPath, "utf8"));
+    staleConfig.documentation.versionLabel = "Latest";
+    await writeFile(configPath, JSON.stringify(staleConfig));
+    await assert.rejects(invoke(root, "check"), /versionLabel must equal v1\.2\.4 from releases\/current/);
+    const repaired = JSON.parse((await invoke(root, "update", ["--manifest", nextManifest])).stdout);
+    assert.deepEqual(repaired.changed, []);
+    assert.equal(repaired.portalConfigChanged, true);
     await invoke(root, "check");
 
     await mkdir(path.join(root, ".superbee", "migrations"), { recursive: true });
