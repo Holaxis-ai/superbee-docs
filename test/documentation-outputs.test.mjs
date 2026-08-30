@@ -32,6 +32,17 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     assert.deepEqual(projectionManifest.selectedDocuments, selected);
     assert.deepEqual(projectionManifest.supportingDocuments, selection.supportingDocuments);
     assert.equal(mkdocsManifest.documents.length, 25);
+    const startHere = projectionManifest.documents.find((document) => document.id === "learn/start-here");
+    assert.ok(startHere?.freshness?.updatedAt);
+    assert.match(startHere.freshness.updatedAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+    assert.equal(startHere.freshness.verifiedAt, undefined);
+    assert.deepEqual(
+      mkdocsManifest.documents.find((document) => document.id === "learn/start-here").freshness,
+      startHere.freshness,
+    );
+    const startHerePage = Buffer.from(artifact.files.get("docs/learn/start-here/index.html")).toString("utf8");
+    assert.match(startHerePage, /Last updated <time datetime="[^"]+">[^<]+<\/time>/);
+    assert.doesNotMatch(startHerePage, /Last verified/);
     const bundleMarkdown = (await readdir(".superbee", { recursive: true })).filter((file) => file.endsWith(".md"));
     assert.equal(artifact.manifest.counts.documents, bundleMarkdown.length - 1, "the root index is reserved rather than a publication document");
     for (const omitted of ["index", ...config.portal.views.map((row) => row.id)]) {
