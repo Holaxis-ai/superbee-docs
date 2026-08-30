@@ -4,6 +4,8 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
+import { removeBootstrappedPackages } from "./bootstrap-package-state.mjs";
+
 const execFileAsync = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const sourceRoot = resolve(root, ".deps/source");
@@ -76,5 +78,6 @@ await run("npm", ["pack", resolve(portal, "packages/docs-tooling"), "--pack-dest
 await run("npm", ["pack", resolve(portal, "packages/docs-mkdocs"), "--pack-destination", packs]);
 
 const packageFiles = (await readdir(packs)).filter((name) => name.endsWith(".tgz")).map((name) => resolve(packs, name));
+await removeBootstrappedPackages(root);
 await run("npm", ["install", "--no-save", "--package-lock=false", "--legacy-peer-deps", ...packageFiles]);
 console.log(`tools_bootstrap: complete\nsuperbee: ${pins.superbee.commit}\nportal: ${pins.portal.commit}`);
