@@ -99,7 +99,8 @@
           "architecture/superbee-system-context",
           "architecture/document-mutation-lifecycle",
           "architecture/view-lifecycle-and-trust",
-          "architecture/public-publication-boundary"
+          "architecture/public-publication-boundary",
+          "architecture/sharing-synchronization-and-freshness"
         ]
       }
     ]

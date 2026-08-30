@@ -6,7 +6,7 @@
   },
   "renderer": "superbee-docs-mmdc-v1+mermaid-cli@11.16.0+mermaid@11.17.2",
   "admission": "https://getsuperbee.com/schemas/documentation-static-svg/v1",
-  "manifestSha256": "sha256:5f8169fba2343a7bf95810fb2132acd51802aa348149826e436042e7f9cc0d1d",
+  "manifestSha256": "sha256:38b80a55d38b8b0d3039d76e72b2a323fde5c0f85784f0b15f9a810ba843e424",
   "predecessor": {
     "receipt": {
       "digest": "sha256:aaafe7dd024a8d1078d7a8f4f4bb81ef5921b6ebd439b7f1fd4bfeb31fca735d",
@@ -58,6 +58,19 @@
       "svgSize": 22071
     },
     {
+      "id": "sharing-synchronization-and-freshness",
+      "title": "Sharing, synchronization, and freshness",
+      "description": "How Superbee classifies bundle channels, refreshes reads, converges shared changes, and preserves conflicting work.",
+      "documentId": "architecture/sharing-synchronization-and-freshness",
+      "publishedSource": "visuals/sources/sharing-synchronization-and-freshness.mmd",
+      "publishedSvg": "visuals/diagrams/sharing-synchronization-and-freshness.svg",
+      "sourceSha256": "sha256:0bc65d4cf8c8993b6ea17df30490afea9287e0aee2980427491f31026cca8c5f",
+      "projectionSha256": "sha256:b7cfde5ce170b2da19d895b3e2f102899c0a74cb9c7054fef857916851318693",
+      "svgSha256": "sha256:6287f8481fc290a8bc9acd72e610b42dce6145764dc8fb088b0c1e7b247f0493",
+      "sourceSize": 1858,
+      "svgSize": 44326
+    },
+    {
       "id": "superbee-system-context",
       "title": "Superbee system context",
       "description": "How humans, agents, Superbee, shared bundles, package distribution, and public publication relate.",
@@ -84,5 +97,5 @@
       "svgSize": 42048
     }
   ],
-  "receiptDigest": "sha256:0ad2e23eaefc8ed7e07420ca1a3131d64ba7b15496911d0ab40b882272561f24"
+  "receiptDigest": "sha256:933f430fd00cf76fd356cc36daf884c6e826d9852033616a921cb830b448fea8"
 }
