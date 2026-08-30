@@ -32,6 +32,14 @@ an unrelated directory during provisioning.
 Avoid `superbee init` when you expect a shared bundle. Initialization creates a new local bundle.
 The join command discovers the existing shared channel and materializes the intended checkout.
 
+# Ask an agent to assess sharing before it acts
+
+Ask an agent to inspect the repository, selected bundle, and channel state; explain whether the
+next step only reads incoming changes or can create, share, or publish bundle changes; then wait for
+your approval before taking the latter action. The agent may use the supported commands in this
+guide, but it must honor the privacy boundary and authority you set. In particular, a local bundle
+does not become shared merely because an agent found it or knows how to run `sync --establish`.
+
 # Join an existing dedicated board
 
 From the project root, run the read-side form first:

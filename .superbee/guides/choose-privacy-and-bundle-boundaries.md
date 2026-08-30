@@ -19,6 +19,14 @@ The local selection procedures are verified against
 behavior follows the separately pinned [Superbee Portal source](../sources/superbee-portal.md).
 Both are reviewed separately from the stable CLI release.
 
+# Ask an agent to map the boundary
+
+An agent can help inspect existing bundle locations, participants, and documentation, then explain
+the available local, shared, and public paths. Ask it to identify the decision you need to make and
+the evidence it used. You decide who may inspect the content, where it may travel, and whether the
+agent may perform any approved configuration or sharing step. A catalog entry, recent workspace, or
+agent memory is not authority to use or disclose a bundle.
+
 # Start with the disclosure boundary
 
 Ask four questions before creating durable structure:

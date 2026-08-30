@@ -10,6 +10,17 @@ Superbee gives humans and AI agents a shared, user-owned knowledge environment: 
 documents, ordinary links, reusable domain conventions, and human Views. The CLI is designed for
 agents; the bundle remains readable without Superbee.
 
+# Work by directing an agent
+
+In a supported host with the Superbee Skill, start by describing the outcome and your constraints.
+The agent can inspect the current bundle and documentation, propose the smallest supported plan,
+perform approved operations, and show you the resulting files and receipts. The CLI remains the
+direct path when you want to inspect, script, verify, or recover an operation yourself.
+
+You set the goal, constraints, and approval boundary. An agent acts only within its host
+capabilities and your authority. It must not silently publish or share a bundle, disclose private
+knowledge, or make consequential product decisions for you.
+
 Choose the path that matches what you need:
 
 - **Evaluate the product:** learn [what Superbee is](../concepts/what-superbee-is.md), then inspect
