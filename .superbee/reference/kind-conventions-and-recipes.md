@@ -1,10 +1,11 @@
 ---
 type: Reference
 title: Kind conventions and recipe formats
+superbee_updated_by: openai/codex
 ---
 # Scope
 
-This reference describes the Kind convention and recipe formats supported by `superbee@0.1.3`.
+This reference describes the Kind convention and recipe formats supported by the current stable release.
 It is for bundle authors, recipe authors, and integrators who need exact discovery, validation, and
 installation behavior. The [current release evidence](../sources/current-release.md) identifies the
 package, source tag, and verification boundary.

@@ -9,7 +9,7 @@ superbee_updated_by: openai/codex
 # Scope
 
 Use this page to check which Open Knowledge Format behavior Superbee reads, authors, validates, and
-preserves. It describes `superbee@0.1.3`, the current stable release, against
+preserves. It describes the current stable release against
 [OKF v0.2 at revision `4bc03b7`](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/4bc03b7560caa862cdeebccbeb2bced68940c9f0/okf/SPEC.md).
 
 OKF defines the portable Markdown and YAML format. Superbee adds authoring, querying, validation,

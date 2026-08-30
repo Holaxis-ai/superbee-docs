@@ -1,7 +1,7 @@
 ---
 type: Reference
 title: Configuration and bundle resolution
-superbee_updated_by: openai/codex/config-reference
+superbee_updated_by: openai/codex
 ---
 # Scope
 
@@ -26,7 +26,8 @@ Remote and local selection use separate entry points:
 The local precedence order is:
 
 1. explicit `--dir <path>`;
-2. the nearest valid `.superbee.json` or compatible `.agentstate.json` project binding; and
+2. the nearest present `.superbee.json` or compatible `.agentstate.json` project binding, which
+   blocks resolution when malformed or unreadable; and
 3. the nearest enclosing or conventional local bundle found by walking upward from the current
    directory.
 
@@ -93,7 +94,8 @@ another path:
 
 The binding rules are exact:
 
-- `bundle` must be a non-empty filesystem path in a regular JSON file.
+- `bundle` must be a non-empty filesystem path in a JSON object. The followed binding path must
+  resolve to a bounded regular file; a symlink to such a file is accepted.
 - A relative path resolves from the directory containing the binding file.
 - Superbee walks upward from the current directory. The nearest binding wins.
 - `.agentstate.json` remains accepted as a legacy project binding.
@@ -141,9 +143,10 @@ explicit target flag suppresses it, its presence produces a migration error dire
 to `--remote <url>`.
 
 For a gated remote, `SUPERBEE_API_KEY` supplies a session-specific credential. The compatible
-`AGENTSTATE_LITE_API_KEY` name remains accepted. If neither environment value is present, Superbee
-can use an already provisioned credential keyed by the remote origin. Credential selection does not
-change which bundle is selected.
+`AGENTSTATE_LITE_API_KEY` name remains accepted. Both names may be present only when their trimmed
+values agree; different non-empty values fail with `USAGE` before a request. If neither environment
+value is present, Superbee can use an already provisioned credential keyed by the remote origin.
+Credential selection does not change which bundle is selected.
 
 # Private workspace catalog
 
