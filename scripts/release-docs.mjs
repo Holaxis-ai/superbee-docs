@@ -4,6 +4,8 @@ import { basename, dirname, relative, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
+import { assertStableReleaseVersionLabel, stableReleaseVersionLabel } from "./release-version-label.mjs";
+
 const scriptRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const RELEASE_INPUT_V1 = "superbee-docs-release-input.v1";
 const knownInputFields = new Set([
@@ -258,6 +260,19 @@ async function normalizeDocument(options, scratch, id, bytes) {
   return documentBytes(normalizedOptions, id);
 }
 
+async function updatePortalVersionLabel(options, version) {
+  const path = resolve(options.root, "portal.config.json");
+  const config = JSON.parse(await readFile(path, "utf8"));
+  if (!config.documentation || typeof config.documentation !== "object" || Array.isArray(config.documentation)) {
+    throw new Error("portal.config.json must declare a documentation object");
+  }
+  const versionLabel = stableReleaseVersionLabel(version);
+  if (config.documentation.versionLabel === versionLabel) return { changed: false, versionLabel };
+  config.documentation.versionLabel = versionLabel;
+  await writeFile(path, `${JSON.stringify(config, null, 2)}\n`);
+  return { changed: true, versionLabel };
+}
+
 async function update(options) {
   if (!options.manifest) throw new Error("update requires --manifest <release.json>");
   const input = validateInput(JSON.parse(await readFile(options.manifest, "utf8")));
@@ -272,7 +287,8 @@ async function update(options) {
     results.push(await promote(options, scratch, `releases/${input.version}`, release, { immutable: true }));
     results.push(await promote(options, scratch, "sources/current-release", source, { immutable: false }));
     results.push(await promote(options, scratch, "releases/current", release, { immutable: false }));
-    console.log(JSON.stringify({ version: input.version, changed: results.filter((row) => row.changed).map((row) => row.id), results }));
+    const portal = await updatePortalVersionLabel(options, input.version);
+    console.log(JSON.stringify({ version: input.version, versionLabel: portal.versionLabel, portalConfigChanged: portal.changed, changed: results.filter((row) => row.changed).map((row) => row.id), results }));
   } finally {
     await rm(scratch, { recursive: true, force: true });
   }
@@ -290,9 +306,7 @@ async function markdownFiles(directory, out = []) {
 async function check(options) {
   const currentVersionResult = runSuperbee(options, ["doc", "read", "releases/current", "--field", "version"]);
   const version = currentVersionResult.stdout.toString("utf8").trim();
-  if (!/^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?$/.test(version)) {
-    throw new Error(`releases/current has invalid version field: ${version}`);
-  }
+  stableReleaseVersionLabel(version);
   const pairs = [
     ["releases/current", `releases/${version}`],
     ["sources/current-release", `sources/superbee-release-${version}`],
@@ -308,7 +322,7 @@ async function check(options) {
   const releaseIds = config.documentation?.navigation?.flatMap((section) => section.documents ?? []).filter((id) => id.startsWith("releases/")) ?? [];
   if (!releaseIds.includes("releases/current")) throw new Error("Portal navigation must include releases/current");
   if (releaseIds.some((id) => /^releases\/\d+\.\d+\.\d+/.test(id))) throw new Error("Portal navigation must not pin a versioned release document");
-  if (/\d+\.\d+\.\d+/.test(String(config.documentation?.versionLabel ?? ""))) throw new Error("Portal versionLabel must not pin the npm package version");
+  assertStableReleaseVersionLabel(config.documentation, version);
 
   const bundle = resolve(options.root, ".superbee");
   const allowed = /^(?:releases|sources|migrations|evidence)\//;
