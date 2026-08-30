@@ -228,13 +228,18 @@ test("the real MkDocs site remains readable without JavaScript at mobile width",
     await page.setViewport({ width: 390, height: 844 });
     await page.goto(pathToFileURL(pageFile).href, { waitUntil: "load" });
     const observed = await page.evaluate(() => ({
-      title: document.querySelector("h1")?.textContent?.trim(),
+      titles: [...document.querySelectorAll("h1")].map((heading) => heading.textContent?.trim()),
+      questionLevel: [...document.querySelectorAll("h1, h2, h3, h4, h5, h6")]
+        .find((heading) => heading.textContent?.trim() === "Question answered")?.tagName,
+      questionNavigation: document.querySelector('a[href="#question-answered"]')?.textContent?.trim(),
       navLabel: document.querySelector('nav[aria-label="Documentation navigation"]')?.getAttribute("aria-label"),
       diagramAlt: document.querySelector(".superbee-diagram img")?.getAttribute("alt"),
       diagramWidth: document.querySelector(".superbee-diagram img")?.naturalWidth,
       horizontalOverflow: document.documentElement.scrollWidth > document.documentElement.clientWidth,
     }));
-    assert.equal(observed.title, "Question answered");
+    assert.deepEqual(observed.titles, ["Architecture at a glance"]);
+    assert.equal(observed.questionLevel, "H2");
+    assert.equal(observed.questionNavigation, "Question answered");
     assert.equal(observed.navLabel, "Documentation navigation");
     assert.match(observed.diagramAlt, /private workspace layers/);
     assert.ok(observed.diagramWidth > 0);
