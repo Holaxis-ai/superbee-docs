@@ -51,6 +51,11 @@ Superbee recognizes the two OKF reserved filenames at every directory level:
 Superbee separates reserved files from concept documents. The stable health report does not perform
 a complete structural validation of every `index.md` or `log.md` body against the OKF specification.
 
+OKF includes non-reserved Markdown beneath dot-prefixed files and directories. Superbee's
+filesystem discovery deliberately skips every dot-prefixed path segment. Such concepts are absent
+from `list`, `query`, graph projections, and `status`, even though another OKF consumer may include
+them. Keep portable concepts on visible paths when Superbee must discover them.
+
 Concept IDs entering the core must be canonical and bundle-relative. They use forward slashes and
 reject absolute paths, `.` or `..` segments, duplicate slashes, trailing slashes, and a non-final
 path segment ending in `.md`. CLI entry points can accept a file-like spelling and normalize it
@@ -81,9 +86,12 @@ rules are Superbee conventions layered on the portable document.
 | `stale_after` | Absolute instant on or after which the concept is stale. | Preserved. `superbee status` includes it in the freshness sweep. |
 
 When `generated` is newly supplied through the governed mutation path, `generated.by` must use
-`human:<id>`, `process:<id>`, or `<producer>/<version>`, and `generated.at` must parse as an ISO 8601
-date-time when present. Imported metadata is consumed permissively: unknown keys and unusual legacy
-actor spellings remain available instead of being silently discarded.
+`human:<id>`, `process:<id>`, or `<producer>/<version>`. On document creation, a supplied
+`generated.at` must be a string accepted by JavaScript `Date.parse`. This check is looser than OKF's
+requirement for an explicit UTC offset. Existing-document mutation advances or preserves the clock
+instead of separately validating a candidate spelling. Use the official timestamp grammar when
+authoring portable metadata. Imported metadata is consumed permissively: unknown keys and unusual
+legacy actor spellings remain available instead of being silently discarded.
 
 Superbee records its advisory mutation attribution separately. In v0.2, `--actor` can persist
 `superbee_updated_by`; it does not replace the provenance actor in `generated.by`.
@@ -110,6 +118,12 @@ reserved `index.md` or `log.md` files do not become concept edges. Link text car
 relationship meaning; Kinds may add a typed relationship vocabulary without changing the stored
 Markdown form.
 
+The derived edge and backlink graph recognizes inline `[text](href)` body links whose href contains
+no whitespace. Reference-style Markdown links and path-valued frontmatter such as
+`sources[].resource`, `computation`, `executor.resource`, and `attester.resource` remain preserved
+data but do not become graph edges. The graph is therefore a bounded Superbee projection rather
+than a complete projection of every OKF relationship-bearing value.
+
 # Validation boundaries
 
 `superbee status` is a read-only bundle health report. It reports malformed YAML, Kind conformance,
@@ -120,6 +134,10 @@ The stable release is a permissive OKF consumer. It does not claim a complete sc
 every optional `sources`, `verified`, lifecycle, or attested-computation field. Use the official OKF
 specification when producing those families, and preserve unknown fields when integrating another
 producer's bundle.
+
+Attested Computation fields are parsed, preserved, queried, and transported as producer
+frontmatter. Stable Superbee does not execute computations, run attesters, validate receipts, or
+derive attestation verdicts.
 
 Superbee's authoring paths add stricter rules where they own a mutation:
 
