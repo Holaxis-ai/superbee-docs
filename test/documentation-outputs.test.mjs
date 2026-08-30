@@ -26,8 +26,8 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     const navigated = config.documentation.navigation.flatMap((section) => section.documents);
     const selected = [...new Set([...navigated, ...selection.supportingDocuments])].sort();
 
-    assert.equal(result.selectedDocuments, 31);
-    assert.equal(result.navigatedDocuments, 23);
+    assert.equal(result.selectedDocuments, 35);
+    assert.equal(result.navigatedDocuments, 27);
     assert.equal(result.supportingDocuments, 8);
     assert.deepEqual(projectionManifest.selectedDocuments, selected);
     assert.deepEqual(projectionManifest.supportingDocuments, selection.supportingDocuments);
@@ -35,11 +35,15 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
       "get-started/verify-host-setup",
       "guides/choose-privacy-and-bundle-boundaries",
       "guides/share-and-synchronize-git-bundle",
+      "reference/configuration-and-bundle-resolution",
+      "reference/okf-compatibility",
+      "reference/kind-conventions-and-recipes",
+      "reference/view-contract-and-access",
       "reference/host-and-platform-support",
     ]) {
       assert.equal(projectionManifest.selectedDocuments.includes(id), true, id);
     }
-    assert.equal(mkdocsManifest.documents.length, 31);
+    assert.equal(mkdocsManifest.documents.length, 35);
     const startHere = projectionManifest.documents.find((document) => document.id === "learn/start-here");
     assert.ok(startHere?.freshness?.updatedAt);
     assert.match(startHere.freshness.updatedAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
@@ -60,7 +64,7 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     const operational = (await readdir(".superbee/maintenance/documentation-triggers"))
       .filter((file) => file.endsWith(".md"))
       .map((file) => `maintenance/documentation-triggers/${file.slice(0, -3)}`);
-    assert.equal(operational.length, 21);
+    assert.equal(operational.length, 25);
     for (const id of operational) {
       assert.equal(projectionManifest.selectedDocuments.includes(id), false, id);
       assert.ok(artifact.files.has(`bundle/${id}.md`), id);

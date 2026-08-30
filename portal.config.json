@@ -86,6 +86,10 @@
         "label": "Reference",
         "documents": [
           "reference/cli-overview",
+          "reference/configuration-and-bundle-resolution",
+          "reference/okf-compatibility",
+          "reference/kind-conventions-and-recipes",
+          "reference/view-contract-and-access",
           "reference/host-and-platform-support"
         ]
       },

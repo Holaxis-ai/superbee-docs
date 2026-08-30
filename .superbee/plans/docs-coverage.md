@@ -81,10 +81,10 @@ workflow before broad generation.
 ## Reference
 
 - Command groups and exact help.
-- Configuration and bundle resolution.
-- OKF compatibility.
-- Kind convention and recipe formats.
-- View contract, access levels, and actions.
+- [Configuration and bundle resolution](../reference/configuration-and-bundle-resolution.md).
+- [OKF compatibility](../reference/okf-compatibility.md).
+- [Kind conventions and recipes](../reference/kind-conventions-and-recipes.md).
+- [View contract and access](../reference/view-contract-and-access.md).
 - Exit codes and structured errors.
 - Security, trust, and local state boundaries.
 
