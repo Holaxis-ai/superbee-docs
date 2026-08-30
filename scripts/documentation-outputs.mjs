@@ -141,6 +141,7 @@ export async function composeDocumentationOutputs({
     contribution = await createDocumentationPresentationContributionFromProjectionV1(projection, {
       schema: DOCUMENTATION_PORTAL_TARGET_V1,
       siteUrl: config.documentation.siteUrl,
+      indexing: "public",
       ...(config.portal.title ? { title: config.portal.title } : {}),
       ...(config.portal.description ? { description: config.portal.description } : {}),
       attribution: config.portal.attribution ?? { mode: "superbee" },
@@ -158,6 +159,7 @@ export async function composeDocumentationOutputs({
       config: {
         schema: MKDOCS_DOCUMENTATION_CONFIG_V1,
         siteUrl: config.documentation.siteUrl,
+        indexing: "public",
       },
       output: path.resolve(mkdocsOutput),
     });

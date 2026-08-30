@@ -89,6 +89,15 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     assert.ok(artifact.files.has("bundle/views/architecture-at-a-glance.html"));
     assert.equal(mkdocsManifest.files.some((row) => /(?:^|\/)views(?:-registry)?\//.test(row.path)), false);
     assert.equal(mkdocsManifest.schema, "https://getsuperbee.com/schemas/mkdocs-documentation-output/v1");
+    assert.equal(mkdocsManifest.target.indexing, "public");
+    assert.equal(
+      Buffer.from(artifact.files.get("robots.txt")).toString("utf8"),
+      "User-agent: *\nAllow: /\nSitemap: https://docs.getsuperbee.com/sitemap.xml\n",
+    );
+    assert.equal(
+      await readFile(path.join(temporary, "input", "docs", "robots.txt"), "utf8"),
+      "User-agent: *\nAllow: /\nSitemap: https://docs.getsuperbee.com/sitemap.xml\n",
+    );
     assert.equal(mkdocsManifest.files.some((row) => row.path.startsWith("bundle/") || row.path === "wrangler.jsonc"), false);
     assert.equal((await json("wrangler.jsonc")).assets.directory, "./dist");
   } finally {
