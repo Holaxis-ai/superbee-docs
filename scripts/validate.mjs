@@ -8,7 +8,7 @@ import { validateDocumentationSelection } from "./documentation-selection.mjs";
 
 const execFileAsync = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const skipped = new Set([".git", ".deps", ".tmp", "dist", "node_modules"]);
+const skipped = new Set([".git", ".deps", ".tmp", "deploy", "dist", "node_modules"]);
 
 async function files(directory, out = []) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {

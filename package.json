@@ -22,7 +22,7 @@
     "prose:check": "node scripts/prose-style.mjs",
     "bundle:check": "node scripts/validate.mjs",
     "portal:check": "node scripts/documentation-outputs.mjs check",
-    "portal:build": "node scripts/documentation-outputs.mjs build",
+    "portal:build": "node scripts/documentation-outputs.mjs build && node scripts/deployment-assets.mjs",
     "portal:preview": "node scripts/documentation-outputs.mjs preview",
     "mkdocs:sync": "node scripts/mkdocs-runtime.mjs sync",
     "mkdocs:build": "node scripts/mkdocs-runtime.mjs build",

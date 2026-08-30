@@ -28,12 +28,19 @@ test("consumer uses only public packed package surfaces and nested versioned con
   assert.match(import.meta.resolve("@superbee/portal-docs"), /\/node_modules\/@superbee\/portal-docs\//);
   assert.match(import.meta.resolve("superbee-portal"), /\/node_modules\/superbee-portal\//);
   assert.equal(consumer.scripts["diagram:build"], "superbee-docs diagram apply --root . --config portal.config.json");
-  assert.equal(consumer.scripts["portal:build"], "node scripts/documentation-outputs.mjs build");
+  assert.equal(
+    consumer.scripts["portal:build"],
+    "node scripts/documentation-outputs.mjs build && node scripts/deployment-assets.mjs",
+  );
   assert.equal(consumer.scripts["mkdocs:build"], "node scripts/mkdocs-runtime.mjs build");
   assert.deepEqual(wrangler.routes, [{
     pattern: "docs.getsuperbee.com",
     custom_domain: true,
   }]);
+  // Portal keeps owning and replacing the artifact directory; the deployment is assembled beside
+  // it, so host configuration never enters the inventory-exact artifact.
+  assert.equal(config.output, "dist");
+  assert.notEqual(config.output, wrangler.assets.directory.replace(/^\.\//, ""));
   await assert.rejects(readFile("scripts/apply-diagrams.mjs"), (error) => error.code === "ENOENT");
   await assert.rejects(readFile("spikes/mkdocs/materialize.mjs"), (error) => error.code === "ENOENT");
 });

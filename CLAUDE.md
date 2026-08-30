@@ -16,6 +16,9 @@ into this repository or its `.superbee/` bundle.
   prose: the quoted bytes and their links stay owned by the published document it names.
 - Generated static SVG, Portal data, MkDocs input/site files, and deployed bytes are projections of
   the bundle and declared source inputs.
+- `scripts/deployment-assets.mjs` owns host deployment configuration and assembles the uploaded
+  `deploy` directory from the exact `dist` artifact. Change a routing rule in that rule table; never
+  hand-edit a generated `_redirects` file or add a file to the inventory-exact artifact.
 - Page freshness is a derived publication fact, never hand-authored display text. `Last updated`
   means the document's OKF meaningful-change clock when one exists; otherwise it is the last commit
   time for the exact clean, tracked source file in a full Git history. `Last verified` is reserved

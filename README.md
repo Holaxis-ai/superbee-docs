@@ -101,10 +101,20 @@ ordinary pages; exact versions remain available in release, evidence, and migrat
 
 ## Deployment
 
-Portal builds the deployed public site into `dist`. The MkDocs adapter independently materializes a
-conventional reference site under ignored `.tmp/mkdocs/site` from the same owned projection; it is
-validated but not deployed by this repository. Cloudflare Workers Static Assets serves only
-`dist`, without a Worker script. Validate the generated deployment locally before uploading it:
+Portal builds the immutable public site artifact into `dist`, and `npm run portal:build` then
+assembles the uploaded directory `deploy` from it: every declared artifact file, verified against
+the manifest digest it was published under, plus the deployment configuration Cloudflare reads from
+an assets root and never serves. The two directories stay separate because the artifact is
+inventory-exact, and Portal refuses to replace an output holding any file its manifest does not
+name. `scripts/deployment-assets.mjs` owns that assembly and generates `_redirects` from a
+reviewable rule table, so the deployed file cannot drift from the reviewed rules. Today those rules
+send the two guessed entry paths `/docs` and `/docs/` to the canonical root; each rule names one
+exact path, so every other missing route still reaches the published recovery body as a real 404.
+
+The MkDocs adapter independently materializes a conventional reference site under ignored
+`.tmp/mkdocs/site` from the same owned projection; it is validated but not deployed by this
+repository. Cloudflare Workers Static Assets serves only `deploy`, without a Worker script.
+Validate the generated deployment locally before uploading it:
 
 ```bash
 npm run portal:build
@@ -117,8 +127,11 @@ After a deployment, compare the live origin against the exact artifact this repo
 npm run verify:production -- --base https://docs.getsuperbee.com --dist dist
 ```
 
-Every check is a read-only GET whose expectation is a digest of the built bytes, so a pass means the
-origin serves what was published. Content-Type drift is reported as `mediaTypeDrift` rather than
+Every check is a read-only GET whose expectation is a digest of the built bytes or the deployment's
+own declared route configuration, so a pass means the origin serves what was published. The entry
+redirects are checked against the same rule table the deployed `_redirects` file is generated from,
+next to the unknown-route check that proves an undeclared path still returns its real 404.
+Content-Type drift is reported as `mediaTypeDrift` rather than
 failed: this site deploys as Cloudflare static assets with no Worker, so the edge derives
 Content-Type from the file extension instead of from the artifact's declared inventory. Drift is
 recorded only for a response that reached its expected status carrying a Content-Type of its own,
