@@ -26,10 +26,9 @@ document with its declared type as soon as the convention is installed.
 
 # Ask an agent to plan the model
 
-In a supported host with the Superbee Skill installed, you can direct this work by outcome instead
-of first learning every command. See [Install and set up
-Superbee](../get-started/install-and-setup.md) for the host-specific installation path. For
-example:
+In Codex or Claude Code with the Superbee Skill installed, you can direct this work by outcome
+instead of first learning every command. See [Install and set up
+Superbee](../get-started/install-and-setup.md) for the installation path. For example:
 
 > Create an Experiment Model recipe and an Experiment kind for experiment records; inspect what
 > already exists, propose the fields and relationships, then create it after I approve the durable

@@ -20,6 +20,7 @@ superbee_updated_by: openai/codex
 - `npm-latest`
 - `package-platform-metadata`
 - `supported-hosts`
+- `skill-installation`
 - `setup-capabilities`
 - `setup-completion-fields`
 - `persistent-install-command`

@@ -34,8 +34,8 @@ support.
 | --- | --- | --- | --- | --- | --- |
 | Codex | macOS and Linux | Required | Required | Recommended | `codex` |
 | Claude Code | macOS and Linux | Required | Required | Recommended | `claude-code` |
-| Claude Desktop | macOS | Supported through manual package-archive import | Required | Not available | `claude-desktop` |
-| OpenCode | macOS and Linux | Supported through Claude-compatible Skill discovery | Required | Recommended | `opencode` |
+| Claude Desktop | macOS | Not available | Required | Not available | `claude-desktop` |
+| OpenCode | macOS and Linux | Not available | Required | Recommended | `opencode` |
 
 Inspect one host explicitly:
 
@@ -46,11 +46,6 @@ superbee setup --host <codex|claude-code|claude-desktop|opencode> --scope user
 The current setup conductor has no supported selector for Cursor or other hosts. The CLI can still
 operate in a supported terminal environment, but that does not establish persistent Skill, MCP, or
 hook integration for an unlisted host.
-
-The Skill is installed separately from MCP registration and SessionStart. For Claude Desktop, run
-`superbee skill path --json` and import the reported package archive through the host. OpenCode
-discovers the managed Skill installed in the Claude-compatible location after restart. Follow
-the installation guide before directing an agent to use Superbee.
 
 # What each integration contributes
 

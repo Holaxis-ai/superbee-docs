@@ -24,7 +24,7 @@ long-lived knowledge should remain in their own documents so they can be found a
 
 # Ask an agent to prepare the handoff
 
-In a supported host with the Superbee Skill installed, you can direct the handoff by outcome:
+In Codex or Claude Code with the Superbee Skill installed, you can direct the handoff by outcome:
 
 > Preserve the current session as a concise Context Note. Separate durable decisions and evidence
 > into their own documents, link the note to them, and show me the result before ending the session.
@@ -32,8 +32,8 @@ In a supported host with the Superbee Skill installed, you can direct the handof
 The agent should confirm the selected bundle, distinguish a short-lived orientation note from
 long-lived knowledge, and ask before writing or sharing anything. You choose what the next session
 may see and where the handoff belongs. See [Install and set up
-Superbee](../get-started/install-and-setup.md) for host-specific Skill installation. Use the direct
-CLI procedure below when you want to create or verify the handoff yourself.
+Superbee](../get-started/install-and-setup.md) for the Skill installation path. Use the direct CLI
+procedure below when you want to create or verify the handoff yourself.
 
 # 1. Confirm the Context Note Kind
 

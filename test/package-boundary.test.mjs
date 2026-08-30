@@ -97,7 +97,7 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.equal(manifest.presentation.id, "documentation");
   assert.equal(manifest.presentation.producer.name, "superbee-portal-docs");
   assert.match(home, /Superbee/);
-  assert.match(home, /In a supported host with the Superbee Skill installed/);
+  assert.match(home, /In Codex or Claude Code with the Superbee Skill installed/);
   assert.match(domainModelPage, /Create an Experiment Model recipe and an Experiment kind/);
   assert.match(privacyPage, /an agent can help inspect existing bundle\s+locations/);
   assert.match(sharingPage, /ask an agent to inspect the repository/);
@@ -115,11 +115,14 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
     ...selection.supportingDocuments,
   ])];
   for (const id of selectedDocuments) {
-    const [source, published] = await Promise.all([
-      readFile(`.superbee/${id}.md`),
+    const source = await readFile(`.superbee/${id}.md`);
+    const digest = sha256(source).slice("sha256:".length);
+    const [published, mkdocsSource] = await Promise.all([
       readFile(`dist/bundle/${id}.md`),
+      readFile(`.tmp/mkdocs/site/assets/source/${id}.${digest}.md.txt`),
     ]);
-    assert.equal(Buffer.compare(published, source), 0, id);
+    assert.equal(Buffer.compare(published, source), 0, `${id} (Portal)`);
+    assert.equal(Buffer.compare(mkdocsSource, source), 0, `${id} (MkDocs)`);
     const searchDocument = searchById.get(id);
     assert.ok(searchDocument, `search is missing ${id}`);
     assert.notEqual(searchDocument.body.trim(), "", `search body is empty for ${id}`);
@@ -130,13 +133,6 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.match(mkdocsLlms, /^# Superbee\n/m);
   const mkdocsHomeUrl = mkdocsLlms.match(/\]\((https:\/\/docs\.getsuperbee\.com\/assets\/source\/learn\/start-here\.[0-9a-f]{64}\.md\.txt)\)/)?.[1];
   assert.ok(mkdocsHomeUrl);
-  assert.equal(
-    Buffer.compare(
-      await readFile(`.tmp/mkdocs/site${new URL(mkdocsHomeUrl).pathname}`),
-      await readFile(".superbee/learn/start-here.md"),
-    ),
-    0,
-  );
   assert.doesNotMatch(mkdocsLlms, /maintenance\/documentation-triggers|Documentation Trigger/);
   assert.doesNotMatch(home, /href="\/explore\/"/);
   assert.equal(paths.has("assets/docs-diagrams.json"), false);
