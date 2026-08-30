@@ -11,8 +11,7 @@ superbee_updated_by: openai/codex
 This reference describes the active View contract in the
 [current stable release](../sources/current-release.md). It covers durable registered Views,
 process-local transient Views, access levels, admission, discovery, approval, saving, and recovery.
-See [Show documents and Views to a human](../guides/show-documents-and-views.md) for a task-oriented
-procedure and [View lifecycle and trust](../architecture/view-lifecycle-and-trust.md) for the
+The related guide provides a task-oriented procedure, while the architecture page explains the
 complete security model.
 
 # Registered View document
