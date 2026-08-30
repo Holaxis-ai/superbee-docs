@@ -4,7 +4,7 @@ title: Documentation coverage and delivery
 description: >-
   Ordered page coverage, representative slice, and readiness gates for the
   public documentation.
-superbee_updated_by: openai/codex
+superbee_updated_by: openai/codex/root
 ---
 # Purpose
 
@@ -23,7 +23,7 @@ workflow before broad generation.
 | Priority | Page | Mode | Primary audience | Status | Governing evidence |
 | --- | --- | --- | --- | --- | --- |
 | P0 | Start here | Structural navigation | Evaluator and first-time user | current | Product statement and current verified journeys |
-| P0 | What Superbee is | Explanation | Evaluator | current | Current stable release evidence, current Skill, product source |
+| P0 | What Superbee is | Explanation | Evaluator | current | Current stable release evidence, current Skill, product source, and core mental-model diagram |
 | P0 | Install and set up Superbee | Tutorial | First-time user | current | Current stable release evidence, CLI help, isolated setup plans |
 | P0 | Verify host setup | How-to | First-time user and integrator | current | Current stable setup plans, integration status commands, and live-host restart boundary |
 | P0 | Create your first durable workspace | Tutorial | First-time user | current | Current stable release disposable init, write/read, discovery, home, status, and tagged doc-open behavior |

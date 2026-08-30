@@ -46,7 +46,7 @@ test("consumer uses only public packed package surfaces and nested versioned con
 });
 
 test("built site preserves documentation, View, diagram, discovery, and presentation agreement", async () => {
-  const [config, selection, manifest, home, llms, portalRobots, mkdocsLlms, mkdocsRobots, search, domainModelPage, privacyPage, sharingPage, handoffPage, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
+  const [config, selection, manifest, home, llms, portalRobots, mkdocsLlms, mkdocsRobots, search, whatSuperbeePage, domainModelPage, privacyPage, sharingPage, handoffPage, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
     json("portal.config.json"),
     json("documentation-selection.json"),
     json("dist/data/portal-manifest.json"),
@@ -56,6 +56,7 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
     readFile(".tmp/mkdocs/site/llms.txt", "utf8"),
     readFile(".tmp/mkdocs/site/robots.txt", "utf8"),
     json("dist/assets/docs-search.json"),
+    readFile("dist/docs/concepts/what-superbee-is/index.html", "utf8"),
     readFile("dist/docs/guides/model-recurring-domain-concepts/index.html", "utf8"),
     readFile("dist/docs/guides/choose-privacy-and-bundle-boundaries/index.html", "utf8"),
     readFile("dist/docs/guides/share-and-synchronize-git-bundle/index.html", "utf8"),
@@ -70,21 +71,24 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
     readFile(".superbee/views/view-lifecycle-and-trust.html"),
   ]);
   const assetPath = (page, diagramId) => page.match(new RegExp(`src="/(assets/diagrams/${diagramId}\\.[0-9a-f]{64}\\.svg)"`))?.[1];
+  const coreMentalModelAsset = assetPath(whatSuperbeePage, "core-mental-model");
   const architectureGlanceAsset = assetPath(architectureGlancePage, "architecture-at-a-glance");
   const systemContextAsset = assetPath(systemContextPage, "superbee-system-context");
   const mutationLifecycleAsset = assetPath(mutationLifecyclePage, "document-mutation-lifecycle");
   const viewLifecycleAsset = assetPath(viewLifecyclePage, "view-lifecycle-and-trust");
-  for (const asset of [architectureGlanceAsset, systemContextAsset, mutationLifecycleAsset, viewLifecycleAsset]) assert.ok(asset);
+  for (const asset of [coreMentalModelAsset, architectureGlanceAsset, systemContextAsset, mutationLifecycleAsset, viewLifecycleAsset]) assert.ok(asset);
   const paths = new Set(manifest.files.map((row) => row.path));
   for (const required of [
     "index.html",
     "docs/learn/start-here/index.html",
+    "docs/concepts/what-superbee-is/index.html",
     "docs/guides/model-recurring-domain-concepts/index.html",
     "docs/guides/choose-privacy-and-bundle-boundaries/index.html",
     "docs/guides/share-and-synchronize-git-bundle/index.html",
     "assets/docs-search.json",
     "llms.txt",
     "robots.txt",
+    coreMentalModelAsset,
     architectureGlanceAsset,
     systemContextAsset,
     mutationLifecycleAsset,
@@ -105,6 +109,9 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.equal(manifest.presentation.producer.name, "superbee-portal-docs");
   assert.match(home, /Superbee/);
   assert.match(home, /In Codex or Claude Code with the Superbee Skill installed/);
+  assert.match(whatSuperbeePage, /A new session must reconstruct what happened/);
+  assert.match(whatSuperbeePage, /roadmap\.md/);
+  assert.match(whatSuperbeePage, /depends on/);
   assert.match(domainModelPage, /Create an Experiment Model recipe and an Experiment kind/);
   assert.match(privacyPage, /an agent can help inspect existing bundle\s+locations/);
   assert.match(sharingPage, /ask an agent to inspect the repository/);
@@ -145,6 +152,7 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.equal(paths.has("assets/docs-diagrams.json"), false);
   await assert.rejects(readFile("dist/assets/docs-diagrams.json"), (error) => error.code === "ENOENT");
   for (const [page, ownDiagram, otherDiagrams] of [
+    [whatSuperbeePage, "core-mental-model", ["architecture-at-a-glance", "superbee-system-context", "document-mutation-lifecycle", "view-lifecycle-and-trust"]],
     [architectureGlancePage, "architecture-at-a-glance", ["superbee-system-context", "document-mutation-lifecycle", "view-lifecycle-and-trust"]],
     [systemContextPage, "superbee-system-context", ["architecture-at-a-glance", "document-mutation-lifecycle", "view-lifecycle-and-trust"]],
     [mutationLifecyclePage, "document-mutation-lifecycle", ["architecture-at-a-glance", "superbee-system-context", "view-lifecycle-and-trust"]],

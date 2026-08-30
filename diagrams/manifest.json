@@ -3,6 +3,15 @@
   "renderer": "superbee-docs-mmdc-v1+mermaid-cli@11.16.0+mermaid@11.17.2",
   "diagrams": [
     {
+      "id": "core-mental-model",
+      "title": "Superbee core mental model",
+      "description": "How humans and agents use typed Markdown records, Kind definitions, and explicit relationships in one bundle.",
+      "source": "diagrams/sources/core-mental-model.mmd",
+      "publishedSource": "visuals/sources/core-mental-model.mmd",
+      "publishedSvg": "visuals/diagrams/core-mental-model.svg",
+      "documentId": "concepts/what-superbee-is"
+    },
+    {
       "id": "architecture-at-a-glance",
       "title": "Architecture at a glance",
       "description": "How Superbee's private workspace layers become one supported installed package.",

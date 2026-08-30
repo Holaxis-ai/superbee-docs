@@ -1,0 +1,45 @@
+flowchart TB
+  accTitle: Superbee core mental model
+  accDescr {
+    Humans and agents work with the same ordinary Markdown records in one bundle. Convention
+    documents declare shared fields and relationship vocabulary. A Roadmap contains a Roadmap
+    Item, the item contains two Tasks, and the publishing Task depends on the explanation Task.
+    A Context Note preserves the handoff for the next session.
+  }
+
+  subgraph collaborators["People and agents"]
+    direction LR
+    human["Human"]
+    agent["Agent"]
+  end
+
+  subgraph access["Two paths to the same records"]
+    direction LR
+    editor["Ordinary editor<br/>read and review Markdown"]
+    cli["Superbee CLI<br/>create, query, validate, and open"]
+  end
+
+  subgraph bundle[".superbee/ is an ordinary folder"]
+    root["Same user-owned records"]
+    conventions["conventions/*.md<br/>Kind definitions"]
+    handoff["context-notes/handoff.md<br/>type: Context Note"]
+    roadmap["roadmap.md<br/>type: Roadmap"]
+    item["roadmap-items/docs-release.md<br/>type: Roadmap Item"]
+    explain["tasks/explain-product.md<br/>type: Task"]
+    publish["tasks/publish-docs.md<br/>type: Task"]
+
+    root -->|"contains file"| conventions
+    root -->|"contains file"| handoff
+    root -->|"contains file"| roadmap
+    roadmap -->|"contains"| item
+    item -->|"contains"| explain
+    item -->|"contains"| publish
+    publish -->|"depends on"| explain
+    conventions -. "declare fields and links" .-> item
+    conventions -. "declare fields and links" .-> publish
+  end
+
+  human --> editor
+  agent --> cli
+  editor -->|"reads files directly"| root
+  cli -->|"uses versioned, attributed operations"| root
