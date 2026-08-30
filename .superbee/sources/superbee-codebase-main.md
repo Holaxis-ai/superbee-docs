@@ -28,4 +28,6 @@ triggers make later drift visible.
 
 [document mutation lifecycle](../architecture/document-mutation-lifecycle.md)
 
+[public publication boundary](../architecture/public-publication-boundary.md)
+
 [sharing, synchronization, and freshness](../architecture/sharing-synchronization-and-freshness.md)
