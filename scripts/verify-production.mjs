@@ -1,9 +1,10 @@
 /*
  * Mechanical post-deploy comparison between one built artifact and one live origin.
  *
- * Every check compares the deployed response against the exact bytes this repository built, so a
- * pass means "the origin serves what we published", not "the origin looks healthy". The script is
- * read-only: GET only, no mutation of anything local or remote.
+ * Every check compares the deployed response against the exact bytes this repository built, or
+ * against the exact route configuration it declares, so a pass means "the origin serves what we
+ * published", not "the origin looks healthy". The script is read-only: GET only, no mutation of
+ * anything local or remote.
  *
  * Media type is reported, not gated. This site deploys as Cloudflare static assets with no Worker,
  * so the edge derives Content-Type from the file extension rather than from the artifact's declared
@@ -16,6 +17,8 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { DEPLOYMENT_REDIRECTS } from "./deployment-assets.mjs";
+
 export const DOCUMENTATION_DEPLOYMENT_VERIFICATION_V1 =
   "https://getsuperbee.com/schemas/superbee-docs/deployment-verification/v1";
 
@@ -27,6 +30,7 @@ async function probe(fetchImpl, url, headers = {}) {
   return {
     status: response.status,
     contentType: response.headers.get("content-type"),
+    location: response.headers.get("location"),
     vary: response.headers.get("vary"),
     bytes: new Uint8Array(await response.arrayBuffer()),
   };
@@ -148,6 +152,33 @@ export async function verifyDocumentationDeploymentV1({ baseUrl, dist, fetchImpl
     mediaType: mediaTypeOf(negotiated.contentType),
     varyAcceptAbsent: !/\baccept\b/i.test(negotiated.vary ?? ""),
   });
+
+  /*
+   * 6. Every declared entry route must answer with the intentional redirect the deployment
+   * configures, and with nothing wider. Check 3 above independently proves that an undeclared
+   * missing path still reaches the real recovery body, so the two together separate a deliberate
+   * redirect from a rule that quietly swallows unrelated missing routes.
+   */
+  for (const rule of DEPLOYMENT_REDIRECTS) {
+    const url = at(rule.from.replace(/^\//, ""));
+    const observed = await probe(fetchImpl, url);
+    let destination = null;
+    if (observed.location) {
+      try { destination = new URL(observed.location, url).href; } catch { destination = observed.location; }
+    }
+    record(rows, {
+      name: `entry redirect ${rule.from}`,
+      url,
+      status: observed.status,
+      location: observed.location ?? null,
+    }, {
+      status: rule.status,
+      destination: new URL(rule.to, origin).href,
+    }, {
+      status: observed.status,
+      destination,
+    });
+  }
 
   const failed = rows.filter((row) => !row.ok);
   return {

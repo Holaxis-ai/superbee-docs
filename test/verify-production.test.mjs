@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 
+import { DEPLOYMENT_REDIRECTS } from "../scripts/deployment-assets.mjs";
 import {
   DOCUMENTATION_DEPLOYMENT_VERIFICATION_V1,
   verifyDocumentationDeploymentV1,
@@ -63,11 +64,18 @@ function origin({
   varyAccept = false,
   plainTextLlms = false,
   strippedHead = false,
+  missingRedirect = false,
 } = {}) {
   return async (url, init = {}) => {
-    const pathname = new URL(url).pathname.replace(/^\//, "") || "index.html";
+    const route = new URL(url).pathname;
+    const pathname = route.replace(/^\//, "") || "index.html";
     const headers = new Headers();
     if (varyAccept) headers.set("Vary", "Accept, Accept-Encoding");
+    const redirect = missingRedirect ? undefined : DEPLOYMENT_REDIRECTS.find((rule) => rule.from === route);
+    if (redirect) {
+      headers.set("Location", redirect.to);
+      return new Response(null, { status: redirect.status, headers });
+    }
     if (Object.hasOwn(FILES, pathname)) {
       let body = FILES[pathname];
       if (pathname === "llms.txt" && staleLlms) body = "# Stale\n";
@@ -98,6 +106,8 @@ test("a faithful deployment passes every published-byte comparison", async () =>
       "unknown route recovery",
       "markdown alternate",
       "no unadvertised content negotiation",
+      "entry redirect /docs",
+      "entry redirect /docs/",
     ]);
   } finally { await rm(dist, { recursive: true, force: true }); }
 });
@@ -118,6 +128,8 @@ test("each realistic deployment defect fails its own named check", async () => {
     assert.deepEqual(await failing({ varyAccept: true }), ["no unadvertised content negotiation"]);
     // A page that lost its Markdown alternate stops advertising the agent-facing source.
     assert.deepEqual(await failing({ strippedHead: true }), ["documentation index", "markdown alternate"]);
+    // A deployment that dropped the entry redirects answers a declared route with the 404 body.
+    assert.deepEqual(await failing({ missingRedirect: true }), ["entry redirect /docs", "entry redirect /docs/"]);
   } finally { await rm(dist, { recursive: true, force: true }); }
 });
 

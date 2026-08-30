@@ -112,7 +112,8 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     );
     assert.equal(mkdocsManifest.files.some((row) => row.path.startsWith("bundle/") || row.path === "wrangler.jsonc"), false);
     const wrangler = await json("wrangler.jsonc");
-    assert.equal(wrangler.assets.directory, "./dist");
+    // Cloudflare uploads the assembled deployment, never the inventory-exact artifact directly.
+    assert.equal(wrangler.assets.directory, "./deploy");
     // Cloudflare selects the artifact's own 404.html only under this exact assets setting.
     assert.equal(wrangler.assets.not_found_handling, "404-page");
 

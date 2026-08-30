@@ -2,6 +2,8 @@ node_modules/
 .deps/
 .tmp/
 dist/
+deploy/
+.wrangler/
 *.tgz
 *-receipt.json
 *.apply-intent.json
