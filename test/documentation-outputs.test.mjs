@@ -111,7 +111,64 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
       "User-agent: *\nAllow: /\nSitemap: https://docs.getsuperbee.com/sitemap.xml\n",
     );
     assert.equal(mkdocsManifest.files.some((row) => row.path.startsWith("bundle/") || row.path === "wrangler.jsonc"), false);
-    assert.equal((await json("wrangler.jsonc")).assets.directory, "./dist");
+    const wrangler = await json("wrangler.jsonc");
+    assert.equal(wrangler.assets.directory, "./dist");
+    // Cloudflare selects the artifact's own 404.html only under this exact assets setting.
+    assert.equal(wrangler.assets.not_found_handling, "404-page");
+
+    // The agent entry point quotes one exact section of one published page, with every internal
+    // link resolved to the exact published Markdown of a selected document.
+    const llms = Buffer.from(artifact.files.get("llms.txt")).toString("utf8");
+    const bound = await readFile(path.join(".superbee", `${selection.agentGuidance.documentId}.md`), "utf8");
+    assert.match(llms, new RegExp(`\n## ${selection.agentGuidance.label}\n\n`));
+    const quoted = llms.slice(llms.indexOf(`## ${selection.agentGuidance.label}`)).split("\n## ")[0];
+    const boundLines = bound.split("\n");
+    const boundStart = boundLines.indexOf(`# ${selection.agentGuidance.heading}`);
+    assert.ok(boundStart >= 0, "the bound heading must exist in its source document");
+    const boundEnd = boundLines.findIndex((line, index) => index > boundStart && /^#{1}\s/.test(line));
+    for (const line of boundLines.slice(boundStart + 1, boundEnd === -1 ? undefined : boundEnd)) {
+      if (!line.trim() || line.includes("](")) continue;
+      assert.ok(quoted.includes(line), line);
+    }
+    assert.doesNotMatch(quoted, /\]\(\.\.?\//, "no page-relative link survives into the agent entry point");
+    for (const href of [...quoted.matchAll(/\]\((https:\/\/docs\.getsuperbee\.com[^)]+)\)/g)].map((match) => match[1])) {
+      const relative = new URL(href).pathname.replace(/^\//, "");
+      assert.ok(artifact.files.has(relative), href);
+    }
+    assert.ok(llms.indexOf(`## ${selection.agentGuidance.label}`) < llms.indexOf("## Get started"));
+    assert.match(llms, /## Machine-readable resources\n\n- \[Documentation index\]\(https:\/\/docs\.getsuperbee\.com\/\)/);
+    assert.match(llms, /- \[Crawler policy\]\(https:\/\/docs\.getsuperbee\.com\/robots\.txt\)/);
+    assert.match(llms, /- \[Source repository\]\(https:\/\/github\.com\/Holaxis-ai\/superbee\)/);
+    assert.ok(llms.indexOf("## Machine-readable resources") < llms.indexOf("## Optional"));
+
+    // Both outputs publish a recovery body whose links are absolute, because a recovery response is
+    // served from whatever path the reader requested.
+    const recovery = Buffer.from(artifact.files.get("404.md")).toString("utf8");
+    assert.match(recovery, /^# Page not found\n/);
+    for (const href of ["https://docs.getsuperbee.com/", "https://docs.getsuperbee.com/llms.txt", "https://docs.getsuperbee.com/sitemap.xml"]) {
+      assert.ok(recovery.includes(`](${href})`), href);
+    }
+    assert.deepEqual(artifact.hostingRequirements.notFound,
+      { path: "/404.html", status: 404, mediaType: "text/html; charset=utf-8" });
+    const recoveryShell = Buffer.from(artifact.files.get("404.html")).toString("utf8");
+    assert.match(recoveryShell, /rel="alternate" type="text\/markdown" href="\/404\.md"/);
+    assert.match(recoveryShell, /<meta name="robots" content="noindex">/);
+    const mkdocsRecovery = await readFile(path.join(temporary, "input", "overrides", "404.html"), "utf8");
+    assert.match(mkdocsRecovery, /<h1>Page not found<\/h1>/);
+    assert.match(mkdocsRecovery, /https:\/\/docs\.getsuperbee\.com\/llms\.txt/);
+
+    // Site metadata asserts only facts the projection already carries.
+    const graph = JSON.parse(startHerePage.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
+    assert.deepEqual(graph["@graph"].map((node) => node["@type"]), ["WebSite", "SoftwareApplication", "TechArticle"]);
+    assert.equal(graph["@graph"][1].codeRepository, config.documentation.repositoryUrl);
+    assert.equal(graph["@graph"][1].softwareVersion, config.documentation.versionLabel);
+    for (const node of graph["@graph"]) {
+      for (const forbidden of ["address", "telephone", "email", "contactPoint", "sameAs", "image", "logo"]) {
+        assert.equal(Object.hasOwn(node, forbidden), false, `${node["@type"]}.${forbidden} has no source of record`);
+      }
+    }
+    assert.match(startHerePage, /<meta property="og:site_name" content="Superbee documentation">/);
+    assert.match(startHerePage, /<meta name="twitter:card" content="summary">/);
   } finally {
     await rm(temporary, { recursive: true, force: true });
   }

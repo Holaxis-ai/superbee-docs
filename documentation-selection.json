@@ -1,5 +1,10 @@
 {
   "schema": "https://getsuperbee.com/schemas/superbee-docs-documentation-selection/v1",
+  "agentGuidance": {
+    "documentId": "learn/start-here",
+    "heading": "Superbee in one minute",
+    "label": "When to use Superbee"
+  },
   "supportingDocuments": [
     "design/docs-operating-model",
     "design/site-experience-contract",

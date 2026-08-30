@@ -29,6 +29,7 @@
     "cloudflare:check": "wrangler deploy --dry-run",
     "cloudflare:preview": "wrangler versions upload",
     "cloudflare:deploy": "wrangler deploy",
+    "verify:production": "node scripts/verify-production.mjs",
     "test": "node --test test/*.test.mjs",
     "check": "npm run diagram:check && npm run docs:release:check && npm run architecture:check && npm run docs:impact:check && npm run prose:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run mkdocs:build && npm run cloudflare:check && npm test"
   },

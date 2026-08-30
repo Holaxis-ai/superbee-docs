@@ -11,7 +11,9 @@ into this repository or its `.superbee/` bundle.
   release receipts. Documentation interprets those sources; it never overrides them.
 - `.superbee/` is the public documentation bundle and documentation authority.
 - `portal.config.json` owns primary navigation; `documentation-selection.json` owns the explicit
-  supporting-document allowlist shared by documentation outputs.
+  supporting-document allowlist shared by documentation outputs, plus the optional `agentGuidance`
+  pointer naming which section of which selected page `llms.txt` quotes. That pointer never carries
+  prose: the quoted bytes and their links stay owned by the published document it names.
 - Generated static SVG, Portal data, MkDocs input/site files, and deployed bytes are projections of
   the bundle and declared source inputs.
 - Page freshness is a derived publication fact, never hand-authored display text. `Last updated`
