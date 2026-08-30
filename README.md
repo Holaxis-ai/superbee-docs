@@ -34,7 +34,11 @@ heading, and label of one section of one already-selected page that `llms.txt` q
 to use" guidance. Only the pointer lives here. The quoted bytes and every link inside them come from
 that published document, so the entry point can never become a second content authority, and the
 build fails closed if the heading moves, is duplicated, gains a nested heading or code fence, or
-links to something outside the selection.
+links to something outside the selection. It also refuses any link or markup shape the renderer
+cannot resolve into an absolute published URL -- a titled or angle-bracketed inline target, a
+reference-style link or its definition, an autolink, a raw HTML element or comment, or an indented
+code block -- because a page-relative link copied into `llms.txt` resolves against `/llms.txt`
+instead of the page it came from.
 
 ## Agent-facing responses
 
@@ -116,7 +120,9 @@ npm run verify:production -- --base https://docs.getsuperbee.com --dist dist
 Every check is a read-only GET whose expectation is a digest of the built bytes, so a pass means the
 origin serves what was published. Content-Type drift is reported as `mediaTypeDrift` rather than
 failed: this site deploys as Cloudflare static assets with no Worker, so the edge derives
-Content-Type from the file extension instead of from the artifact's declared inventory.
+Content-Type from the file extension instead of from the artifact's declared inventory. Drift is
+recorded only for a response that reached its expected status carrying a Content-Type of its own,
+so a missing route is reported once, as the byte failure it is.
 
 Cloudflare Workers Builds uses these commands:
 

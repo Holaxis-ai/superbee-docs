@@ -121,6 +121,20 @@ test("each realistic deployment defect fails its own named check", async () => {
   } finally { await rm(dist, { recursive: true, force: true }); }
 });
 
+test("an unexpected status is never reported as media type drift", async () => {
+  const dist = await artifact();
+  try {
+    // A status-only 404 carries no Content-Type. Recording that as drift-to-empty would hide the
+    // real failure -- the missing recovery body -- behind a second, invented one.
+    const result = await verifyDocumentationDeploymentV1({
+      baseUrl: ORIGIN, dist, fetchImpl: origin({ emptyNotFound: true }),
+    });
+    assert.equal(result.ok, false);
+    assert.deepEqual(result.results.filter((row) => !row.ok).map((row) => row.name), ["unknown route recovery"]);
+    assert.deepEqual(result.mediaTypeDrift, []);
+  } finally { await rm(dist, { recursive: true, force: true }); }
+});
+
 test("media type drift is reported without being confused for a byte regression", async () => {
   const dist = await artifact();
   try {

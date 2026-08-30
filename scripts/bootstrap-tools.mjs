@@ -10,7 +10,7 @@ const sourceRoot = resolve(root, ".deps/source");
 const packs = resolve(root, ".deps/packs");
 const pins = {
   superbee: { repository: "https://github.com/Holaxis-ai/superbee.git", commit: "070426446c00bc1f04ae54007930ce726fec913c" },
-  portal: { repository: "https://github.com/Holaxis-ai/superbee-portal.git", commit: "c7c3bc8908839b3d3ec382f6a9ca48c8e5de7045" },
+  portal: { repository: "https://github.com/Holaxis-ai/superbee-portal.git", commit: "c1fc0e5ccbb56a54cac4a29f8d0f26e0b048d496" },
 };
 
 async function run(command, args, cwd = root) {

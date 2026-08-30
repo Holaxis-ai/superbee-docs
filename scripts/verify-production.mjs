@@ -63,7 +63,14 @@ export async function verifyDocumentationDeploymentV1({ baseUrl, dist, fetchImpl
     const expected = await local(relative);
     const observedMediaType = mediaTypeOf(observed.contentType);
     const declaredMediaType = declared.get(relative);
-    if (declaredMediaType && declaredMediaType !== observedMediaType) {
+    /*
+     * Only a response that actually reached its expected status with a Content-Type of its own can
+     * drift. An unexpected status carries whatever type that error path used, and a bodyless
+     * response carries none at all; reporting either as media-type drift would bury the real
+     * regression the digest check already names under a second, invented one.
+     */
+    if (declaredMediaType && observedMediaType && observed.status === expectedStatus
+      && declaredMediaType !== observedMediaType) {
       mediaTypeDrift.push({ path: `/${relative}`, declared: declaredMediaType, observed: observedMediaType });
     }
     return record(rows, {
