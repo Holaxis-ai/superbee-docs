@@ -6,10 +6,13 @@
  * published", not "the origin looks healthy". The script is read-only: GET only, no mutation of
  * anything local or remote.
  *
- * Media type is reported, not gated. This site deploys as Cloudflare static assets with no Worker,
- * so the edge derives Content-Type from the file extension rather than from the artifact's declared
- * inventory. That drift is real and pre-existing; it is surfaced as `mediaTypeDrift` so a reviewer
- * sees it, and it is deliberately not conflated with a byte or status regression.
+ * Media type is now gated by its own check. This site still deploys as Cloudflare static assets
+ * with no Worker, so the edge derives Content-Type from the file extension rather than from the
+ * artifact's declared inventory, but the deployment answers that with a generated `_headers` file
+ * carrying every drifting path's declared type. Drift is therefore a regression rather than a known
+ * host limitation. It stays in `mediaTypeDrift` and in one named check of its own, so it is never
+ * conflated with a byte or status regression: an origin can serve the wrong type and the right
+ * bytes, and a reviewer needs to see which happened.
  */
 
 import { createHash } from "node:crypto";
@@ -179,6 +182,17 @@ export async function verifyDocumentationDeploymentV1({ baseUrl, dist, fetchImpl
       destination,
     });
   }
+
+  /*
+   * 7. The deployment declares each drifting path's media type in `_headers`, so a served type that
+   * still disagrees with the artifact is a regression in that configuration. Every row above keeps
+   * reporting the type it saw; this row is the gate over what they collected.
+   */
+  record(rows, {
+    name: "declared media types",
+    url: origin.href,
+    ...(mediaTypeDrift.length ? { drift: mediaTypeDrift } : {}),
+  }, { drifting: 0 }, { drifting: mediaTypeDrift.length });
 
   const failed = rows.filter((row) => !row.ok);
   return {

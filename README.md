@@ -106,10 +106,20 @@ assembles the uploaded directory `deploy` from it: every declared artifact file,
 the manifest digest it was published under, plus the deployment configuration Cloudflare reads from
 an assets root and never serves. The two directories stay separate because the artifact is
 inventory-exact, and Portal refuses to replace an output holding any file its manifest does not
-name. `scripts/deployment-assets.mjs` owns that assembly and generates `_redirects` from a
-reviewable rule table, so the deployed file cannot drift from the reviewed rules. Today those rules
-send the two guessed entry paths `/docs` and `/docs/` to the canonical root; each rule names one
-exact path, so every other missing route still reaches the published recovery body as a real 404.
+name. `scripts/deployment-assets.mjs` owns that assembly and generates both configuration files, so
+a deployed copy cannot drift from what was reviewed.
+
+`_redirects` comes from a reviewable rule table. Today it sends the two guessed entry paths `/docs`
+and `/docs/` to the canonical root; each rule names one exact path, so every other missing route
+still reaches the published recovery body as a real 404.
+
+`_headers` comes from the artifact's own inventory. Wrangler labels each uploaded asset from its
+file extension and never consults the declared inventory, so a declared type can drift from the
+served one: `/llms.txt` is declared `text/markdown` and was served as `text/plain`. The generator
+compares every published path's declared type against a measured table of what this host sends for
+that extension, and emits one exact-path rule carrying the declared type wherever they disagree. An
+extension nobody has measured is corrected rather than assumed, and if enough unmeasured paths
+appear to exhaust Cloudflare's hundred-rule budget the build fails and asks for the measurement.
 
 The MkDocs adapter independently materializes a conventional reference site under ignored
 `.tmp/mkdocs/site` from the same owned projection; it is validated but not deployed by this
@@ -131,11 +141,11 @@ Every check is a read-only GET whose expectation is a digest of the built bytes 
 own declared route configuration, so a pass means the origin serves what was published. The entry
 redirects are checked against the same rule table the deployed `_redirects` file is generated from,
 next to the unknown-route check that proves an undeclared path still returns its real 404.
-Content-Type drift is reported as `mediaTypeDrift` rather than
-failed: this site deploys as Cloudflare static assets with no Worker, so the edge derives
-Content-Type from the file extension instead of from the artifact's declared inventory. Drift is
-recorded only for a response that reached its expected status carrying a Content-Type of its own,
-so a missing route is reported once, as the byte failure it is.
+Content-Type drift is collected in `mediaTypeDrift` and
+gated by one check of its own, because the deployment now declares each drifting path's type. Drift
+is recorded only for a response that reached its expected status carrying a Content-Type of its own,
+so a missing route is reported once, as the byte failure it is, and a wrong type never hides behind
+a correct one.
 
 Cloudflare Workers Builds uses these commands:
 

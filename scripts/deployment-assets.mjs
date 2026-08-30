@@ -22,10 +22,50 @@ export const DEPLOYMENT_ASSEMBLY_RESULT_V1 =
 
 const MANIFEST_PATH = "data/portal-manifest.json";
 
-/** Cloudflare's own `_redirects` limits, restated so a generated file cannot silently exceed them. */
+/** Cloudflare's own configuration limits, restated so a generated file cannot silently exceed them. */
 const MAX_STATIC_REDIRECT_RULES = 2000;
+const MAX_HEADER_RULES = 100;
 const MAX_LINE_LENGTH = 2000;
 const PERMITTED_REDIRECT_STATUS = new Set([301, 302, 303, 307, 308]);
+
+/**
+ * What this Worker-less host actually sends as `Content-Type`, measured per extension.
+ *
+ * Wrangler resolves the type from the file extension when it uploads an asset and appends
+ * `charset=utf-8` to any `text/*` type. Nothing consults the artifact's declared inventory, which
+ * is why a declared type drifts from the served one. `null` records an extension the host serves
+ * with no `Content-Type` at all. Every row below was measured against the real asset router
+ * serving this repository's own deployment directory, because guessing is how `.mmd` was nearly
+ * missed: a Mermaid source matches a karaoke format in the host's media type database.
+ *
+ * An extension absent from this table is unmeasured, so its path earns a rule carrying the declared
+ * type. That is always correct and never silent: if a future artifact adds enough unmeasured paths
+ * to exhaust Cloudflare's rule budget, the build fails and asks for the measurement.
+ */
+const HOST_MEDIA_TYPE_BY_EXTENSION = new Map(Object.entries({
+  "": null,
+  css: "text/css",
+  html: "text/html",
+  js: "text/javascript",
+  json: "application/json",
+  md: "text/markdown",
+  mmd: "application/vnd.chipnuts.karaoke-mmd",
+  png: "image/png",
+  svg: "image/svg+xml",
+  txt: "text/plain",
+  woff2: "font/woff2",
+  xml: "application/xml",
+}));
+
+const UNLABELLED_MEDIA_TYPE = "application/octet-stream";
+
+const mediaTypeEssence = (value) => (value ?? "").split(";")[0].trim().toLowerCase();
+
+function extensionOf(relative) {
+  const name = relative.slice(relative.lastIndexOf("/") + 1);
+  const dot = name.lastIndexOf(".");
+  return dot > 0 ? name.slice(dot + 1).toLowerCase() : "";
+}
 
 /**
  * Entry paths a reader guesses, redirected to the one canonical documentation root.
@@ -44,11 +84,11 @@ const sha256 = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("h
 
 function assertExactRoute(value, field) {
   if (typeof value !== "string" || !value.startsWith("/") || /\s/u.test(value)) {
-    throw new Error(`redirect ${field} must be one absolute whitespace-free path; got ${JSON.stringify(value)}`);
+    throw new Error(`${field} must be one absolute whitespace-free path; got ${JSON.stringify(value)}`);
   }
   // A wildcard or a `:name` placeholder would widen a rule past the exact route it declares.
   if (value.includes("*") || /:[A-Za-z]/u.test(value)) {
-    throw new Error(`redirect ${field} '${value}' must not use a wildcard or a placeholder`);
+    throw new Error(`${field} '${value}' must not use a wildcard or a placeholder`);
   }
 }
 
@@ -63,8 +103,8 @@ export function renderRedirects(rules = DEPLOYMENT_REDIRECTS) {
     "# Edit that rule table, never a deployed copy of this file.",
   ];
   for (const rule of rules) {
-    assertExactRoute(rule.from, "source");
-    assertExactRoute(rule.to, "target");
+    assertExactRoute(rule.from, "redirect source");
+    assertExactRoute(rule.to, "redirect target");
     if (!PERMITTED_REDIRECT_STATUS.has(rule.status)) {
       throw new Error(`redirect status ${rule.status} is not one Cloudflare accepts`);
     }
@@ -85,9 +125,71 @@ export function renderRedirects(rules = DEPLOYMENT_REDIRECTS) {
   return `${lines.join("\n")}\n`;
 }
 
+/**
+ * The published paths whose served media type would disagree with the artifact's declaration.
+ *
+ * The correction is always the declared type verbatim, so this reads the artifact's own inventory
+ * and never invents a type. Only a disagreement earns a rule: Cloudflare allows a hundred header
+ * rules, and restating a type the host already sends would spend that budget on nothing.
+ *
+ * The content-addressed objects the host serves with no `Content-Type` are the one measured case
+ * treated as agreement: the artifact declares `application/octet-stream` for them, an absent type
+ * carries the same promise of unlabelled bytes, and there is one such path per stored object, so
+ * pinning each would spend the whole rule budget restating what the host already does.
+ */
+export function declaredMediaTypeOverrides(manifest) {
+  const rules = [];
+  for (const file of manifest.files) {
+    if (typeof file.mediaType !== "string" || file.mediaType.trim() === "") {
+      throw new Error(`published file '${file.path}' declares no media type`);
+    }
+    const extension = extensionOf(file.path);
+    const declared = mediaTypeEssence(file.mediaType);
+    const measured = HOST_MEDIA_TYPE_BY_EXTENSION.has(extension);
+    const served = HOST_MEDIA_TYPE_BY_EXTENSION.get(extension);
+    const agrees = measured
+      && (served === null ? declared === UNLABELLED_MEDIA_TYPE : served === declared);
+    if (!agrees) rules.push({ path: `/${file.path}`, mediaType: file.mediaType });
+  }
+  return rules.sort((left, right) => (left.path < right.path ? -1 : left.path > right.path ? 1 : 0));
+}
+
+/** Render the exact `_headers` bytes that restore each drifting path's declared media type. */
+export function renderHeaders(manifest) {
+  const rules = declaredMediaTypeOverrides(manifest);
+  if (rules.length > MAX_HEADER_RULES) {
+    throw new Error(`at most ${MAX_HEADER_RULES} header rules are supported; ${rules.length} paths drift`);
+  }
+  const seen = new Set();
+  const lines = [
+    "# Generated by scripts/deployment-assets.mjs from the artifact's declared media types.",
+    "# Edit the published inventory or the host media type table, never a deployed copy.",
+  ];
+  for (const rule of rules) {
+    /*
+     * Two rules matching one request append their values into one `Content-Type` instead of
+     * replacing it, which would serve a header no client can parse. Exact unique paths cannot
+     * overlap, so refuse a wildcard, a placeholder, or a repeat before one can be deployed.
+     */
+    assertExactRoute(rule.path, "media type path");
+    if (seen.has(rule.path)) throw new Error(`duplicate media type rule for '${rule.path}'`);
+    seen.add(rule.path);
+    if (/[\r\n]/u.test(rule.mediaType)) throw new Error(`media type for '${rule.path}' spans lines`);
+    const value = `  Content-Type: ${rule.mediaType}`;
+    if (rule.path.length > MAX_LINE_LENGTH || value.length > MAX_LINE_LENGTH) {
+      throw new Error(`media type rule for '${rule.path}' exceeds ${MAX_LINE_LENGTH} characters`);
+    }
+    lines.push(rule.path, value);
+  }
+  return `${lines.join("\n")}\n`;
+}
+
 /** The host configuration files Cloudflare consumes from the uploaded assets directory root. */
-export function deploymentConfigurationFiles() {
-  return new Map([["_redirects", renderRedirects()]]);
+export function deploymentConfigurationFiles(manifest) {
+  return new Map([
+    ["_headers", renderHeaders(manifest)],
+    ["_redirects", renderRedirects()],
+  ]);
 }
 
 async function inventory(root, prefix = "") {
@@ -154,7 +256,7 @@ export async function assembleDeployment({ artifact = "dist", output = "deploy" 
   if (JSON.stringify(observed) !== JSON.stringify(expected)) {
     throw new Error(`'${artifactRoot}' does not exactly match its declared portal inventory; rebuild it`);
   }
-  const configuration = deploymentConfigurationFiles();
+  const configuration = deploymentConfigurationFiles(manifest);
   for (const name of configuration.keys()) {
     if (expected.includes(name)) throw new Error(`deployment configuration '${name}' collides with a published asset`);
   }
@@ -207,7 +309,7 @@ export async function assembleDeployment({ artifact = "dist", output = "deploy" 
     output: outputRoot,
     artifactDigest: manifest.artifactDigest,
     files: declared.length + 1,
-    configuration: [...configuration.keys()],
+    configuration: [...configuration.keys()].sort(),
     bytes,
   };
 }
