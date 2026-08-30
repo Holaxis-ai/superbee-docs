@@ -6,7 +6,7 @@
   },
   "renderer": "superbee-docs-mmdc-v1+mermaid-cli@11.16.0+mermaid@11.17.2",
   "admission": "https://getsuperbee.com/schemas/documentation-static-svg/v1",
-  "manifestSha256": "sha256:b2ab9f66a2410d49a79e41ed16801bb8b0b041e727bb6af399639dfe0f4ea57d",
+  "manifestSha256": "sha256:5f8169fba2343a7bf95810fb2132acd51802aa348149826e436042e7f9cc0d1d",
   "predecessor": {
     "receipt": {
       "digest": "sha256:aaafe7dd024a8d1078d7a8f4f4bb81ef5921b6ebd439b7f1fd4bfeb31fca735d",
@@ -45,6 +45,19 @@
       "svgSize": 34420
     },
     {
+      "id": "public-publication-boundary",
+      "title": "Public publication boundary",
+      "description": "How a dedicated public bundle becomes a verified complete-bundle artifact and curated documentation presentation.",
+      "documentId": "architecture/public-publication-boundary",
+      "publishedSource": "visuals/sources/public-publication-boundary.mmd",
+      "publishedSvg": "visuals/diagrams/public-publication-boundary.svg",
+      "sourceSha256": "sha256:d92e8fe168506d901eca93da8557679c06a25ff0f9301b660a460bbc6b37e644",
+      "projectionSha256": "sha256:44337532124bd19484f3389a631f4f2e40ce763e803890b685abf69dd59ca72f",
+      "svgSha256": "sha256:fa79f610116a4ed8ee23f2cc41d253a52850ff12c5328ed92b58aa652d65f122",
+      "sourceSize": 696,
+      "svgSize": 22071
+    },
+    {
       "id": "superbee-system-context",
       "title": "Superbee system context",
       "description": "How humans, agents, Superbee, shared bundles, package distribution, and public publication relate.",
@@ -71,5 +84,5 @@
       "svgSize": 42048
     }
   ],
-  "receiptDigest": "sha256:615b9a109b47cd48fd8587a97488351c84331474aee8308d9429360d257d1a2e"
+  "receiptDigest": "sha256:0ad2e23eaefc8ed7e07420ca1a3131d64ba7b15496911d0ab40b882272561f24"
 }

@@ -98,7 +98,8 @@
           "architecture/architecture-at-a-glance",
           "architecture/superbee-system-context",
           "architecture/document-mutation-lifecycle",
-          "architecture/view-lifecycle-and-trust"
+          "architecture/view-lifecycle-and-trust",
+          "architecture/public-publication-boundary"
         ]
       }
     ]

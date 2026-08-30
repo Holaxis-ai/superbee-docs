@@ -37,6 +37,15 @@
       "publishedSource": "visuals/sources/view-lifecycle-and-trust.mmd",
       "publishedSvg": "visuals/diagrams/view-lifecycle-and-trust.svg",
       "documentId": "architecture/view-lifecycle-and-trust"
+    },
+    {
+      "id": "public-publication-boundary",
+      "title": "Public publication boundary",
+      "description": "How a dedicated public bundle becomes a verified complete-bundle artifact and curated documentation presentation.",
+      "source": "diagrams/sources/public-publication-boundary.mmd",
+      "publishedSource": "visuals/sources/public-publication-boundary.mmd",
+      "publishedSvg": "visuals/diagrams/public-publication-boundary.svg",
+      "documentId": "architecture/public-publication-boundary"
     }
   ]
 }

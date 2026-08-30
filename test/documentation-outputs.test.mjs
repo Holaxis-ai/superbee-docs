@@ -26,12 +26,12 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     const navigated = config.documentation.navigation.flatMap((section) => section.documents);
     const selected = [...new Set([...navigated, ...selection.supportingDocuments])].sort();
 
-    assert.equal(result.selectedDocuments, 25);
-    assert.equal(result.navigatedDocuments, 17);
+    assert.equal(result.selectedDocuments, 26);
+    assert.equal(result.navigatedDocuments, 18);
     assert.equal(result.supportingDocuments, 8);
     assert.deepEqual(projectionManifest.selectedDocuments, selected);
     assert.deepEqual(projectionManifest.supportingDocuments, selection.supportingDocuments);
-    assert.equal(mkdocsManifest.documents.length, 25);
+    assert.equal(mkdocsManifest.documents.length, 26);
     const startHere = projectionManifest.documents.find((document) => document.id === "learn/start-here");
     assert.ok(startHere?.freshness?.updatedAt);
     assert.match(startHere.freshness.updatedAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
@@ -52,7 +52,7 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     const operational = (await readdir(".superbee/maintenance/documentation-triggers"))
       .filter((file) => file.endsWith(".md"))
       .map((file) => `maintenance/documentation-triggers/${file.slice(0, -3)}`);
-    assert.equal(operational.length, 15);
+    assert.equal(operational.length, 16);
     for (const id of operational) {
       assert.equal(projectionManifest.selectedDocuments.includes(id), false, id);
       assert.ok(artifact.files.has(`bundle/${id}.md`), id);
@@ -73,7 +73,7 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     assert.equal(projectionManifest.relationships.some((row) => !selected.includes(row.from) || !selected.includes(row.to)), false);
 
     const publishedById = new Map(publication.diagrams.map((row) => [row.id, row]));
-    assert.equal(projectionManifest.assets.diagrams.length, 4);
+    assert.equal(projectionManifest.assets.diagrams.length, 5);
     assert.deepEqual(result.diagrams, result.mkdocs.diagrams);
     for (const diagram of projectionManifest.assets.diagrams) {
       const published = publishedById.get(diagram.id);
