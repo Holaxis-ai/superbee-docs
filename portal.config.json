@@ -54,6 +54,7 @@
         "documents": [
           "learn/start-here",
           "get-started/install-and-setup",
+          "get-started/verify-host-setup",
           "get-started/first-durable-workspace"
         ]
       },
@@ -70,7 +71,9 @@
         "documents": [
           "guides/preserve-context-between-sessions",
           "guides/model-recurring-domain-concepts",
-          "guides/show-documents-and-views"
+          "guides/show-documents-and-views",
+          "guides/choose-privacy-and-bundle-boundaries",
+          "guides/share-and-synchronize-git-bundle"
         ]
       },
       {
@@ -82,7 +85,8 @@
       {
         "label": "Reference",
         "documents": [
-          "reference/cli-overview"
+          "reference/cli-overview",
+          "reference/host-and-platform-support"
         ]
       },
       {
