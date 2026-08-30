@@ -69,7 +69,7 @@ bundle while forbidding them from the human presentation. It also bounds navigat
 documents, relationships, and assets. See the
 [projection configuration](https://github.com/Holaxis-ai/superbee-portal/blob/7b2cbac2e229963616a01c9d58a6b59423a8bbf6/packages/docs-projection/src/index.ts#L27-L55)
 and its
-[selection validation](https://github.com/Holaxis-ai/superbee-portal/blob/7b2cbac2e229963616a01c9d58a6b59423a8bbf6/packages/docs-projection/src/index.ts#L274-L327).
+[selection validation](https://github.com/Holaxis-ai/superbee-portal/blob/7b2cbac2e229963616a01c9d58a6b59423a8bbf6/packages/docs-projection/src/index.ts#L866-L875).
 
 Portal core still emits exact Markdown, reserved files, blobs, relationships, snapshot data, and the
 read model for the complete bundle. The docs presentation supplies the curated routes and UI. That
@@ -77,7 +77,7 @@ composition is explicit in
 [`createPortalArtifact`](https://github.com/Holaxis-ai/superbee-portal/blob/7b2cbac2e229963616a01c9d58a6b59423a8bbf6/src/artifact.ts#L68-L150).
 The MkDocs adapter consumes the same projection through its own target contract and emits only the
 selected documentation material, as shown by its
-[output manifest](https://github.com/Holaxis-ai/superbee-portal/blob/7b2cbac2e229963616a01c9d58a6b59423a8bbf6/packages/docs-mkdocs/src/index.ts#L22-L78).
+[materialization loop](https://github.com/Holaxis-ai/superbee-portal/blob/7b2cbac2e229963616a01c9d58a6b59423a8bbf6/packages/docs-mkdocs/src/index.ts#L519-L573).
 
 # Failure and trust boundaries
 
