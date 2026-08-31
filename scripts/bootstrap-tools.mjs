@@ -91,6 +91,7 @@ await run("npm", ["run", "build"], portal);
 await run("npm", ["pack", portal, "--pack-destination", packs]);
 await run("npm", ["pack", resolve(portal, "packages/docs-projection"), "--pack-destination", packs]);
 await run("npm", ["pack", resolve(portal, "packages/portal-docs"), "--pack-destination", packs]);
+await run("npm", ["pack", resolve(portal, "packages/portal-webmcp"), "--pack-destination", packs]);
 await run("npm", ["pack", resolve(portal, "packages/docs-tooling"), "--pack-destination", packs]);
 await run("npm", ["pack", resolve(portal, "packages/docs-mkdocs"), "--pack-destination", packs]);
 

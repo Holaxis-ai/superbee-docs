@@ -31,6 +31,10 @@ test("consumer uses only public packed package surfaces and nested versioned con
   assert.match(import.meta.resolve("@superbee/docs-tooling"), /\/node_modules\/@superbee\/docs-tooling\//);
   assert.match(import.meta.resolve("@superbee/portal-docs"), /\/node_modules\/@superbee\/portal-docs\//);
   assert.match(import.meta.resolve("superbee-portal"), /\/node_modules\/superbee-portal\//);
+  // The two fixed browser assets this site contributes. Resolved through their own subpath exports
+  // so a package that stopped publishing either is caught here rather than at deploy time.
+  assert.match(import.meta.resolve("@superbee/portal-webmcp/asset/v0"), /\/node_modules\/@superbee\/portal-webmcp\//);
+  assert.match(import.meta.resolve("superbee-portal/client/v2/asset"), /\/node_modules\/superbee-portal\//);
   assert.equal(consumer.scripts["diagram:build"], "superbee-docs diagram apply --root . --config portal.config.json");
   assert.equal(
     consumer.scripts["portal:build"],
