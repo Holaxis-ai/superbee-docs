@@ -40,7 +40,8 @@ test("consumer uses only public packed package surfaces and nested versioned con
     consumer.scripts["portal:build"],
     "node scripts/documentation-outputs.mjs build && node scripts/deployment-assets.mjs",
   );
-  assert.equal(consumer.scripts["mkdocs:build"], "node scripts/mkdocs-runtime.mjs build");
+  assert.equal(consumer.scripts["mkdocs:sync"], "superbee-docs-mkdocs sync");
+  assert.equal(consumer.scripts["mkdocs:build"], "superbee-docs-mkdocs build");
   assert.deepEqual(wrangler.routes, [{
     pattern: "docs.getsuperbee.com",
     custom_domain: true,
@@ -50,6 +51,7 @@ test("consumer uses only public packed package surfaces and nested versioned con
   assert.equal(config.output, "dist");
   assert.notEqual(config.output, wrangler.assets.directory.replace(/^\.\//, ""));
   await assert.rejects(readFile("scripts/apply-diagrams.mjs"), (error) => error.code === "ENOENT");
+  await assert.rejects(readFile("scripts/mkdocs-runtime.mjs"), (error) => error.code === "ENOENT");
   await assert.rejects(readFile("spikes/mkdocs/materialize.mjs"), (error) => error.code === "ENOENT");
 });
 
