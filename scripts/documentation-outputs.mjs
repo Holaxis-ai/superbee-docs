@@ -41,13 +41,12 @@ async function json(file, subject) {
 }
 
 /**
- * The three files that make the documentation agent-callable, contributed to this site's own
+ * The four files that make the documentation agent-callable, contributed to this site's own
  * presentation so their bytes enter the Portal artifact digest like any other published file.
  *
- * Only the bootstrap is linked from pages. The two Portal assets are published because the
- * bootstrap imports them by URL, and linking them separately would run library code that registers
- * nothing. Ordering is irrelevant for the same reason: the module graph decides load order, not
- * the page.
+ * Only the bootstrap is linked from pages. The other three are published because the bootstrap
+ * imports them by URL, and linking them separately would run library code that registers nothing.
+ * Ordering is irrelevant for the same reason: the module graph decides load order, not the page.
  */
 async function agentToolAssets() {
   const [client, tools, routes, bootstrap] = await Promise.all([

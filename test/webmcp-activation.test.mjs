@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -17,6 +17,7 @@ const decoder = new TextDecoder();
 const BOOTSTRAP = "assets/superbee-webmcp.js";
 const CLIENT = "assets/portal-client-v2.js";
 const TOOLS = "assets/portal-webmcp-v0.js";
+const ROUTES = "assets/superbee-webmcp-routes.js";
 
 let composed;
 let temporary;
@@ -27,9 +28,9 @@ test("compose the documentation outputs once for this file", async () => {
   assert.ok(composed.artifact, "the artifact must be composed");
 });
 
-test("all three agent-tool files are published with the bytes their packages ship", async () => {
+test("all four agent-tool files are published with the bytes they are built from", async () => {
   const files = composed.artifact.files;
-  for (const published of [BOOTSTRAP, CLIENT, TOOLS]) {
+  for (const published of [BOOTSTRAP, CLIENT, TOOLS, ROUTES]) {
     assert.ok(files.get(published), `${published} must be published`);
     assert.ok(files.get(published).byteLength > 0, `${published} must not be empty`);
   }
@@ -40,6 +41,12 @@ test("all three agent-tool files are published with the bytes their packages shi
   assert.ok(Buffer.from(files.get(TOOLS)).equals(Buffer.from(tools.bytes)), "the published tools are the package's tools");
   assert.equal(CLIENT, client.path, "the client is published at the path its package declares");
   assert.equal(TOOLS, tools.path, "the tools are published at the path their package declares");
+  // The routes module is published, but the tests import it from the SOURCE tree. Without this
+  // the two could diverge: a corrupted published copy fails at import in the browser, killing
+  // activation, while every test still passes against the source it never shipped.
+  const routesSource = await readFile(new URL("../assets/superbee-webmcp-routes.js", import.meta.url));
+  assert.ok(Buffer.from(files.get(ROUTES)).equals(routesSource),
+    "the published routes module must be the bytes the tests execute");
 });
 
 test("every URL the bootstrap imports is a file this site actually publishes", () => {
@@ -111,12 +118,35 @@ test("the pinned Portal builds a manifest that lists nothing it did not publish"
   // Within one build this is close to tautological: Portal derives the inventory from the same
   // file map it returns. It is kept for the seam it does guard - the PINNED dependency. If a
   // future Portal ever listed a path it did not write, the resolver would emit a URL for it and
-  // this fires first, with the offending path named. Verified to fire by planting a phantom entry
-  // in the pinned package's inventory.
+  // this fires first, with the offending path named: a phantom entry in that inventory trips it.
+  //
+  // It catches OVER-listing only. Under-listing - a manifest omitting a page that exists - is
+  // caught by the biconditional above, which reads artifact.files while the resolver reads the
+  // parsed manifest. Two different objects, which is also what makes that test non-circular.
+  // Either alone leaves one direction open.
   const manifest = JSON.parse(decoder.decode(composed.artifact.files.get("data/portal-manifest.json")));
   const actual = new Set([...composed.artifact.files.keys()]);
   const listedButAbsent = manifest.files.map((file) => file.path).filter((file) => !actual.has(file));
   assert.deepEqual(listedButAbsent, [], "the manifest lists files the artifact does not contain");
+});
+
+test("the bootstrap actually wires the tested resolver into the tool set", () => {
+  // Executing the resolver proves the RULE. It proves nothing about whether the shipped page uses
+  // it. Both halves of this wiring can be broken without touching the routes module: swapping in a
+  // naive resolver ships the 404 defect, and dropping the policy id makes createPortalWebMcpToolsV0
+  // throw INVALID_INPUT, which activate()'s catch downgrades to a console.warn - so the tools never
+  // register on any page and nothing else notices.
+  //
+  // A grep is the wrong tool for a behavioural rule, which is why the resolver itself is executed.
+  // It is the proportionate tool for a one-line syntactic identity like this, where the executable
+  // alternative is a stubbed module graph that would cost more than it guards.
+  const bootstrap = decoder.decode(composed.artifact.files.get(BOOTSTRAP));
+  assert.match(bootstrap, /\{\s*presentationUrlResolverFor\s*\}\s*=\s*await\s+import\(\s*["']\/assets\/superbee-webmcp-routes\.js["']\s*\)/u,
+    "the bootstrap must import the resolver that the tests execute");
+  assert.match(bootstrap, /presentationUrlFor:\s*presentationUrlResolverFor\(\s*publication\s*\)/u,
+    "the bootstrap must pass that resolver, not one written inline");
+  assert.match(bootstrap, /presentationUrlPolicyId:\s*\w/u,
+    "a resolver without a policy id makes tool construction throw, and the tools never register");
 });
 
 test("the resolver declines a View, which this site publishes no page for", () => {
@@ -127,6 +157,14 @@ test("the resolver declines a View, which this site publishes no page for", () =
   for (const view of views) {
     assert.equal(resolve({ kind: "view", id: view.id }), undefined, `View ${view.id} must get no URL`);
   }
+  // Real View ids live under a prefix with no documentation page, so the loop above is satisfied by
+  // the manifest lookup missing rather than by the kind guard. This exercises the guard itself: an
+  // id that WOULD resolve as a document must still be declined as a View.
+  const stub = { manifest: { files: [{ path: "docs/x/index.html" }] } };
+  assert.equal(presentationUrlResolverFor(stub)({ kind: "view", id: "x" }), undefined,
+    "a View must be declined even when its id would resolve as a document");
+  assert.equal(presentationUrlResolverFor(stub)({ kind: "document", id: "x" }), "/docs/x/",
+    "and the same id as a document must still resolve, or the check above proves nothing");
 });
 
 test("every URL the resolver emits is a route the deployment actually declares", () => {

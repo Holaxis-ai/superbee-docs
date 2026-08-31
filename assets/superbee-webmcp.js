@@ -16,23 +16,25 @@ import {
   registerPortalWebMcpV0,
   resolveWebMcpHost,
 } from "/assets/portal-webmcp-v0.js";
-import { presentationUrlResolverFor } from "/assets/superbee-webmcp-routes.js";
 
 /** Binds every emitted presentation URL to this site's route shape. */
 const PRESENTATION_URL_POLICY_ID = "superbee-docs/routes/v1";
 
 async function activate() {
-  // Resolve the host before fetching the PUBLICATION. That is the expensive part: the read model
-  // is close to a megabyte, and a browser with no WebMCP surface would download all of it and use
-  // none of it. The two module imports above are static, so their bytes (~100 KB uncompressed) do
-  // load unconditionally - deferring the tools asset is not possible without duplicating
-  // `resolveWebMcpHost` here, and a second copy of that predicate is worse than the bytes.
+  // Resolve the host before fetching anything else. The publication is the expensive part - the
+  // read model is close to a megabyte, and a browser with no WebMCP surface would download all of
+  // it and use none of it. The two static imports above (~100 KB uncompressed) do load
+  // unconditionally: deferring the tools asset is not possible without duplicating
+  // `resolveWebMcpHost` here, and a second copy of that predicate is worse than the bytes. The
+  // route policy below has no such constraint, so it is imported dynamically and costs a browser
+  // without a host nothing at all.
   //
   // Using the package's own exported predicate rather than a check written here keeps the
   // subtlety it already encodes: a present-but-unusable document surface reports unsupported
   // rather than quietly falling back to the deprecated navigator one.
   if (!resolveWebMcpHost()) return;
 
+  const { presentationUrlResolverFor } = await import("/assets/superbee-webmcp-routes.js");
   const publication = await loadValidatedPortalPublicationV2();
   const toolSet = createPortalWebMcpToolsV0({
     publication,
