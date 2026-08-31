@@ -115,11 +115,13 @@ still reaches the published recovery body as a real 404.
 
 `_headers` comes from the artifact's own inventory. Wrangler labels each uploaded asset from its
 file extension and never consults the declared inventory, so a declared type can drift from the
-served one: `/llms.txt` is declared `text/markdown` and was served as `text/plain`. The generator
-compares every published path's declared type against a measured table of what this host sends for
-that extension, and emits one exact-path rule carrying the declared type wherever they disagree. An
-extension nobody has measured is corrected rather than assumed, and if enough unmeasured paths
-appear to exhaust Cloudflare's hundred-rule budget the build fails and asks for the measurement.
+served one: `/llms.txt` is declared `text/markdown` and was served as `text/plain`, while Cloudflare
+currently omits the declared UTF-8 parameter from text responses. The generator compares every
+published path's declared type against a measured table of what this host sends for that extension.
+It emits an extension splat only when the complete inventoried family has one declared type, keeps
+mixed or unmeasured cases on exact paths, and maps clean HTML routes back to their artifact files.
+The trailing-slash documentation family also gives a missing documentation route the declared HTML
+recovery type. If the resulting rules exhaust Cloudflare's hundred-rule budget, the build fails.
 
 The MkDocs adapter independently materializes a conventional reference site under ignored
 `.tmp/mkdocs/site` from the same owned projection; it is validated but not deployed by this

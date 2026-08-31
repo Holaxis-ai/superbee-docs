@@ -39,10 +39,14 @@ const HOSTING_REQUIREMENTS = {
   schema: "https://getsuperbee.com/schemas/hosting-requirements/v1",
   audience: "public",
   routes: [
-    { pattern: "/", disposition: "shell", methods: ["GET", "HEAD"] },
-    { pattern: "/404.html", disposition: "shell", methods: ["GET", "HEAD"] },
-    { pattern: "/docs/learn/start-here/", disposition: "shell", methods: ["GET", "HEAD"] },
-    { pattern: "/docs/learn/start-here/index.html", disposition: "shell", methods: ["GET", "HEAD"] },
+    { pattern: "/", artifactPath: "index.html", disposition: "shell", methods: ["GET", "HEAD"] },
+    { pattern: "/404", artifactPath: "404.html", disposition: "shell", methods: ["GET", "HEAD"] },
+    {
+      pattern: "/docs/learn/start-here/",
+      artifactPath: "docs/learn/start-here/index.html",
+      disposition: "shell",
+      methods: ["GET", "HEAD"],
+    },
     { pattern: "/assets/*", disposition: "asset", methods: ["GET", "HEAD"] },
     { pattern: "/data/*", disposition: "data", methods: ["GET", "HEAD"] },
     { pattern: "/bundle/views/example.html", disposition: "view", methods: ["GET", "HEAD"] },
@@ -56,6 +60,7 @@ const HOSTING_REQUIREMENTS = {
   ],
   cachePolicies: [],
   fallbackPolicy: "declared-shell-routes-only",
+  notFound: { path: "/404.html", mediaType: "text/html; charset=utf-8", status: 404 },
   requiredCapabilities: ["response-headers.v1"],
 };
 
@@ -156,9 +161,12 @@ function parseGeneratedHeaders(rendered) {
 function effectiveHeaders(rendered, requestPath) {
   const effective = new Map();
   for (const rule of parseGeneratedHeaders(rendered)) {
-    const matches = rule.path.endsWith("*")
-      ? requestPath.startsWith(rule.path.slice(0, -1))
-      : requestPath === rule.path;
+    const star = rule.path.indexOf("*");
+    const matches = star === -1
+      ? requestPath === rule.path
+      : requestPath.length >= rule.path.length - 1
+        && requestPath.startsWith(rule.path.slice(0, star))
+        && requestPath.endsWith(rule.path.slice(star + 1));
     if (!matches) continue;
     for (const line of rule.headers) {
       const colon = line.indexOf(":");
@@ -170,16 +178,20 @@ function effectiveHeaders(rendered, requestPath) {
   return effective;
 }
 
-test("only a path whose served type would disagree with its declaration earns a rule", () => {
+test("only media type drift earns a rule, with uniform extensions and clean routes compressed", () => {
   /*
-   * The host derives `text/html` and `text/markdown` from those extensions already, and serves a
-   * content-addressed object with no type at all, which is the same promise as the declared
-   * `application/octet-stream`. What remains is a `.txt` the host calls plain text, an `.svg` it
-   * would render instead of handing over as raw bytes, and an extension nobody has measured.
+   * Cloudflare omits the declared charset from HTML and Markdown. The uniform HTML inventory earns
+   * one extension splat plus its clean route aliases, while the lone Markdown path stays exact. A
+   * content-addressed object with no type agrees with declared `application/octet-stream`.
    */
-  assert.deepEqual(declaredMediaTypeOverrides(inventory()), [
+  assert.deepEqual(declaredMediaTypeOverrides(inventory(), HOSTING_REQUIREMENTS), [
+    { path: "/", mediaType: "text/html; charset=utf-8" },
+    { path: "/*.html", mediaType: "text/html; charset=utf-8" },
+    { path: "/404", mediaType: "text/html; charset=utf-8" },
     { path: "/assets/unmeasured.zzz", mediaType: "application/json; charset=utf-8" },
+    { path: "/bundle/learn/start-here.md", mediaType: "text/markdown; charset=utf-8" },
     { path: "/bundle/visuals/diagrams/example.svg", mediaType: "application/octet-stream" },
+    { path: "/docs/*/", mediaType: "text/html; charset=utf-8" },
     { path: "/llms.txt", mediaType: "text/markdown; charset=utf-8" },
   ]);
 });
@@ -192,6 +204,8 @@ test("a missing declared charset earns an exact override even when the MIME esse
     { path: "index.html", mediaType: "text/html; charset=utf-8" },
   ] }), [
     { path: "/data/example.json", mediaType: "application/json; charset=utf-8" },
+    { path: "/index.html", mediaType: "text/html; charset=utf-8" },
+    { path: "/robots.txt", mediaType: "text/plain; charset=utf-8" },
     { path: "/sitemap.xml", mediaType: "application/xml; charset=utf-8" },
   ]);
 });
@@ -211,11 +225,30 @@ test("rendered rules enforce declared global and disposition headers without dup
   assert.deepEqual(rules.find((rule) => rule.path === "/docs/*").headers, [
     `Content-Security-Policy: ${SHELL_CSP}`,
   ]);
+  assert.deepEqual(rules.find((rule) => rule.path === "/docs/*/").headers, [
+    "Content-Type: text/html; charset=utf-8",
+  ]);
   assert.deepEqual(rules.find((rule) => rule.path === "/bundle/views/example.html").headers, [
     `Content-Security-Policy: ${VIEW_CSP}`,
   ]);
-  for (const path of ["/assets/unmeasured.zzz", "/bundle/visuals/diagrams/example.svg", "/llms.txt"]) {
-    assert.ok(rules.find((rule) => rule.path === path).headers.includes(`Content-Type: ${declared.get(path)}`), path);
+  for (const path of [
+    "/",
+    "/404",
+    "/docs/learn/start-here/",
+    "/docs/not-published/",
+    "/bundle/learn/start-here.md",
+    "/assets/unmeasured.zzz",
+    "/bundle/visuals/diagrams/example.svg",
+    "/llms.txt",
+  ]) {
+    const artifactPath = path === "/"
+      ? "/index.html"
+      : path === "/404" || path === "/docs/not-published/"
+        ? "/404.html"
+        : path === "/docs/learn/start-here/"
+          ? "/docs/learn/start-here/index.html"
+          : path;
+    assert.equal(effectiveHeaders(rendered, path).get("content-type"), declared.get(artifactPath), path);
   }
   assert.equal(new Set(rules.map((rule) => rule.path)).size, rules.length);
   for (const [requestPath, csp] of [
@@ -246,7 +279,7 @@ test("invalid, injected, duplicate, or over-budget header declarations fail the 
   ])), /overlapping rules/u);
   const crowded = {
     files: Array.from({ length: 101 }, (_, index) => ({
-      path: `bundle/raw/${index}.unmeasured`,
+      path: `bundle/raw/${index}`,
       mediaType: "text/html; charset=utf-8",
     })),
   };
@@ -334,27 +367,30 @@ test("the built deployment carries redirects, declared types, and declared respo
     assert.equal(published.has(rule.from.replace(/^\//, "")), false, rule.from);
   }
   const rules = parseGeneratedHeaders(headers);
-  for (const rule of rules.filter((candidate) => candidate.headers.some((header) => header.startsWith("Content-Type:")))) {
-    const relative = rule.path.replace(/^\//, "");
-    assert.ok(published.has(relative), `${rule.path} is not a published path`);
-    assert.ok(rule.headers.includes(`Content-Type: ${published.get(relative)}`), rule.path);
-  }
   const covered = new Set(rules
     .filter((rule) => rule.headers.some((header) => header.startsWith("Content-Type:")))
     .map((rule) => rule.path));
-  // The adapter corrects every measured full-value drift, including a missing charset.
-  assert.ok(covered.has("/llms.txt"));
-  assert.ok(covered.has("/sitemap.xml"));
-  for (const [relative, mediaType] of published) {
-    if (relative.endsWith(".json") && mediaType.includes("charset=utf-8")) {
-      const route = `/${relative}`;
-      assert.ok(covered.has(route), route);
-      assert.equal(effectiveHeaders(headers, route).get("content-type"), mediaType, route);
-    }
+  for (const pattern of ["/*.css", "/*.html", "/*.js", "/*.json", "/*.md", "/*.mmd", "/docs/*/"]) {
+    assert.ok(covered.has(pattern), pattern);
   }
-  assert.equal(effectiveHeaders(headers, "/sitemap.xml").get("content-type"), published.get("sitemap.xml"));
-  for (const settled of ["/robots.txt", "/index.html", "/404.html", "/404.md"]) {
-    assert.equal(covered.has(settled), false, settled);
+  for (const [route, relative] of [
+    ["/", "index.html"],
+    ["/404", "404.html"],
+    ["/docs/learn/start-here/", "docs/learn/start-here/index.html"],
+    ["/docs/superbee-portal-verify/unknown-route/", "404.html"],
+    ["/404.md", "404.md"],
+    ["/assets/portal-client-v1.js", "assets/portal-client-v1.js"],
+    ["/llms.txt", "llms.txt"],
+    ["/robots.txt", "robots.txt"],
+    ["/sitemap.xml", "sitemap.xml"],
+    ["/data/portal-manifest.json", "data/portal-manifest.json"],
+  ]) {
+    assert.equal(effectiveHeaders(headers, route).get("content-type"), published.get(relative), route);
+  }
+  for (const [relative, mediaType] of published) {
+    if (["css", "html", "js", "json", "md", "mmd"].includes(relative.split(".").at(-1))) {
+      assert.equal(effectiveHeaders(headers, `/${relative}`).get("content-type"), mediaType, relative);
+    }
   }
   for (const declaration of requirements.responseHeaders.filter((header) => header.route === "*")) {
     for (const route of ["/", "/llms.txt", "/data/portal-manifest.json", "/bundle/views/architecture-at-a-glance.html"]) {

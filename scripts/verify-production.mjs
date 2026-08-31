@@ -16,6 +16,7 @@ import { verifyPortalDeploymentV1 } from "superbee-portal";
 import { DEPLOYMENT_REDIRECTS } from "./deployment-assets.mjs";
 
 const decoder = new TextDecoder("utf-8", { fatal: true });
+export const DOCUMENTATION_NOT_FOUND_PROBE_ROUTE = "/docs/superbee-portal-verify/unknown-route/";
 
 function attribute(tag, name) {
   return tag.match(new RegExp(`\\s${name}=(?:"([^"]*)"|'([^']*)')`, "iu"))?.slice(1).find((value) => value !== undefined) ?? null;
@@ -154,6 +155,7 @@ export async function verifyDocumentationDeploymentV1({
     dist,
     fetchImpl,
     unenforcedCapabilities,
+    notFound: { route: DOCUMENTATION_NOT_FOUND_PROBE_ROUTE },
     extend: (context) => documentationVerificationExtensionV1(context, siteUrl),
   });
 }

@@ -33,12 +33,13 @@ const PERMITTED_REDIRECT_STATUS = new Set([301, 302, 303, 307, 308]);
 /**
  * What this Worker-less host actually sends as `Content-Type`, measured per extension.
  *
- * Wrangler resolves the type from the file extension when it uploads an asset and appends
- * `charset=utf-8` to any `text/*` type. Nothing consults the artifact's declared inventory, which
- * is why a declared type drifts from the served one. `null` records an extension the host serves
- * with no `Content-Type` at all. Every row below was measured against the real asset router
- * serving this repository's own deployment directory, because guessing is how `.mmd` was nearly
- * missed: a Mermaid source matches a karaoke format in the host's media type database.
+ * Wrangler resolves the type from the file extension when it uploads an asset, but the current
+ * asset router does not append `charset=utf-8` to its `text/*` values. Nothing consults the
+ * artifact's declared inventory, which is why a declared type drifts from the served one. `null`
+ * records an extension the host serves with no `Content-Type` at all. Every row below was measured
+ * against the real asset router serving this repository's own deployment directory, because
+ * guessing is how `.mmd` was nearly missed: a Mermaid source matches a karaoke format in the host's
+ * media type database.
  *
  * An extension absent from this table is unmeasured, so its path earns a rule carrying the declared
  * type. That is always correct and never silent: if a future artifact adds enough unmeasured paths
@@ -46,15 +47,15 @@ const PERMITTED_REDIRECT_STATUS = new Set([301, 302, 303, 307, 308]);
  */
 const HOST_MEDIA_TYPE_BY_EXTENSION = new Map(Object.entries({
   "": null,
-  css: "text/css; charset=utf-8",
-  html: "text/html; charset=utf-8",
-  js: "text/javascript; charset=utf-8",
+  css: "text/css",
+  html: "text/html",
+  js: "text/javascript",
   json: "application/json",
-  md: "text/markdown; charset=utf-8",
+  md: "text/markdown",
   mmd: "application/vnd.chipnuts.karaoke-mmd",
   png: "image/png",
   svg: "image/svg+xml",
-  txt: "text/plain; charset=utf-8",
+  txt: "text/plain",
   woff2: "font/woff2",
   xml: "application/xml",
 }));
@@ -97,24 +98,37 @@ function assertExactRoute(value, field) {
 function assertHeaderRoute(value, field) {
   if (value === "/*") return;
   if (typeof value !== "string" || !value.startsWith("/") || /\s/u.test(value)) {
-    throw new Error(`${field} must be one absolute whitespace-free path or suffix wildcard; got ${JSON.stringify(value)}`);
+    throw new Error(`${field} must be one absolute whitespace-free path or wildcard pattern; got ${JSON.stringify(value)}`);
   }
   if (value.includes(":")) throw new Error(`${field} '${value}' must not use a placeholder`);
   const stars = [...value].filter((character) => character === "*").length;
-  if (stars > 1 || (stars === 1 && !value.endsWith("*"))) {
-    throw new Error(`${field} '${value}' may use only one terminal wildcard`);
+  if (stars > 1) {
+    throw new Error(`${field} '${value}' may use only one wildcard`);
   }
 }
 
+function patternMatches(pattern, candidate) {
+  const star = pattern.indexOf("*");
+  if (star === -1) return pattern === candidate;
+  const prefix = pattern.slice(0, star);
+  const suffix = pattern.slice(star + 1);
+  return candidate.length >= prefix.length + suffix.length
+    && candidate.startsWith(prefix)
+    && candidate.endsWith(suffix);
+}
+
 function patternsOverlap(left, right) {
-  const leftPrefix = left.endsWith("*") ? left.slice(0, -1) : null;
-  const rightPrefix = right.endsWith("*") ? right.slice(0, -1) : null;
-  if (leftPrefix !== null && rightPrefix !== null) {
-    return leftPrefix.startsWith(rightPrefix) || rightPrefix.startsWith(leftPrefix);
-  }
-  if (leftPrefix !== null) return right.startsWith(leftPrefix);
-  if (rightPrefix !== null) return left.startsWith(rightPrefix);
-  return left === right;
+  const leftStar = left.indexOf("*");
+  const rightStar = right.indexOf("*");
+  if (leftStar === -1) return patternMatches(right, left);
+  if (rightStar === -1) return patternMatches(left, right);
+  const leftPrefix = left.slice(0, leftStar);
+  const rightPrefix = right.slice(0, rightStar);
+  const leftSuffix = left.slice(leftStar + 1);
+  const rightSuffix = right.slice(rightStar + 1);
+  const compatiblePrefixes = leftPrefix.startsWith(rightPrefix) || rightPrefix.startsWith(leftPrefix);
+  const compatibleSuffixes = leftSuffix.endsWith(rightSuffix) || rightSuffix.endsWith(leftSuffix);
+  return compatiblePrefixes && compatibleSuffixes;
 }
 
 /** Render the exact `_redirects` bytes Cloudflare parses, refusing any rule it would discard. */
@@ -155,15 +169,18 @@ export function renderRedirects(rules = DEPLOYMENT_REDIRECTS) {
  *
  * The correction is always the declared type verbatim, so this reads the artifact's own inventory
  * and never invents a type. Only a disagreement earns a rule: Cloudflare allows a hundred header
- * rules, and restating a type the host already sends would spend that budget on nothing.
+ * rules, and restating a type the host already sends would spend that budget on nothing. A uniform
+ * extension family earns one splat rule; mixed families retain exact paths. Clean canonical HTML
+ * routes are mapped back to their artifact paths, with the homogeneous documentation family
+ * compressed to a trailing-slash rule that also labels its declared 404 recovery correctly.
  *
  * The content-addressed objects the host serves with no `Content-Type` are the one measured case
  * treated as agreement: the artifact declares `application/octet-stream` for them, an absent type
  * carries the same promise of unlabelled bytes, and there is one such path per stored object, so
  * pinning each would spend the whole rule budget restating what the host already does.
  */
-export function declaredMediaTypeOverrides(manifest) {
-  const rules = [];
+export function declaredMediaTypeOverrides(manifest, requirements = { routes: [] }) {
+  const files = [];
   for (const file of manifest.files) {
     if (typeof file.mediaType !== "string" || file.mediaType.trim() === "") {
       throw new Error(`published file '${file.path}' declares no media type`);
@@ -174,9 +191,63 @@ export function declaredMediaTypeOverrides(manifest) {
     const served = HOST_MEDIA_TYPE_BY_EXTENSION.get(extension);
     const agrees = measured
       && (served === null ? declared === UNLABELLED_MEDIA_TYPE : normalizedMediaType(served) === declared);
-    if (!agrees) rules.push({ path: `/${file.path}`, mediaType: file.mediaType });
+    files.push({ ...file, extension, declared, agrees });
   }
-  return rules.sort((left, right) => (left.path < right.path ? -1 : left.path > right.path ? 1 : 0));
+
+  const rules = [];
+  const byExtension = new Map();
+  for (const file of files) {
+    const group = byExtension.get(file.extension) ?? [];
+    group.push(file);
+    byExtension.set(file.extension, group);
+  }
+  for (const [extension, group] of byExtension) {
+    const drifting = group.filter((file) => !file.agrees);
+    if (drifting.length === 0) continue;
+    const declaredTypes = new Set(group.map((file) => file.declared));
+    if (extension !== "" && group.length > 1 && drifting.length === group.length && declaredTypes.size === 1) {
+      rules.push({ path: `/*.${extension}`, mediaType: group[0].mediaType });
+    } else {
+      rules.push(...drifting.map((file) => ({ path: `/${file.path}`, mediaType: file.mediaType })));
+    }
+  }
+
+  const driftingByPath = new Map(files.filter((file) => !file.agrees).map((file) => [file.path, file]));
+  const aliases = [];
+  for (const route of requirements.routes ?? []) {
+    if (typeof route.pattern !== "string" || route.pattern.includes("*")) continue;
+    let artifactPath = route.artifactPath;
+    if (artifactPath === undefined) {
+      if (route.pattern === "/") artifactPath = "index.html";
+      else if (route.pattern.endsWith("/")) artifactPath = `${route.pattern.slice(1)}index.html`;
+      else artifactPath = route.pattern.slice(1);
+    }
+    const file = driftingByPath.get(artifactPath);
+    if (file && route.pattern !== `/${artifactPath}`) {
+      aliases.push({ path: route.pattern, mediaType: file.mediaType });
+    }
+  }
+
+  const documentationAliases = aliases.filter((rule) => rule.path.startsWith("/docs/") && rule.path.endsWith("/"));
+  const documentationTypes = new Set(documentationAliases.map((rule) => normalizedMediaType(rule.mediaType)));
+  const recoveryType = normalizedMediaType(requirements.notFound?.mediaType);
+  if (documentationAliases.length > 0 && documentationTypes.size === 1 && recoveryType === [...documentationTypes][0]) {
+    const documentationPaths = new Set(documentationAliases.map((rule) => rule.path));
+    rules.push(...aliases.filter((rule) => !documentationPaths.has(rule.path)));
+    rules.push({ path: "/docs/*/", mediaType: documentationAliases[0].mediaType });
+  } else {
+    rules.push(...aliases);
+  }
+
+  const unique = new Map();
+  for (const rule of rules) {
+    const previous = unique.get(rule.path);
+    if (previous && normalizedMediaType(previous.mediaType) !== normalizedMediaType(rule.mediaType)) {
+      throw new Error(`conflicting Content-Type rules for '${rule.path}'`);
+    }
+    unique.set(rule.path, rule);
+  }
+  return [...unique.values()].sort((left, right) => (left.path < right.path ? -1 : left.path > right.path ? 1 : 0));
 }
 
 /** Resolve one declared response-header selector into the paths Cloudflare must match. */
@@ -240,7 +311,7 @@ export function renderHeaders(manifest, requirements) {
   const mediaTypes = manifest.files.some((file) => file.path === MANIFEST_PATH)
     ? manifest
     : { ...manifest, files: [...manifest.files, { path: MANIFEST_PATH, mediaType: MANIFEST_MEDIA_TYPE }] };
-  for (const rule of declaredMediaTypeOverrides(mediaTypes)) {
+  for (const rule of declaredMediaTypeOverrides(mediaTypes, requirements)) {
     const headers = byPath.get(rule.path) ?? new Map();
     if (headers.has("content-type")) throw new Error(`duplicate Content-Type rule for '${rule.path}'`);
     headers.set("content-type", { name: "Content-Type", value: rule.mediaType });

@@ -4,7 +4,10 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { DEPLOYMENT_REDIRECTS } from "../scripts/deployment-assets.mjs";
-import { documentationVerificationExtensionV1 } from "../scripts/verify-production.mjs";
+import {
+  DOCUMENTATION_NOT_FOUND_PROBE_ROUTE,
+  documentationVerificationExtensionV1,
+} from "../scripts/verify-production.mjs";
 
 const ORIGIN = "https://docs.getsuperbee.com/";
 const MARKDOWN = Buffer.from("# Start here\n");
@@ -15,6 +18,10 @@ const declaredMarkdown = {
   size: MARKDOWN.byteLength,
   mediaType: "text/markdown; charset=utf-8",
 };
+
+test("the recovery probe stays inside the trailing-slash documentation namespace", () => {
+  assert.match(DOCUMENTATION_NOT_FOUND_PROBE_ROUTE, /^\/docs\/.+\/$/u);
+});
 
 function page({ omit = "", alternate = "/bundle/learn/start-here.md" } = {}) {
   return Buffer.from([
