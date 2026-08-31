@@ -17,32 +17,50 @@ import {
   resolveWebMcpHost,
 } from "/assets/portal-webmcp-v0.js";
 
-/*
- * No `presentationUrlFor` is supplied, deliberately.
+/** Binds every emitted presentation URL to this site's route shape. */
+const PRESENTATION_URL_POLICY_ID = "superbee-docs/routes/v1";
+
+/**
+ * Emits a page URL for exactly the documents that have a page, and nothing for the rest.
  *
- * The obvious resolver - map a document id to `/docs/<id>/` - is wrong here. The published read
- * model carries the complete public bundle, which is strictly larger than the set rendered as
- * pages: measured on this site, 94 documents against 52 documentation pages. A resolver would
- * therefore emit a confident URL that 404s for nearly half of them, and the read model carries no
- * field marking which documents have a page, so the browser cannot tell them apart.
+ * The naive resolver - map every document id to `/docs/<id>/` - is wrong here, because the read
+ * model carries the complete public bundle and is strictly larger than the set rendered as pages:
+ * 94 documents against 52 pages, so it would 404 on 42 of them. A confident wrong link is worse
+ * than no link, since an agent would follow it instead of using `rawPath`.
  *
- * A wrong link is worse than no link: an agent would follow it instead of using `rawPath`, which
- * every tool result already carries, which is always published, and which serves the document's
- * exact Markdown - more useful to an agent than its HTML rendering. `presentationUrl` is optional
- * in the tool contract precisely so a site that cannot answer this honestly can decline to.
+ * The artifact manifest settles which is which. It is the build's own inventory of published
+ * files, it arrives with the publication in the same load so consulting it costs no extra request,
+ * and it is covered by the artifact digest - so it cannot drift from what is actually deployed.
  */
+function presentationUrlResolverFor(publication) {
+  const published = new Set(publication.manifest.files.map((file) => file.path));
+  return ({ kind, id }) => {
+    // This site publishes no page for a View, and the tools already report a View's raw entry
+    // identity, so inventing a route for one would be a claim the site cannot keep.
+    if (kind !== "document") return undefined;
+    const route = `docs/${id.split("/").map(encodeURIComponent).join("/")}/`;
+    return published.has(`${route}index.html`) ? `/${route}` : undefined;
+  };
+}
 
 async function activate() {
-  // Resolve the host BEFORE fetching anything. The read model is close to a megabyte, and a
-  // browser with no WebMCP surface would download all of it and use none of it. This uses the
-  // package's own
-  // exported predicate rather than a second check here, which could drift from it - it already
-  // encodes that a present-but-unusable document surface reports unsupported instead of quietly
-  // falling back to the deprecated navigator one.
+  // Resolve the host before fetching the PUBLICATION. That is the expensive part: the read model
+  // is close to a megabyte, and a browser with no WebMCP surface would download all of it and use
+  // none of it. The two module imports above are static, so their bytes (~100 KB uncompressed) do
+  // load unconditionally - deferring the tools asset is not possible without duplicating
+  // `resolveWebMcpHost` here, and a second copy of that predicate is worse than the bytes.
+  //
+  // Using the package's own exported predicate rather than a check written here keeps the
+  // subtlety it already encodes: a present-but-unusable document surface reports unsupported
+  // rather than quietly falling back to the deprecated navigator one.
   if (!resolveWebMcpHost()) return;
 
   const publication = await loadValidatedPortalPublicationV2();
-  const toolSet = createPortalWebMcpToolsV0({ publication });
+  const toolSet = createPortalWebMcpToolsV0({
+    publication,
+    presentationUrlFor: presentationUrlResolverFor(publication),
+    presentationUrlPolicyId: PRESENTATION_URL_POLICY_ID,
+  });
   await registerPortalWebMcpV0({
     owner: "superbee-docs-presentation",
     activation: "presentation",

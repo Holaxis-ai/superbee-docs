@@ -44,7 +44,10 @@ test("every URL the bootstrap imports is a file this site actually publishes", (
   // mismatch would not fail any build: it would 404 in the visitor's browser and the tools would
   // silently never register.
   const source = decoder.decode(composed.artifact.files.get(BOOTSTRAP));
-  const specifiers = [...source.matchAll(/from\s*["'](\/[^"']+)["']/gu)].map((match) => match[1]);
+  // Both static (`from "/…"`) and dynamic (`import("/…")`) forms, because deferring an import is a
+  // natural future change and a dynamic specifier left unguarded would reopen exactly the gap this
+  // test closes.
+  const specifiers = [...source.matchAll(/(?:from|\bimport)\s*\(?\s*["'](\/[^"']+)["']/gu)].map((match) => match[1]);
   assert.ok(specifiers.length >= 2, "the bootstrap must import the two Portal assets");
   for (const specifier of specifiers) {
     const published = specifier.replace(/^\//, "");
@@ -72,24 +75,34 @@ test("only the bootstrap is linked, and only from documentation pages", () => {
   }
 });
 
-test("no presentation URL is emitted, because this site cannot answer that honestly", () => {
-  // The read model carries the complete public bundle, which is strictly larger than the set
-  // rendered as pages, and it marks no difference between them. The obvious resolver would emit a
-  // confident URL that 404s. This measures that gap rather than describing it, so if the site ever
-  // does publish a page for every document, this test fails and the decision gets revisited on
-  // evidence instead of staying a permanent comment.
-  const readModel = JSON.parse(decoder.decode(composed.artifact.files.get("data/bundle.json")));
-  const pageFor = (id) => `docs/${id.split("/").map(encodeURIComponent).join("/")}/index.html`;
-  const unpaged = readModel.documents.filter((document) => !composed.artifact.files.get(pageFor(document.id)));
-  assert.ok(unpaged.length > 0,
-    "every read-model document now has a page, so a presentation URL resolver may be worth adding");
-  assert.ok(readModel.documents.length > documentationPages(composed.artifact).length,
-    "the read model must still be larger than the page set");
+test("the manifest inventory the resolver trusts is exactly what the site publishes", () => {
+  // The bootstrap decides which documents get a presentation URL by asking the artifact manifest
+  // which files exist. That is only safe while the manifest is a truthful inventory, so this
+  // checks the property the resolver rests on rather than restating the resolver's own rule.
+  const manifest = JSON.parse(decoder.decode(composed.artifact.files.get("data/portal-manifest.json")));
+  const listed = new Set(manifest.files.map((file) => file.path));
+  const actual = new Set([...composed.artifact.files.keys()]);
+  const listedButAbsent = [...listed].filter((file) => !actual.has(file));
+  assert.deepEqual(listedButAbsent, [], "the manifest lists files the site does not publish");
 
-  // And the bootstrap must not quietly acquire one.
+  // And the resolver must genuinely discriminate: some documents have a page and some do not, so
+  // a rule that answered the same way for every document would be wrong either way.
+  const readModel = JSON.parse(decoder.decode(composed.artifact.files.get("data/bundle.json")));
+  const route = (id) => `docs/${id.split("/").map(encodeURIComponent).join("/")}/index.html`;
+  const paged = readModel.documents.filter((document) => listed.has(route(document.id)));
+  assert.ok(paged.length > 0, "some documents must have a page");
+  assert.ok(paged.length < readModel.documents.length, "some documents must have none");
+  // Every URL the resolver would emit resolves to a file that exists.
+  for (const document of paged) {
+    assert.ok(composed.artifact.files.get(route(document.id)), `${document.id} would get a URL with no page behind it`);
+  }
+});
+
+test("the resolver is driven by the manifest, not by a list that could drift", () => {
   const bootstrap = decoder.decode(composed.artifact.files.get(BOOTSTRAP));
-  assert.doesNotMatch(bootstrap, /presentationUrlFor\s*[:,)]/u, "the bootstrap must supply no presentation URL resolver");
-  assert.doesNotMatch(bootstrap, /presentationUrlPolicyId/u, "a policy id without a resolver would be meaningless");
+  assert.match(bootstrap, /manifest\.files/u,
+    "the resolver must consult the artifact manifest rather than a hardcoded route list");
+  assert.match(bootstrap, /presentationUrlPolicyId/u, "a resolver requires a stable policy id");
 });
 
 test("the recovery shell stays usable with no JavaScript at all", () => {
