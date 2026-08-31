@@ -50,14 +50,16 @@ async function json(file, subject) {
  * the page.
  */
 async function agentToolAssets() {
-  const [client, tools, bootstrap] = await Promise.all([
+  const [client, tools, routes, bootstrap] = await Promise.all([
     readPortalClientBrowserAssetV2(),
     readPortalWebMcpBrowserAssetV0(),
+    readFile(new URL("../assets/superbee-webmcp-routes.js", import.meta.url)),
     readFile(new URL("../assets/superbee-webmcp.js", import.meta.url)),
   ]);
   return [
     { path: client.path, bytes: client.bytes },
     { path: tools.path, bytes: tools.bytes },
+    { path: "assets/superbee-webmcp-routes.js", bytes: new Uint8Array(routes) },
     { path: "assets/superbee-webmcp.js", bytes: new Uint8Array(bootstrap), loadAsModule: true },
   ];
 }

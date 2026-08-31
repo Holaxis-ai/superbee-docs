@@ -16,32 +16,10 @@ import {
   registerPortalWebMcpV0,
   resolveWebMcpHost,
 } from "/assets/portal-webmcp-v0.js";
+import { presentationUrlResolverFor } from "/assets/superbee-webmcp-routes.js";
 
 /** Binds every emitted presentation URL to this site's route shape. */
 const PRESENTATION_URL_POLICY_ID = "superbee-docs/routes/v1";
-
-/**
- * Emits a page URL for exactly the documents that have a page, and nothing for the rest.
- *
- * The naive resolver - map every document id to `/docs/<id>/` - is wrong here, because the read
- * model carries the complete public bundle and is strictly larger than the set rendered as pages:
- * 94 documents against 52 pages, so it would 404 on 42 of them. A confident wrong link is worse
- * than no link, since an agent would follow it instead of using `rawPath`.
- *
- * The artifact manifest settles which is which. It is the build's own inventory of published
- * files, it arrives with the publication in the same load so consulting it costs no extra request,
- * and it is covered by the artifact digest - so it cannot drift from what is actually deployed.
- */
-function presentationUrlResolverFor(publication) {
-  const published = new Set(publication.manifest.files.map((file) => file.path));
-  return ({ kind, id }) => {
-    // This site publishes no page for a View, and the tools already report a View's raw entry
-    // identity, so inventing a route for one would be a claim the site cannot keep.
-    if (kind !== "document") return undefined;
-    const route = `docs/${id.split("/").map(encodeURIComponent).join("/")}/`;
-    return published.has(`${route}index.html`) ? `/${route}` : undefined;
-  };
-}
 
 async function activate() {
   // Resolve the host before fetching the PUBLICATION. That is the expensive part: the read model

@@ -8,6 +8,10 @@ import { readPortalWebMcpBrowserAssetV0 } from "@superbee/portal-webmcp/asset/v0
 import { readPortalClientBrowserAssetV2 } from "superbee-portal/client/v2/asset";
 
 import { composeDocumentationOutputs } from "../scripts/documentation-outputs.mjs";
+// The real resolver, imported rather than reimplemented. It lives in its own module precisely so
+// this import is possible: the bootstrap resolves its dependencies by absolute site URL, which no
+// test runner can follow.
+import { presentationUrlResolverFor } from "../assets/superbee-webmcp-routes.js";
 
 const decoder = new TextDecoder();
 const BOOTSTRAP = "assets/superbee-webmcp.js";
@@ -75,34 +79,78 @@ test("only the bootstrap is linked, and only from documentation pages", () => {
   }
 });
 
-test("the manifest inventory the resolver trusts is exactly what the site publishes", () => {
-  // The bootstrap decides which documents get a presentation URL by asking the artifact manifest
-  // which files exist. That is only safe while the manifest is a truthful inventory, so this
-  // checks the property the resolver rests on rather than restating the resolver's own rule.
+test("the resolver emits a URL for exactly the documents that have a page", () => {
+  // Runs the REAL resolver, not a copy of its rule. An earlier version of this test computed the
+  // paged set from the manifest itself and asserted properties of that, which meant a resolver
+  // that emitted for every document - the defect this feature already shipped once - and a
+  // resolver that emitted for none both passed. Driving the actual function is the only way the
+  // suite can tell those three apart.
   const manifest = JSON.parse(decoder.decode(composed.artifact.files.get("data/portal-manifest.json")));
-  const listed = new Set(manifest.files.map((file) => file.path));
-  const actual = new Set([...composed.artifact.files.keys()]);
-  const listedButAbsent = [...listed].filter((file) => !actual.has(file));
-  assert.deepEqual(listedButAbsent, [], "the manifest lists files the site does not publish");
-
-  // And the resolver must genuinely discriminate: some documents have a page and some do not, so
-  // a rule that answered the same way for every document would be wrong either way.
   const readModel = JSON.parse(decoder.decode(composed.artifact.files.get("data/bundle.json")));
-  const route = (id) => `docs/${id.split("/").map(encodeURIComponent).join("/")}/index.html`;
-  const paged = readModel.documents.filter((document) => listed.has(route(document.id)));
-  assert.ok(paged.length > 0, "some documents must have a page");
-  assert.ok(paged.length < readModel.documents.length, "some documents must have none");
-  // Every URL the resolver would emit resolves to a file that exists.
-  for (const document of paged) {
-    assert.ok(composed.artifact.files.get(route(document.id)), `${document.id} would get a URL with no page behind it`);
+  const resolve = presentationUrlResolverFor({ manifest });
+
+  let emitted = 0;
+  for (const document of readModel.documents) {
+    const url = resolve({ kind: "document", id: document.id });
+    const page = `docs/${document.id}/index.html`;
+    const hasPage = Boolean(composed.artifact.files.get(page));
+    // The biconditional is the whole contract: a URL exactly when there is a page behind it.
+    if (hasPage) {
+      assert.equal(url, `/docs/${document.id.split("/").map(encodeURIComponent).join("/")}/`,
+        `${document.id} has a page and must get its URL`);
+      emitted += 1;
+    } else {
+      assert.equal(url, undefined, `${document.id} has no page, so it must get no URL`);
+    }
+  }
+  assert.ok(emitted > 0, "some documents must get a URL");
+  assert.ok(emitted < readModel.documents.length, "some documents must get none, or the resolver is not discriminating");
+});
+
+test("the pinned Portal builds a manifest that lists nothing it did not publish", () => {
+  // Within one build this is close to tautological: Portal derives the inventory from the same
+  // file map it returns. It is kept for the seam it does guard - the PINNED dependency. If a
+  // future Portal ever listed a path it did not write, the resolver would emit a URL for it and
+  // this fires first, with the offending path named. Verified to fire by planting a phantom entry
+  // in the pinned package's inventory.
+  const manifest = JSON.parse(decoder.decode(composed.artifact.files.get("data/portal-manifest.json")));
+  const actual = new Set([...composed.artifact.files.keys()]);
+  const listedButAbsent = manifest.files.map((file) => file.path).filter((file) => !actual.has(file));
+  assert.deepEqual(listedButAbsent, [], "the manifest lists files the artifact does not contain");
+});
+
+test("the resolver declines a View, which this site publishes no page for", () => {
+  const manifest = JSON.parse(decoder.decode(composed.artifact.files.get("data/portal-manifest.json")));
+  const resolve = presentationUrlResolverFor({ manifest });
+  const views = JSON.parse(decoder.decode(composed.artifact.files.get("data/bundle.json"))).views ?? [];
+  assert.ok(views.length > 0, "the site must publish admitted Views to check");
+  for (const view of views) {
+    assert.equal(resolve({ kind: "view", id: view.id }), undefined, `View ${view.id} must get no URL`);
   }
 });
 
-test("the resolver is driven by the manifest, not by a list that could drift", () => {
-  const bootstrap = decoder.decode(composed.artifact.files.get(BOOTSTRAP));
-  assert.match(bootstrap, /manifest\.files/u,
-    "the resolver must consult the artifact manifest rather than a hardcoded route list");
-  assert.match(bootstrap, /presentationUrlPolicyId/u, "a resolver requires a stable policy id");
+test("every URL the resolver emits is a route the deployment actually declares", () => {
+  // The invariant that matters spans further than the artifact: a URL is only good if the host
+  // serves it. The artifact's own hosting requirements are what the deployment is built from, so
+  // this checks the emitted URLs against that declaration rather than against the file map they
+  // were derived from, which would be circular.
+  const manifest = JSON.parse(decoder.decode(composed.artifact.files.get("data/portal-manifest.json")));
+  const readModel = JSON.parse(decoder.decode(composed.artifact.files.get("data/bundle.json")));
+  const declared = new Map(composed.artifact.hostingRequirements.routes.map((route) => [route.pattern, route]));
+  const resolve = presentationUrlResolverFor({ manifest });
+
+  const emitted = readModel.documents
+    .map((document) => ({ id: document.id, url: resolve({ kind: "document", id: document.id }) }))
+    .filter((row) => row.url);
+  assert.ok(emitted.length > 0, "the resolver must emit something to check");
+  for (const { id, url } of emitted) {
+    const route = declared.get(url);
+    assert.ok(route, `the resolver emits ${url}, which the deployment does not declare`);
+    // Declared is not enough: it must serve the page for THIS document, not a redirect or a
+    // different file that merely answers at the same URL.
+    assert.equal(route.disposition, "shell", `${url} is declared but not served as a page`);
+    assert.equal(route.artifactPath, `docs/${id}/index.html`, `${url} does not serve ${id}`);
+  }
 });
 
 test("the recovery shell stays usable with no JavaScript at all", () => {
