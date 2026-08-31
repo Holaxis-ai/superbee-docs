@@ -2,15 +2,18 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { createServer } from "node:http";
 import test from "node:test";
+
+import puppeteer from "puppeteer";
 
 import { readPortalWebMcpBrowserAssetV0 } from "@superbee/portal-webmcp/asset/v0";
 import { readPortalClientBrowserAssetV2 } from "superbee-portal/client/v2/asset";
 
 import { composeDocumentationOutputs } from "../scripts/documentation-outputs.mjs";
 // The real resolver, imported rather than reimplemented. It lives in its own module precisely so
-// this import is possible: the bootstrap resolves its dependencies by absolute site URL, which no
-// test runner can follow.
+// this import is possible without a browser. The wiring itself is checked by executing the
+// published bootstrap, which is the only thing that can see a runtime activation failure.
 import { presentationUrlResolverFor } from "../assets/superbee-webmcp-routes.js";
 
 const decoder = new TextDecoder();
@@ -18,6 +21,10 @@ const BOOTSTRAP = "assets/superbee-webmcp.js";
 const CLIENT = "assets/portal-client-v2.js";
 const TOOLS = "assets/portal-webmcp-v0.js";
 const ROUTES = "assets/superbee-webmcp-routes.js";
+// One document the site renders as a page and one it does not, so a wired resolver can be told
+// apart from an inline one that answers the same way for both.
+const PAGED_DOCUMENT = "learn/start-here";
+const UNPAGED_DOCUMENT = "maintenance/documentation-triggers/architecture-at-a-glance";
 
 let composed;
 let temporary;
@@ -59,7 +66,9 @@ test("every URL the bootstrap imports is a file this site actually publishes", (
   // natural future change and a dynamic specifier left unguarded would reopen exactly the gap this
   // test closes.
   const specifiers = [...source.matchAll(/(?:from|\bimport)\s*\(?\s*["'](\/[^"']+)["']/gu)].map((match) => match[1]);
-  assert.ok(specifiers.length >= 2, "the bootstrap must import the two Portal assets");
+  for (const required of [`/${CLIENT}`, `/${TOOLS}`, `/${ROUTES}`]) {
+    assert.ok(specifiers.includes(required), `the bootstrap must import ${required}`);
+  }
   for (const specifier of specifiers) {
     const published = specifier.replace(/^\//, "");
     assert.ok(composed.artifact.files.get(published), `the bootstrap imports ${specifier}, which is not published`);
@@ -130,23 +139,83 @@ test("the pinned Portal builds a manifest that lists nothing it did not publish"
   assert.deepEqual(listedButAbsent, [], "the manifest lists files the artifact does not contain");
 });
 
-test("the bootstrap actually wires the tested resolver into the tool set", () => {
-  // Executing the resolver proves the RULE. It proves nothing about whether the shipped page uses
-  // it. Both halves of this wiring can be broken without touching the routes module: swapping in a
-  // naive resolver ships the 404 defect, and dropping the policy id makes createPortalWebMcpToolsV0
-  // throw INVALID_INPUT, which activate()'s catch downgrades to a console.warn - so the tools never
-  // register on any page and nothing else notices.
-  //
-  // A grep is the wrong tool for a behavioural rule, which is why the resolver itself is executed.
-  // It is the proportionate tool for a one-line syntactic identity like this, where the executable
-  // alternative is a stubbed module graph that would cost more than it guards.
-  const bootstrap = decoder.decode(composed.artifact.files.get(BOOTSTRAP));
-  assert.match(bootstrap, /\{\s*presentationUrlResolverFor\s*\}\s*=\s*await\s+import\(\s*["']\/assets\/superbee-webmcp-routes\.js["']\s*\)/u,
-    "the bootstrap must import the resolver that the tests execute");
-  assert.match(bootstrap, /presentationUrlFor:\s*presentationUrlResolverFor\(\s*publication\s*\)/u,
-    "the bootstrap must pass that resolver, not one written inline");
-  assert.match(bootstrap, /presentationUrlPolicyId:\s*\w/u,
-    "a resolver without a policy id makes tool construction throw, and the tools never register");
+test("the published bootstrap really registers the tools in a browser", { timeout: 90_000 }, async () => {
+  // Executed, not grepped. An earlier version asserted the wiring with regexes over the bootstrap
+  // source, on the stated grounds that absolute site imports are something no test runner can
+  // resolve. That was false, and a reviewer disproved it by running the published bytes. Greps let
+  // two wiring defects through: `presentationUrlPolicyId: null` satisfied a `\w` pattern while
+  // making tool construction throw, and deleting the publication client left the specifier count
+  // high enough to pass while activation died on a ReferenceError. Both are runtime failures that
+  // only a runtime check can see.
+  const files = composed.artifact.files;
+  const server = createServer((request, response) => {
+    const requested = new URL(request.url ?? "/", "http://localhost").pathname.replace(/^\//, "");
+    const bytes = files.get(requested) ?? files.get(`${requested.replace(/\/$/, "")}/index.html`);
+    if (!bytes) { response.statusCode = 404; response.end("missing"); return; }
+    response.setHeader("Content-Type", requested.endsWith(".js")
+      ? "text/javascript; charset=utf-8"
+      : requested.endsWith(".json") ? "application/json; charset=utf-8" : "text/html; charset=utf-8");
+    response.end(Buffer.from(bytes));
+  });
+  await new Promise((listening) => server.listen(0, "127.0.0.1", listening));
+  const address = server.address();
+  let browser;
+  try {
+    browser = await puppeteer.launch({
+      headless: "shell",
+      args: process.env.CI === "true" ? ["--no-sandbox", "--disable-setuid-sandbox"] : [],
+    });
+    const page = await browser.newPage();
+    // A stand-in host, installed before any page script runs, that records what gets registered.
+    await page.evaluateOnNewDocument(() => {
+      globalThis.__registered = [];
+      globalThis.__warnings = [];
+      const warn = console.warn.bind(console);
+      console.warn = (...parts) => { globalThis.__warnings.push(parts.map(String).join(" ")); warn(...parts); };
+      globalThis.__tools = new Map();
+      document.modelContext = {
+        async registerTool(tool) {
+          globalThis.__registered.push(tool.name);
+          globalThis.__tools.set(tool.name, tool);
+          return undefined;
+        },
+      };
+    });
+    await page.goto(`http://127.0.0.1:${address.port}/docs/learn/start-here/`, { waitUntil: "networkidle0" });
+    await page.waitForFunction(() => globalThis.__registered.length > 0 || globalThis.__warnings.length > 0,
+      { timeout: 30_000 });
+
+    const warnings = await page.evaluate(() => globalThis.__warnings);
+    assert.deepEqual(warnings, [], "activation must not warn on a correctly wired page");
+    const registered = await page.evaluate(() => globalThis.__registered);
+    assert.equal(registered.length, 6, `expected the six baseline tools, got ${registered.join(", ")}`);
+    for (const name of registered) {
+      assert.match(name, /^superbee_/u, "every registered tool must use the reserved prefix");
+    }
+
+    // Registration alone does not prove the right resolver was wired in: an inline resolver that
+    // emits a URL for every document registers exactly as cleanly and ships broken links. So call
+    // a tool and read what it actually emits, for one document that has a page and one that does
+    // not. This is the assertion that makes the browser test a wiring check rather than a smoke
+    // test, and it replaces a grep that caught the same defect more cheaply but less honestly.
+    const emitted = await page.evaluate(async ([paged, unpaged]) => {
+      const tool = globalThis.__tools.get("superbee_get_document");
+      const read = async (id) => {
+        const result = await tool.execute({ id });
+        const text = result?.content?.[0]?.text ?? JSON.stringify(result);
+        return JSON.parse(text);
+      };
+      return { paged: await read(paged), unpaged: await read(unpaged) };
+    }, [PAGED_DOCUMENT, UNPAGED_DOCUMENT]);
+
+    assert.equal(emitted.paged.data?.presentationUrl, `/docs/${PAGED_DOCUMENT}/`,
+      "a document with a page must carry its page URL");
+    assert.equal(emitted.unpaged.data?.presentationUrl, undefined,
+      "a document with no page must carry no URL, or the wrong resolver is wired in");
+  } finally {
+    if (browser) await browser.close();
+    await new Promise((closed) => server.close(closed));
+  }
 });
 
 test("the resolver declines a View, which this site publishes no page for", () => {

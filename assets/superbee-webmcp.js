@@ -1,40 +1,41 @@
 /**
  * Activates the Portal WebMCP tools on Superbee Docs.
  *
- * This is the only file that decides the tools load at all. Portal publishes the two fixed browser
- * assets it imports below and neither discovers nor activates the other; a client site wires them
- * together, which is this file. All three enter the ordinary presentation contribution and
+ * This is the only file that decides the tools load at all. Portal publishes the fixed browser
+ * assets loaded below and neither discovers nor activates the other; a client site wires them
+ * together, which is this file. All four enter the ordinary presentation contribution and
  * therefore the Portal artifact digest, so what a visitor executes is covered by the digest their
  * publication advertises.
  *
  * Origin injection only. The bytes are published with the site rather than injected by a host or
  * an edge worker, so there is exactly one activation point and nothing to keep in step.
+ *
+ * Every dependency is loaded dynamically inside `activate`, deliberately. A static import is
+ * evaluated before this module's own body runs, which put two failures outside the reach of the
+ * catch below: a fetch, parse, or evaluation failure in either fixed asset produced an unhandled
+ * rejection and no warning at all. Loading them here also means a browser with no WebMCP surface
+ * fetches nothing beyond this file.
  */
-import { loadValidatedPortalPublicationV2 } from "/assets/portal-client-v2.js";
-import {
-  createPortalWebMcpToolsV0,
-  registerPortalWebMcpV0,
-  resolveWebMcpHost,
-} from "/assets/portal-webmcp-v0.js";
 
 /** Binds every emitted presentation URL to this site's route shape. */
 const PRESENTATION_URL_POLICY_ID = "superbee-docs/routes/v1";
 
 async function activate() {
-  // Resolve the host before fetching anything else. The publication is the expensive part - the
-  // read model is close to a megabyte, and a browser with no WebMCP surface would download all of
-  // it and use none of it. The two static imports above (~100 KB uncompressed) do load
-  // unconditionally: deferring the tools asset is not possible without duplicating
-  // `resolveWebMcpHost` here, and a second copy of that predicate is worse than the bytes. The
-  // route policy below has no such constraint, so it is imported dynamically and costs a browser
-  // without a host nothing at all.
-  //
-  // Using the package's own exported predicate rather than a check written here keeps the
-  // subtlety it already encodes: a present-but-unusable document surface reports unsupported
-  // rather than quietly falling back to the deprecated navigator one.
+  // The tools module loads first because it owns the support predicate. Using the package's own
+  // exported `resolveWebMcpHost` rather than a check written here keeps the subtlety it already
+  // encodes: a present-but-unusable document surface reports unsupported rather than quietly
+  // falling back to the deprecated navigator one.
+  const { createPortalWebMcpToolsV0, registerPortalWebMcpV0, resolveWebMcpHost } =
+    await import("/assets/portal-webmcp-v0.js");
   if (!resolveWebMcpHost()) return;
 
-  const { presentationUrlResolverFor } = await import("/assets/superbee-webmcp-routes.js");
+  // Only past the host check does the expensive part load: the read model is close to a megabyte,
+  // and a browser that cannot use it should never pay for it.
+  const [{ loadValidatedPortalPublicationV2 }, { presentationUrlResolverFor }] = await Promise.all([
+    import("/assets/portal-client-v2.js"),
+    import("/assets/superbee-webmcp-routes.js"),
+  ]);
+
   const publication = await loadValidatedPortalPublicationV2();
   const toolSet = createPortalWebMcpToolsV0({
     publication,
