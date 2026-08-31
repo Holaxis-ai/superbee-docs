@@ -171,7 +171,7 @@ async function main(argv) {
     else throw new Error("usage: node scripts/verify-production.mjs [--base <origin>] [--dist <directory>] [--unenforced <capability>]...");
   }
   const config = JSON.parse(await readFile("portal.config.json", "utf8"));
-  const result = await verifyDocumentationDeploymentV1({ ...options, siteUrl: config.documentation.siteUrl });
+  const result = await verifyDocumentationDeploymentV1({ ...options, siteUrl: config.targets.portal.siteUrl });
   console.log(JSON.stringify(result, null, 2));
   if (!result.ok) process.exitCode = 1;
 }

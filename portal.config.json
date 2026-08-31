@@ -1,13 +1,11 @@
 {
-  "schema": "https://getsuperbee.com/schemas/docs-site/v1",
+  "schema": "https://getsuperbee.com/schemas/docs-site/v2",
   "bundle": ".superbee",
   "output": "dist",
   "portal": {
     "schema": "https://getsuperbee.com/schemas/portal-config/v1",
     "audience": "public",
     "exposure": "complete-publication-bundle",
-    "title": "Superbee documentation",
-    "description": "Source-grounded guidance for using, understanding, and evolving Superbee.",
     "htmlRouting": {
       "mode": "extensionless",
       "redirectStatus": 307
@@ -40,15 +38,16 @@
     ]
   },
   "documentation": {
-    "schema": "https://getsuperbee.com/schemas/portal-docs/v1",
-    "productName": "Superbee",
-    "siteUrl": "https://docs.getsuperbee.com",
+    "schema": "https://getsuperbee.com/schemas/documentation-source-config/v1",
+    "product": {
+      "name": "Superbee",
+      "versionLabel": "v0.1.4",
+      "repositoryUrl": "https://github.com/Holaxis-ai/superbee"
+    },
     "home": "learn/start-here",
     "brandMark": {
       "blob": "assets/superbee-mark.png"
     },
-    "versionLabel": "v0.1.4",
-    "repositoryUrl": "https://github.com/Holaxis-ai/superbee",
     "operationalTypes": [
       "Documentation Trigger"
     ],
@@ -128,7 +127,43 @@
           "contributing/quickstart"
         ]
       }
-    ]
+    ],
+    "supportingDocuments": [
+      "design/docs-operating-model",
+      "design/site-experience-contract",
+      "examples/claims-and-evidence",
+      "plans/docs-coverage",
+      "releases/0.1.3",
+      "releases/0.1.4",
+      "sources/current-release",
+      "sources/superbee-codebase-main",
+      "sources/superbee-core",
+      "sources/superbee-portal",
+      "sources/superbee-release-0.1.3",
+      "sources/superbee-release-0.1.4"
+    ],
+    "guidance": {
+      "documentId": "learn/start-here",
+      "heading": "Superbee in one minute",
+      "label": "When to use Superbee"
+    }
+  },
+  "targets": {
+    "portal": {
+      "schema": "https://getsuperbee.com/schemas/portal-docs-target/v1",
+      "siteUrl": "https://docs.getsuperbee.com",
+      "title": "Superbee documentation",
+      "description": "Source-grounded guidance for using, understanding, and evolving Superbee.",
+      "attribution": {
+        "mode": "superbee"
+      },
+      "indexing": "public"
+    },
+    "mkdocs": {
+      "schema": "https://getsuperbee.com/schemas/mkdocs-documentation-config/v1",
+      "siteUrl": "https://docs.getsuperbee.com",
+      "indexing": "public"
+    }
   },
   "diagrams": {
     "manifest": "diagrams/manifest.json",

@@ -16,22 +16,22 @@ communications belong elsewhere.
 
 ## Documentation selection
 
-`portal.config.json` owns the ordered primary navigation. The production
-`documentation-selection.json` contract names the additional public support documents that output
-adapters must include without placing them in that navigation. The public documentation set is the
-explicit union of those two lists; adapters must not follow links to expand it implicitly.
+`portal.config.json` owns one renderer-neutral documentation selection. Its `navigation` names the
+ordered primary pages and `supportingDocuments` names additional public pages that both outputs
+include without placing them in navigation. Adapters must not follow links to expand that explicit
+selection.
 
-Keep the support list unique and canonically ordered. `npm run bundle:check` verifies its stable v1
-schema, confirms every selected support document exists in `.superbee`, and rejects overlap with
-the primary navigation.
+Keep the support list unique and canonically ordered. The projection-owned config normalizer
+rejects overlap with primary navigation, and `npm run bundle:check` confirms every selected support
+document exists in `.superbee`.
 
 Both outputs publish a bounded `llms.txt` over that exact selection. Documentation pages advertise
 their byte-exact Markdown source and the root discovery index; operational maintenance records stay
 inspectable in the complete public bundle without entering these curated agent surfaces.
 
-`documentation-selection.json` also carries the optional `agentGuidance` binding: the document id,
-heading, and label of one section of one already-selected page that `llms.txt` quotes as its "when
-to use" guidance. Only the pointer lives here. The quoted bytes and every link inside them come from
+The optional `documentation.guidance` binding carries the document id, heading, and label of one
+section of one already-selected page that `llms.txt` quotes as its "when to use" guidance. Only the
+pointer lives in configuration. The quoted bytes and every link inside them come from
 that published document, so the entry point can never become a second content authority, and the
 build fails closed if the heading moves, is duplicated, gains a nested heading or code fence, or
 links to something outside the selection. It also refuses any link or markup shape the renderer

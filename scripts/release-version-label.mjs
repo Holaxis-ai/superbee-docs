@@ -9,8 +9,9 @@ export function stableReleaseVersionLabel(version) {
 
 export function assertStableReleaseVersionLabel(documentation, version) {
   const expected = stableReleaseVersionLabel(version);
-  if (documentation?.versionLabel !== expected) {
-    throw new Error(`Portal versionLabel must equal ${expected} from releases/current`);
+  const configured = documentation?.product?.versionLabel ?? documentation?.versionLabel;
+  if (configured !== expected) {
+    throw new Error(`documentation versionLabel must equal ${expected} from releases/current`);
   }
   return expected;
 }
