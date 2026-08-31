@@ -72,6 +72,26 @@ test("only the bootstrap is linked, and only from documentation pages", () => {
   }
 });
 
+test("no presentation URL is emitted, because this site cannot answer that honestly", () => {
+  // The read model carries the complete public bundle, which is strictly larger than the set
+  // rendered as pages, and it marks no difference between them. The obvious resolver would emit a
+  // confident URL that 404s. This measures that gap rather than describing it, so if the site ever
+  // does publish a page for every document, this test fails and the decision gets revisited on
+  // evidence instead of staying a permanent comment.
+  const readModel = JSON.parse(decoder.decode(composed.artifact.files.get("data/bundle.json")));
+  const pageFor = (id) => `docs/${id.split("/").map(encodeURIComponent).join("/")}/index.html`;
+  const unpaged = readModel.documents.filter((document) => !composed.artifact.files.get(pageFor(document.id)));
+  assert.ok(unpaged.length > 0,
+    "every read-model document now has a page, so a presentation URL resolver may be worth adding");
+  assert.ok(readModel.documents.length > documentationPages(composed.artifact).length,
+    "the read model must still be larger than the page set");
+
+  // And the bootstrap must not quietly acquire one.
+  const bootstrap = decoder.decode(composed.artifact.files.get(BOOTSTRAP));
+  assert.doesNotMatch(bootstrap, /presentationUrlFor\s*[:,)]/u, "the bootstrap must supply no presentation URL resolver");
+  assert.doesNotMatch(bootstrap, /presentationUrlPolicyId/u, "a policy id without a resolver would be meaningless");
+});
+
 test("the recovery shell stays usable with no JavaScript at all", () => {
   const recovery = decoder.decode(composed.artifact.files.get("404.html"));
   assert.equal((recovery.match(/<script\b/gu) ?? []).length, 0, "the recovery shell must carry no script");

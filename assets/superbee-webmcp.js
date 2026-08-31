@@ -17,18 +17,20 @@ import {
   resolveWebMcpHost,
 } from "/assets/portal-webmcp-v0.js";
 
-/** Binds every emitted presentation URL to this site's route shape. */
-const PRESENTATION_URL_POLICY_ID = "superbee-docs/routes/v1";
-
-/**
- * Superbee Docs publishes a page for each documented document and none for a View. A View
- * therefore gets no presentation URL rather than one this site cannot serve: the tools already
- * report a View's raw entry identity, and inventing a route would be a claim the site cannot keep.
+/*
+ * No `presentationUrlFor` is supplied, deliberately.
+ *
+ * The obvious resolver - map a document id to `/docs/<id>/` - is wrong here. The published read
+ * model carries the complete public bundle, which is strictly larger than the set rendered as
+ * pages: measured on this site, 94 documents against 52 documentation pages. A resolver would
+ * therefore emit a confident URL that 404s for nearly half of them, and the read model carries no
+ * field marking which documents have a page, so the browser cannot tell them apart.
+ *
+ * A wrong link is worse than no link: an agent would follow it instead of using `rawPath`, which
+ * every tool result already carries, which is always published, and which serves the document's
+ * exact Markdown - more useful to an agent than its HTML rendering. `presentationUrl` is optional
+ * in the tool contract precisely so a site that cannot answer this honestly can decline to.
  */
-function presentationUrlFor({ kind, id }) {
-  if (kind !== "document") return undefined;
-  return `/docs/${id.split("/").map(encodeURIComponent).join("/")}/`;
-}
 
 async function activate() {
   // Resolve the host BEFORE fetching anything. The read model is close to a megabyte, and a
@@ -40,11 +42,7 @@ async function activate() {
   if (!resolveWebMcpHost()) return;
 
   const publication = await loadValidatedPortalPublicationV2();
-  const toolSet = createPortalWebMcpToolsV0({
-    publication,
-    presentationUrlFor,
-    presentationUrlPolicyId: PRESENTATION_URL_POLICY_ID,
-  });
+  const toolSet = createPortalWebMcpToolsV0({ publication });
   await registerPortalWebMcpV0({
     owner: "superbee-docs-presentation",
     activation: "presentation",
