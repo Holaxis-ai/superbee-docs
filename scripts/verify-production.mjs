@@ -1,222 +1,175 @@
 /*
- * Mechanical post-deploy comparison between one built artifact and one live origin.
+ * Add Superbee Docs presentation assertions to Portal's host-neutral deployment verifier.
  *
- * Every check compares the deployed response against the exact bytes this repository built, or
- * against the exact route configuration it declares, so a pass means "the origin serves what we
- * published", not "the origin looks healthy". The script is read-only: GET only, no mutation of
- * anything local or remote.
- *
- * Media type is now gated by its own check. This site still deploys as Cloudflare static assets
- * with no Worker, so the edge derives Content-Type from the file extension rather than from the
- * artifact's declared inventory, but the deployment answers that with a generated `_headers` file
- * carrying every drifting path's declared type. Drift is therefore a regression rather than a known
- * host limitation. It stays in `mediaTypeDrift` and in one named check of its own, so it is never
- * conflated with a byte or status regression: an origin can serve the wrong type and the right
- * bytes, and a reviewer needs to see which happened.
+ * Portal owns status, byte, media type, response-header, audience, negotiation, fallback, and
+ * canonical-route verification. This adapter owns only the facts its documentation projection adds
+ * to reader pages, plus the two intentionally site-specific entry redirects. Every request remains
+ * a read-only GET through Portal's origin-confined probe.
  */
 
-import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
+
+import { verifyPortalDeploymentV1 } from "superbee-portal";
 
 import { DEPLOYMENT_REDIRECTS } from "./deployment-assets.mjs";
 
-export const DOCUMENTATION_DEPLOYMENT_VERIFICATION_V1 =
-  "https://getsuperbee.com/schemas/superbee-docs/deployment-verification/v1";
+const decoder = new TextDecoder("utf-8", { fatal: true });
 
-const sha256 = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
-const mediaTypeOf = (value) => (value ?? "").split(";")[0].trim().toLowerCase();
+function attribute(tag, name) {
+  return tag.match(new RegExp(`\\s${name}=(?:"([^"]*)"|'([^']*)')`, "iu"))?.slice(1).find((value) => value !== undefined) ?? null;
+}
 
-async function probe(fetchImpl, url, headers = {}) {
-  const response = await fetchImpl(url, { method: "GET", headers, redirect: "manual" });
+function tagWith(html, tagName, attributes) {
+  const tags = html.match(new RegExp(`<${tagName}\\b[^>]*>`, "giu")) ?? [];
+  return tags.find((tag) => Object.entries(attributes).every(([name, expected]) => attribute(tag, name) === expected)) ?? null;
+}
+
+function extension(id, route, passed, fields, reason) {
   return {
-    status: response.status,
-    contentType: response.headers.get("content-type"),
-    location: response.headers.get("location"),
-    vary: response.headers.get("vary"),
-    bytes: new Uint8Array(await response.arrayBuffer()),
+    id,
+    kind: "extension",
+    route,
+    outcome: passed ? "pass" : "fail",
+    fields,
+    ...(passed || reason === undefined ? {} : { reason }),
   };
 }
 
-function record(rows, row, expectations, observed) {
-  const failures = [];
-  for (const [field, expected] of Object.entries(expectations)) {
-    const actual = observed[field];
-    if (expected instanceof RegExp ? !expected.test(actual ?? "") : actual !== expected) {
-      failures.push({ field, expected: String(expected), actual: actual === undefined ? null : actual });
-    }
-  }
-  rows.push({ ...row, ok: failures.length === 0, ...(failures.length ? { failures } : {}) });
-  return failures.length === 0;
+function publishedArtifact(url, baseUrl, publishedOrigin, context) {
+  let resolved;
+  try { resolved = new URL(url, baseUrl); } catch { return null; }
+  if (resolved.origin !== publishedOrigin || resolved.search || resolved.hash) return null;
+  let relative;
+  try { relative = decodeURIComponent(resolved.pathname.replace(/^\//u, "")); } catch { return null; }
+  const declared = context.declared(relative);
+  return declared ? { route: resolved.pathname, relative, declared } : null;
 }
 
-/**
- * Compare one live origin against the exact artifact directory this repository built.
- *
- * @param {{ baseUrl: string, dist: string, fetchImpl?: typeof fetch }} options
- */
-export async function verifyDocumentationDeploymentV1({ baseUrl, dist, fetchImpl = fetch }) {
-  const origin = new URL(baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`);
-  const local = async (relative) => new Uint8Array(await readFile(path.join(dist, ...relative.split("/"))));
-  const at = (relative) => new URL(relative, origin).href;
+/** Documentation-only receipt rows supplied through Portal's public extension boundary. */
+export async function documentationVerificationExtensionV1(context, siteUrl) {
+  const published = new URL(siteUrl.endsWith("/") ? siteUrl : `${siteUrl}/`);
   const rows = [];
-  const mediaTypeDrift = [];
+  const pages = context.routes.filter(({ route, disposition }) => (
+    disposition === "shell" && route !== "/404" && (route === "/" || route.startsWith("/docs/"))
+  ));
 
-  const manifest = JSON.parse(new TextDecoder().decode(await local("data/portal-manifest.json")));
-  const declared = new Map(manifest.files.map((file) => [file.path, mediaTypeOf(file.mediaType)]));
+  for (const page of pages) {
+    const observed = await context.probe(page.route);
+    let html = "";
+    try { html = decoder.decode(observed.bytes); } catch { /* The presentation row reports invalid UTF-8 below. */ }
+    const pageFile = context.declared(page.artifactPath);
+    const rootFile = context.declared("index.html");
+    const canonicalRoute = page.route !== "/" && pageFile?.digest === rootFile?.digest ? "/" : page.route;
+    const pageUrl = new URL(canonicalRoute, published).href;
+    const canonical = tagWith(html, "link", { rel: "canonical", href: pageUrl });
+    const alternate = tagWith(html, "link", { rel: "alternate", type: "text/markdown" });
+    const alternateHref = alternate ? attribute(alternate, "href") : null;
+    const alternateArtifact = alternateHref ? publishedArtifact(alternateHref, pageUrl, published.origin, context) : null;
+    const describedBy = tagWith(html, "link", { rel: "describedby", href: "/llms.txt" });
+    const openGraph = tagWith(html, "meta", { property: "og:url", content: pageUrl });
+    const twitter = tagWith(html, "meta", { name: "twitter:card", content: "summary" });
+    const jsonLd = tagWith(html, "script", { type: "application/ld+json" });
 
-  const compare = async (name, relative, url, observed, extra = {}, expectedStatus = 200) => {
-    const expected = await local(relative);
-    const observedMediaType = mediaTypeOf(observed.contentType);
-    const declaredMediaType = declared.get(relative);
-    /*
-     * Only a response that actually reached its expected status with a Content-Type of its own can
-     * drift. An unexpected status carries whatever type that error path used, and a bodyless
-     * response carries none at all; reporting either as media-type drift would bury the real
-     * regression the digest check already names under a second, invented one.
-     */
-    if (declaredMediaType && observedMediaType && observed.status === expectedStatus
-      && declaredMediaType !== observedMediaType) {
-      mediaTypeDrift.push({ path: `/${relative}`, declared: declaredMediaType, observed: observedMediaType });
+    const facts = [
+      ["canonical", canonical !== null, pageUrl, canonical === null ? null : attribute(canonical, "href")],
+      ["markdownAlternate", alternateArtifact !== null, "same-origin inventoried Markdown", alternateHref],
+      ["describedBy", describedBy !== null, "/llms.txt", describedBy === null ? null : attribute(describedBy, "href")],
+      ["openGraph", openGraph !== null, pageUrl, openGraph === null ? null : attribute(openGraph, "content")],
+      ["twitterCard", twitter !== null, "summary", twitter === null ? null : attribute(twitter, "content")],
+      ["jsonLd", jsonLd !== null, "application/ld+json", jsonLd === null ? null : attribute(jsonLd, "type")],
+    ];
+    rows.push(extension(
+      `documentation presentation ${page.route}`,
+      page.route,
+      observed.status === 200 && html !== "" && facts.every(([, passed]) => passed),
+      [
+        { field: "status", expected: "200", actual: String(observed.status) },
+        ...facts.map(([field, , expected, actual]) => ({ field, expected, actual })),
+      ],
+      "the documentation page omitted or changed an advertised discovery or social metadata fact",
+    ));
+
+    if (alternateArtifact) {
+      const markdown = await context.probe(alternateArtifact.route);
+      const exact = markdown.status === 200
+        && markdown.digest === alternateArtifact.declared.digest
+        && markdown.bytes.byteLength === alternateArtifact.declared.size;
+      rows.push(extension(
+        `documentation Markdown alternate ${page.route}`,
+        alternateArtifact.route,
+        exact,
+        [
+          { field: "status", expected: "200", actual: String(markdown.status) },
+          { field: "digest", expected: alternateArtifact.declared.digest, actual: markdown.digest },
+          { field: "size", expected: String(alternateArtifact.declared.size), actual: String(markdown.bytes.byteLength) },
+        ],
+        "the page's advertised Markdown alternate did not serve its exact inventoried bytes",
+      ));
+    } else {
+      rows.push(extension(
+        `documentation Markdown alternate ${page.route}`,
+        page.route,
+        false,
+        [{ field: "href", expected: "same-origin inventoried Markdown", actual: alternateHref }],
+        "the page advertised no safe inventoried Markdown alternate",
+      ));
     }
-    return record(rows, {
-      name,
-      url,
-      status: observed.status,
-      declaredMediaType: declaredMediaType ?? null,
-      observedMediaType: observedMediaType || null,
-    }, {
-      status: expectedStatus,
-      digest: sha256(expected),
-      ...Object.fromEntries(Object.entries(extra).map(([key, value]) => [key, value.expected])),
-    }, {
-      status: observed.status,
-      digest: sha256(observed.bytes),
-      ...Object.fromEntries(Object.entries(extra).map(([key, value]) => [key, value.actual])),
-    });
-  };
-
-  // 1. Every machine-readable artifact must be byte-identical to the build.
-  for (const [name, relative] of [
-    ["agent entry point", "llms.txt"],
-    ["crawler policy", "robots.txt"],
-    ["sitemap", "sitemap.xml"],
-    ["recovery body (markdown)", "404.md"],
-  ]) {
-    await compare(name, relative, at(relative), await probe(fetchImpl, at(relative)));
   }
 
-  // 2. The documentation index must still serve its exact bytes and its agent-facing head links.
-  const home = await probe(fetchImpl, origin.href);
-  const homeText = new TextDecoder().decode(home.bytes);
-  await compare("documentation index", "index.html", origin.href, home, {
-    canonical: { expected: true, actual: /<link rel="canonical" href="[^"]+">/.test(homeText) },
-    markdownAlternate: { expected: true, actual: /<link rel="alternate" type="text\/markdown" href="[^"]+">/.test(homeText) },
-    describedBy: { expected: true, actual: /<link rel="describedby" href="\/llms\.txt">/.test(homeText) },
-    openGraph: { expected: true, actual: /<meta property="og:url" content="[^"]+">/.test(homeText) },
-    twitterCard: { expected: true, actual: /<meta name="twitter:card" content="summary">/.test(homeText) },
-    jsonLd: { expected: true, actual: /<script type="application\/ld\+json">/.test(homeText) },
-  });
-
-  // 3. An unknown route must return a real 404 carrying the published recovery bytes.
-  const unknownPath = "superbee-deployment-verification/unknown-route";
-  await compare("unknown route recovery", "404.html", at(unknownPath), await probe(fetchImpl, at(unknownPath)), {}, 404);
-
-  // 4. The Markdown alternate a page advertises must resolve to that page's exact source bytes.
-  const alternate = homeText.match(/<link rel="alternate" type="text\/markdown" href="([^"]+)">/)?.[1];
-  if (alternate) {
-    const relative = alternate.replace(/^\//, "");
-    await compare("markdown alternate", relative, at(relative), await probe(fetchImpl, at(relative)));
-  } else {
-    rows.push({
-      name: "markdown alternate", url: origin.href, status: home.status, ok: false,
-      failures: [{ field: "href", expected: "a rel=alternate Markdown link", actual: null }],
-    });
-  }
-
-  /*
-   * 5. The Markdown access contract is explicit URLs, not content negotiation. Assert the absence
-   * of Vary: Accept: advertising a negotiation this origin does not perform would fragment or
-   * poison every shared cache in front of it while changing nothing an agent receives.
-   */
-  const negotiated = await probe(fetchImpl, origin.href, { Accept: "text/markdown" });
-  record(rows, {
-    name: "no unadvertised content negotiation",
-    url: origin.href,
-    status: negotiated.status,
-    observedMediaType: mediaTypeOf(negotiated.contentType) || null,
-  }, {
-    status: 200,
-    mediaType: "text/html",
-    varyAcceptAbsent: true,
-  }, {
-    status: negotiated.status,
-    mediaType: mediaTypeOf(negotiated.contentType),
-    varyAcceptAbsent: !/\baccept\b/i.test(negotiated.vary ?? ""),
-  });
-
-  /*
-   * 6. Every declared entry route must answer with the intentional redirect the deployment
-   * configures, and with nothing wider. Check 3 above independently proves that an undeclared
-   * missing path still reaches the real recovery body, so the two together separate a deliberate
-   * redirect from a rule that quietly swallows unrelated missing routes.
-   */
+  /* `/docs` and `/docs/` are guessed site entry paths, not aliases of an artifact-owned HTML file. */
   for (const rule of DEPLOYMENT_REDIRECTS) {
-    const url = at(rule.from.replace(/^\//, ""));
-    const observed = await probe(fetchImpl, url);
+    const observed = await context.probe(rule.from);
+    const location = observed.headers.location ?? null;
     let destination = null;
-    if (observed.location) {
-      try { destination = new URL(observed.location, url).href; } catch { destination = observed.location; }
+    if (location !== null) {
+      try { destination = new URL(location, new URL(rule.from, context.origin)).href; } catch { /* Report the raw value. */ }
     }
-    record(rows, {
-      name: `entry redirect ${rule.from}`,
-      url,
-      status: observed.status,
-      location: observed.location ?? null,
-    }, {
-      status: rule.status,
-      destination: new URL(rule.to, origin).href,
-    }, {
-      status: observed.status,
-      destination,
-    });
+    const expected = new URL(rule.to, context.origin).href;
+    rows.push(extension(
+      `documentation entry redirect ${rule.from}`,
+      rule.from,
+      observed.status === rule.status && destination === expected,
+      [
+        { field: "status", expected: String(rule.status), actual: String(observed.status) },
+        { field: "location", expected, actual: destination ?? location },
+      ],
+      "the site-specific documentation entry route did not redirect to the canonical root",
+    ));
   }
 
-  /*
-   * 7. The deployment declares each drifting path's media type in `_headers`, so a served type that
-   * still disagrees with the artifact is a regression in that configuration. Every row above keeps
-   * reporting the type it saw; this row is the gate over what they collected.
-   */
-  record(rows, {
-    name: "declared media types",
-    url: origin.href,
-    ...(mediaTypeDrift.length ? { drift: mediaTypeDrift } : {}),
-  }, { drifting: 0 }, { drifting: mediaTypeDrift.length });
+  return rows;
+}
 
-  const failed = rows.filter((row) => !row.ok);
-  return {
-    schema: DOCUMENTATION_DEPLOYMENT_VERIFICATION_V1,
-    ok: failed.length === 0,
-    origin: origin.href,
-    artifactDigest: manifest.artifactDigest,
-    checks: rows.length,
-    failed: failed.length,
-    mediaTypeDrift,
-    results: rows,
-  };
+export async function verifyDocumentationDeploymentV1({
+  baseUrl,
+  dist,
+  siteUrl,
+  unenforcedCapabilities = [],
+  fetchImpl = fetch,
+}) {
+  return verifyPortalDeploymentV1({
+    baseUrl,
+    dist,
+    fetchImpl,
+    unenforcedCapabilities,
+    extend: (context) => documentationVerificationExtensionV1(context, siteUrl),
+  });
 }
 
 async function main(argv) {
-  const options = { baseUrl: "https://docs.getsuperbee.com", dist: "dist" };
+  const options = { baseUrl: "https://docs.getsuperbee.com", dist: "dist", unenforcedCapabilities: [] };
   for (let index = 0; index < argv.length; index += 2) {
     const flag = argv[index];
     const value = argv[index + 1];
     if (flag === "--base" && value) options.baseUrl = value;
     else if (flag === "--dist" && value) options.dist = value;
-    else throw new Error("usage: node scripts/verify-production.mjs [--base <origin>] [--dist <directory>]");
+    else if (flag === "--unenforced" && value) options.unenforcedCapabilities.push(value);
+    else throw new Error("usage: node scripts/verify-production.mjs [--base <origin>] [--dist <directory>] [--unenforced <capability>]...");
   }
-  const result = await verifyDocumentationDeploymentV1(options);
+  const config = JSON.parse(await readFile("portal.config.json", "utf8"));
+  const result = await verifyDocumentationDeploymentV1({ ...options, siteUrl: config.documentation.siteUrl });
   console.log(JSON.stringify(result, null, 2));
   if (!result.ok) process.exitCode = 1;
 }

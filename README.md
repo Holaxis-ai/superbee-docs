@@ -52,7 +52,7 @@ evidence in `research/agent-docs-discovery-surfaces` ruled negotiation a layer v
 stack — it would make the edge a second renderer over digest-bound bytes — so the origin serves the
 `.md` sibling every page advertises and deliberately emits no `Vary: Accept`. Advertising a
 negotiation the origin does not perform would fragment every shared cache in front of it while
-changing nothing an agent receives. `npm run verify:production` asserts that absence.
+changing nothing an agent receives. Portal's production verifier asserts that absence.
 
 Documentation pages carry canonical, Open Graph, Twitter card, and product JSON-LD built only from
 the projection's own product facts and this site's URL. No postal address, contact, social image, or
@@ -137,15 +137,11 @@ After a deployment, compare the live origin against the exact artifact this repo
 npm run verify:production -- --base https://docs.getsuperbee.com --dist dist
 ```
 
-Every check is a read-only GET whose expectation is a digest of the built bytes or the deployment's
-own declared route configuration, so a pass means the origin serves what was published. The entry
-redirects are checked against the same rule table the deployed `_redirects` file is generated from,
-next to the unknown-route check that proves an undeclared path still returns its real 404.
-Content-Type drift is collected in `mediaTypeDrift` and
-gated by one check of its own, because the deployment now declares each drifting path's type. Drift
-is recorded only for a response that reached its expected status carrying a Content-Type of its own,
-so a missing route is reported once, as the byte failure it is, and a wrong type never hides behind
-a correct one.
+The command is a thin consumer of Portal's host-neutral verifier. Portal checks exact status, bytes,
+media types, response headers, audience policy, fallback behavior, content negotiation, canonical
+HTML routes, and their exact 307 aliases from the artifact's hosting requirements. This repository
+adds only its page metadata, advertised Markdown-alternate, and two guessed `/docs` entry-route
+assertions to the same receipt. No static-byte or canonical-redirect capability is waived.
 
 Cloudflare Workers Builds uses these commands:
 

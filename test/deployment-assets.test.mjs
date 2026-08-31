@@ -184,9 +184,24 @@ test("only a path whose served type would disagree with its declaration earns a 
   ]);
 });
 
+test("a missing declared charset earns an exact override even when the MIME essence agrees", () => {
+  assert.deepEqual(declaredMediaTypeOverrides({ files: [
+    { path: "data/example.json", mediaType: "application/json; charset=utf-8" },
+    { path: "sitemap.xml", mediaType: "application/xml; charset=utf-8" },
+    { path: "robots.txt", mediaType: "text/plain; charset=utf-8" },
+    { path: "index.html", mediaType: "text/html; charset=utf-8" },
+  ] }), [
+    { path: "/data/example.json", mediaType: "application/json; charset=utf-8" },
+    { path: "/sitemap.xml", mediaType: "application/xml; charset=utf-8" },
+  ]);
+});
+
 test("rendered rules enforce declared global and disposition headers without duplicate values", () => {
   const manifest = inventory();
-  const declared = new Map(manifest.files.map((file) => [`/${file.path}`, file.mediaType]));
+  const declared = new Map([
+    ...manifest.files.map((file) => [`/${file.path}`, file.mediaType]),
+    ["/data/portal-manifest.json", "application/json; charset=utf-8"],
+  ]);
   const rendered = renderHeaders(manifest, HOSTING_REQUIREMENTS);
   const rules = parseGeneratedHeaders(rendered);
   assert.deepEqual(rules.find((rule) => rule.path === "/*").headers, [
@@ -310,7 +325,10 @@ test("the built deployment carries redirects, declared types, and declared respo
   assert.equal(redirects, renderRedirects());
   assert.equal(headers, renderHeaders(manifest, requirements));
   assert.equal(Buffer.compare(deployedIndex, publishedIndex), 0);
-  const published = new Map(manifest.files.map((file) => [file.path, file.mediaType]));
+  const published = new Map([
+    ...manifest.files.map((file) => [file.path, file.mediaType]),
+    ["data/portal-manifest.json", "application/json; charset=utf-8"],
+  ]);
   for (const rule of DEPLOYMENT_REDIRECTS) {
     // A redirect over a path the artifact publishes would shadow a real page.
     assert.equal(published.has(rule.from.replace(/^\//, "")), false, rule.from);
@@ -324,9 +342,18 @@ test("the built deployment carries redirects, declared types, and declared respo
   const covered = new Set(rules
     .filter((rule) => rule.headers.some((header) => header.startsWith("Content-Type:")))
     .map((rule) => rule.path));
-  // The standing drift this work closes, and the paths the host already labels correctly.
+  // The adapter corrects every measured full-value drift, including a missing charset.
   assert.ok(covered.has("/llms.txt"));
-  for (const settled of ["/robots.txt", "/sitemap.xml", "/index.html", "/404.html", "/404.md"]) {
+  assert.ok(covered.has("/sitemap.xml"));
+  for (const [relative, mediaType] of published) {
+    if (relative.endsWith(".json") && mediaType.includes("charset=utf-8")) {
+      const route = `/${relative}`;
+      assert.ok(covered.has(route), route);
+      assert.equal(effectiveHeaders(headers, route).get("content-type"), mediaType, route);
+    }
+  }
+  assert.equal(effectiveHeaders(headers, "/sitemap.xml").get("content-type"), published.get("sitemap.xml"));
+  for (const settled of ["/robots.txt", "/index.html", "/404.html", "/404.md"]) {
     assert.equal(covered.has(settled), false, settled);
   }
   for (const declaration of requirements.responseHeaders.filter((header) => header.route === "*")) {
