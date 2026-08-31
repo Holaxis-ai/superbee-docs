@@ -21,6 +21,7 @@ export const DEPLOYMENT_ASSEMBLY_RESULT_V1 =
   "https://getsuperbee.com/schemas/superbee-docs/deployment-assembly-result/v1";
 
 const MANIFEST_PATH = "data/portal-manifest.json";
+const MANIFEST_MEDIA_TYPE = "application/json; charset=utf-8";
 const HOSTING_REQUIREMENTS_PATH = "data/hosting-requirements.json";
 
 /** Cloudflare's own configuration limits, restated so a generated file cannot silently exceed them. */
@@ -45,22 +46,22 @@ const PERMITTED_REDIRECT_STATUS = new Set([301, 302, 303, 307, 308]);
  */
 const HOST_MEDIA_TYPE_BY_EXTENSION = new Map(Object.entries({
   "": null,
-  css: "text/css",
-  html: "text/html",
-  js: "text/javascript",
+  css: "text/css; charset=utf-8",
+  html: "text/html; charset=utf-8",
+  js: "text/javascript; charset=utf-8",
   json: "application/json",
-  md: "text/markdown",
+  md: "text/markdown; charset=utf-8",
   mmd: "application/vnd.chipnuts.karaoke-mmd",
   png: "image/png",
   svg: "image/svg+xml",
-  txt: "text/plain",
+  txt: "text/plain; charset=utf-8",
   woff2: "font/woff2",
   xml: "application/xml",
 }));
 
 const UNLABELLED_MEDIA_TYPE = "application/octet-stream";
 
-const mediaTypeEssence = (value) => (value ?? "").split(";")[0].trim().toLowerCase();
+const normalizedMediaType = (value) => (value ?? "").trim().toLowerCase().replace(/\s*;\s*/gu, "; ");
 
 function extensionOf(relative) {
   const name = relative.slice(relative.lastIndexOf("/") + 1);
@@ -168,11 +169,11 @@ export function declaredMediaTypeOverrides(manifest) {
       throw new Error(`published file '${file.path}' declares no media type`);
     }
     const extension = extensionOf(file.path);
-    const declared = mediaTypeEssence(file.mediaType);
+    const declared = normalizedMediaType(file.mediaType);
     const measured = HOST_MEDIA_TYPE_BY_EXTENSION.has(extension);
     const served = HOST_MEDIA_TYPE_BY_EXTENSION.get(extension);
     const agrees = measured
-      && (served === null ? declared === UNLABELLED_MEDIA_TYPE : served === declared);
+      && (served === null ? declared === UNLABELLED_MEDIA_TYPE : normalizedMediaType(served) === declared);
     if (!agrees) rules.push({ path: `/${file.path}`, mediaType: file.mediaType });
   }
   return rules.sort((left, right) => (left.path < right.path ? -1 : left.path > right.path ? 1 : 0));
@@ -235,7 +236,11 @@ function declaredResponseHeaderRules(requirements) {
 /** Render the exact `_headers` bytes that enforce declared response policy and media types. */
 export function renderHeaders(manifest, requirements) {
   const byPath = declaredResponseHeaderRules(requirements);
-  for (const rule of declaredMediaTypeOverrides(manifest)) {
+  /* The identity manifest is the only deployed artifact file that cannot list itself. */
+  const mediaTypes = manifest.files.some((file) => file.path === MANIFEST_PATH)
+    ? manifest
+    : { ...manifest, files: [...manifest.files, { path: MANIFEST_PATH, mediaType: MANIFEST_MEDIA_TYPE }] };
+  for (const rule of declaredMediaTypeOverrides(mediaTypes)) {
     const headers = byPath.get(rule.path) ?? new Map();
     if (headers.has("content-type")) throw new Error(`duplicate Content-Type rule for '${rule.path}'`);
     headers.set("content-type", { name: "Content-Type", value: rule.mediaType });
