@@ -4,7 +4,7 @@ title: Show documents and Views to a human
 description: >-
   Display authoritative Markdown and safely launch interactive Views through the
   local browser or an MCP Apps host.
-superbee_updated_by: openai/codex
+superbee_updated_by: openai/codex/root
 ---
 # Outcome
 
@@ -151,10 +151,10 @@ approval, and revocation model.
 # Evidence
 
 The browser procedure is grounded in the tagged
-[`doc open` implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/src/commands/ui.ts)
+[`doc open` implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/ui.ts)
 and its
-[`0.1.3` integration tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/test/ui.test.ts).
+[Tagged integration tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/ui.test.ts).
 MCP behavior is grounded in the tagged
-[`show_document` and `show_view` server](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/mcp-app/src/server.ts)
+[`show_document` and `show_view` server](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/mcp-app/src/server.ts)
 and
-[`0.1.3` server tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/mcp-app/test/server.test.ts).
+[Tagged server tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/mcp-app/test/server.test.ts).

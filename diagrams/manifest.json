@@ -64,6 +64,15 @@
       "publishedSource": "visuals/sources/sharing-synchronization-and-freshness.mmd",
       "publishedSvg": "visuals/diagrams/sharing-synchronization-and-freshness.svg",
       "documentId": "architecture/sharing-synchronization-and-freshness"
+    },
+    {
+      "id": "bundle-engine-and-storage-seam",
+      "title": "Bundle engine and storage seam",
+      "description": "How core-owned OKF semantics remain consistent across filesystem, memory, and remote storage adapters.",
+      "source": "diagrams/sources/bundle-engine-and-storage-seam.mmd",
+      "publishedSource": "visuals/sources/bundle-engine-and-storage-seam.mmd",
+      "publishedSvg": "visuals/diagrams/bundle-engine-and-storage-seam.svg",
+      "documentId": "architecture/bundle-engine-and-storage-seam"
     }
   ]
 }

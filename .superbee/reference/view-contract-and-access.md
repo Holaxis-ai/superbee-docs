@@ -4,7 +4,7 @@ title: View contract and access
 description: >-
   Exact registered and transient View schemas, access levels, admission,
   approval, saving, and recovery.
-superbee_updated_by: openai/codex
+superbee_updated_by: openai/codex/root
 ---
 # Scope and supported version
 
@@ -140,10 +140,10 @@ approve its current access when a launch becomes stale.
 
 # Authoritative sources
 
-- [Registry grammar and access resolution](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/core/src/page.ts)
-- [HTML admission and authorization subject](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/view-runtime/src/authorization.ts)
-- [Launch, currentness, saving, and action gate](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/view-runtime/src/index.ts)
-- [Catalog projection](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/view-runtime/src/catalog.ts)
-- [Bounded read bridge](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/view-runtime/src/bridge.ts)
-- [MCP inputs and tool registration](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/mcp-app/src/server.ts)
+- [Registry grammar and access resolution](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/src/page.ts)
+- [HTML admission and authorization subject](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/view-runtime/src/authorization.ts)
+- [Launch, currentness, saving, and action gate](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/view-runtime/src/index.ts)
+- [Catalog projection](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/view-runtime/src/catalog.ts)
+- [Bounded read bridge](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/view-runtime/src/bridge.ts)
+- [MCP inputs and tool registration](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/mcp-app/src/server.ts)
 - [Current release evidence](../sources/current-release.md)

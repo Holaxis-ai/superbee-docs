@@ -4,7 +4,7 @@ title: Host and platform support
 description: >-
   Verified operating-system and AI-host integration support for the current
   stable Superbee release.
-superbee_updated_by: openai/codex
+superbee_updated_by: openai/codex/root
 ---
 # Scope
 
@@ -23,19 +23,18 @@ accepted the change. Restart that host when instructed, then rerun setup until i
 | --- | --- | --- |
 | macOS | Supported | Node.js 20 or newer and npm are required. |
 | Linux | Supported | Node.js 20 or newer and npm are required. |
-| Windows | Not supported | The current stable npm package excludes `win32`. Wait for a release whose package metadata and verification evidence include Windows. |
+| Windows | Supported | Node.js 20 or newer and npm are required. Private state uses the user's LocalAppData boundary. |
 
-Do not bypass npm's platform restriction or treat behavior present only on `main` as released
-support.
+Treat behavior present only on `main` as unreleased until the stable package evidence includes it.
 
 # AI host integrations
 
 | Host | Stable platform path | Agent Skill | MCP registration | SessionStart hook | Setup selector |
 | --- | --- | --- | --- | --- | --- |
-| Codex | macOS and Linux | Required | Required | Recommended | `codex` |
-| Claude Code | macOS and Linux | Required | Required | Recommended | `claude-code` |
-| Claude Desktop | macOS | Not available | Required | Not available | `claude-desktop` |
-| OpenCode | macOS and Linux | Not available | Required | Recommended | `opencode` |
+| Codex | macOS, Linux, and Windows | Required | Required | Recommended | `codex` |
+| Claude Code | macOS, Linux, and Windows | Required | Required | Recommended | `claude-code` |
+| Claude Desktop | macOS and Windows | Not available | Required | Not available | `claude-desktop` |
+| OpenCode | macOS, Linux, and Windows | Not available | Required | Recommended | `opencode` |
 
 Inspect one host explicitly:
 

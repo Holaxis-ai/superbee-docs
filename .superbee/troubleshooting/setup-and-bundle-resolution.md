@@ -4,7 +4,7 @@ title: Troubleshoot setup and bundle resolution
 description: >-
   Diagnose installation, host setup, workspace selection, and local bundle
   health from their owning command receipts.
-superbee_updated_by: openai/codex
+superbee_updated_by: openai/codex/root
 ---
 # Outcome
 
@@ -210,12 +210,12 @@ For document or View presentation failures, continue with the
 
 These procedures are verified against
 [the current stable release evidence](../sources/current-release.md), the tagged
-[`0.1.3` setup planner](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/src/setup-plan.ts),
-[`0.1.3` setup tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/test/setup-plan.test.ts),
-[`0.1.3` bundle resolver](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/src/bundle.ts),
+[Tagged setup planner](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/setup-plan.ts),
+[Tagged setup tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/setup-plan.test.ts),
+[Tagged bundle resolver](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/bundle.ts),
 and
-[`0.1.3` locator tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/test/bundle-locate.test.ts).
+[Tagged locator tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/bundle-locate.test.ts).
 Bundle-health behavior is grounded in the tagged
-[`status` implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/src/commands/status.ts)
+[`status` implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/status.ts)
 and
-[`status` tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/test/status.test.ts).
+[`status` tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/status.test.ts).

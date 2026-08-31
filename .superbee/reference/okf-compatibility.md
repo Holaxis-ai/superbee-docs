@@ -4,7 +4,7 @@ title: OKF compatibility
 description: >-
   Open Knowledge Format editions, document semantics, compatibility limits, and
   migration behavior in the current stable Superbee release.
-superbee_updated_by: openai/codex
+superbee_updated_by: openai/codex/root
 ---
 # Scope
 
@@ -222,13 +222,13 @@ use a v0.1 bundle when the audit is incomplete.
 # Evidence
 
 - [Official OKF v0.2 specification at `4bc03b7`](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/4bc03b7560caa862cdeebccbeb2bced68940c9f0/okf/SPEC.md)
-- [Stable bundle engine](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/core/src/bundle.ts)
-- [Stable frontmatter parser](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/core/src/frontmatter.ts)
-- [Stable v0.2 mutation policy](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/core/src/document-write-policy.ts)
-- [Stable concept identity and reserved-file rules](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/core/src/paths.ts)
-- [Stable link resolver](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/core/src/links.ts)
-- [v0.2 read compatibility tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/core/test/okf-v0-2-read-compat.test.ts)
-- [v0.2 write contract tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/core/test/okf-v0-2-write-contract.test.ts)
-- [Workflow progress compatibility tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/core/test/progress-status.test.ts)
-- [Stable status implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/src/commands/status.ts)
-- [Stable document-read implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/src/commands/doc/read.ts)
+- [Stable bundle engine](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/src/bundle.ts)
+- [Stable frontmatter parser](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/src/frontmatter.ts)
+- [Stable v0.2 mutation policy](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/src/document-write-policy.ts)
+- [Stable concept identity and reserved-file rules](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/src/paths.ts)
+- [Stable link resolver](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/src/links.ts)
+- [v0.2 read compatibility tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/test/okf-v0-2-read-compat.test.ts)
+- [v0.2 write contract tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/test/okf-v0-2-write-contract.test.ts)
+- [Workflow progress compatibility tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/test/progress-status.test.ts)
+- [Stable status implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/status.ts)
+- [Stable document-read implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/doc/read.ts)

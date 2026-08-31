@@ -4,7 +4,7 @@ title: Migrate or upgrade safely
 description: >-
   Upgrade Superbee or move from AgentState while preserving the intended
   workspace and verifying each compatibility step.
-superbee_updated_by: openai/codex
+superbee_updated_by: openai/codex/root
 ---
 # Outcome
 
@@ -202,13 +202,13 @@ superbee doc open <document-id>
 
 # Evidence
 
-- [Private-state migration implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/src/user-state-migration.ts)
-- [Private-state recovery and migration tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/test/private-state-recoverability.test.ts)
-- [Logical progress-field implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/core/src/kinds.ts)
-- [OKF upgrade status tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/test/status.test.ts)
-- [Legacy View compatibility rules](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/core/src/page.ts)
-- [Source-only legacy View migration](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/scripts/migrate-legacy-view-names.mjs)
-- [Stable package contents and platform metadata](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/package.json)
+- [Private-state migration implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/user-state-migration.ts)
+- [Private-state recovery and migration tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/private-state-recoverability.test.ts)
+- [Logical progress-field implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/src/kinds.ts)
+- [OKF upgrade status tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/status.test.ts)
+- [Legacy View compatibility rules](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/src/page.ts)
+- [Source-only legacy View migration](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/scripts/migrate-legacy-view-names.mjs)
+- [Stable package contents and platform metadata](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/package.json)
 
 # Journey check
 

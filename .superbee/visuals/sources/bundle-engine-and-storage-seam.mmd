@@ -1,0 +1,45 @@
+flowchart TB
+  accTitle: Superbee bundle engine and storage seam
+  accDescr {
+    Human, CLI, UI, MCP, publication, and server callers enter one core bundle engine. Core owns
+    identity safety, OKF validation, query predicates, graph derivation, and mutation policy. The
+    StorageBackend contract carries versioned documents, reserved files, blobs, history, and an
+    optional head projection to filesystem, memory, or remote HTTP adapters. Backend optimization
+    cannot redefine core semantics.
+  }
+
+  subgraph callers["Interfaces and trusted consumers"]
+    direction LR
+    cli["CLI"]
+    ui["UI and MCP"]
+    publication["Publication"]
+    server["Wire router"]
+  end
+
+  subgraph engine["Core bundle engine owns meaning"]
+    semantics["Identity and OKF validation"]
+    query["Canonical query predicates"]
+    linkGraph["Links and derived backlinks"]
+    mutation["Read, decide, compare-and-swap"]
+  end
+
+  seam["StorageBackend contract<br/>documents · reserved files · blobs<br/>versions · history · capabilities"]
+
+  subgraph adapters["Adapters own persistence and transport"]
+    filesystem["FilesystemBackend<br/>files, lock, atomic replace<br/>current revision history"]
+    memory["MemoryBackend<br/>in-process maps<br/>retained version chain"]
+    remote["RemoteBackend<br/>explicit HTTP /v0<br/>preconditions and bounded retry"]
+  end
+
+  cli --> semantics
+  ui --> semantics
+  publication --> semantics
+  server --> semantics
+  semantics --> query
+  query --> linkGraph
+  linkGraph --> mutation
+  mutation --> seam
+  seam --> filesystem
+  seam --> memory
+  seam --> remote
+  remote -. "optional head push-down" .-> query

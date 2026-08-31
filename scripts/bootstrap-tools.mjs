@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { cp, mkdir, readdir, rm, stat } from "node:fs/promises";
+import { cp, mkdir, readFile, readdir, rm, stat } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
@@ -11,8 +11,9 @@ const execFileAsync = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const sourceRoot = resolve(root, ".deps/source");
 const packs = resolve(root, ".deps/packs");
+const stablePackageRoot = resolve(root, ".deps/stable-package");
 const pins = {
-  superbee: { repository: "https://github.com/Holaxis-ai/superbee.git", commit: "070426446c00bc1f04ae54007930ce726fec913c" },
+  superbee: { repository: "https://github.com/Holaxis-ai/superbee.git", commit: "77c20318205156d5020a16763e2791845f17826c" },
   portal: { repository: "https://github.com/Holaxis-ai/superbee-portal.git", commit: "ca56f8181d89800db4b68a328bac05c2b03e1e3e" },
 };
 
@@ -57,6 +58,19 @@ await mkdir(sourceRoot, { recursive: true });
 await rm(packs, { recursive: true, force: true });
 await mkdir(packs, { recursive: true });
 
+const portalConfig = JSON.parse(await readFile(resolve(root, "portal.config.json"), "utf8"));
+const stableVersionLabel = portalConfig?.documentation?.versionLabel;
+if (typeof stableVersionLabel !== "string" || !/^v\d+\.\d+\.\d+$/.test(stableVersionLabel)) {
+  throw new Error("portal documentation.versionLabel must be a stable v<major>.<minor>.<patch> release");
+}
+const stableVersion = stableVersionLabel.slice(1);
+await rm(stablePackageRoot, { recursive: true, force: true });
+await mkdir(stablePackageRoot, { recursive: true });
+await run("npm", [
+  "install", "--prefix", stablePackageRoot, "--no-save", "--package-lock=false", "--ignore-scripts",
+  `superbee@${stableVersion}`,
+]);
+
 const superbee = await exactCheckout("superbee", pins.superbee);
 await run("npm", ["ci"], superbee);
 await run("npm", ["run", "build", "-w", "superbee"], superbee);
@@ -83,4 +97,4 @@ await run("npm", ["pack", resolve(portal, "packages/docs-mkdocs"), "--pack-desti
 const packageFiles = (await readdir(packs)).filter((name) => name.endsWith(".tgz")).map((name) => resolve(packs, name));
 await removeBootstrappedPackages(root);
 await run("npm", ["install", "--no-save", "--package-lock=false", "--legacy-peer-deps", ...packageFiles]);
-console.log(`tools_bootstrap: complete\nsuperbee: ${pins.superbee.commit}\nportal: ${pins.portal.commit}`);
+console.log(`tools_bootstrap: complete\nsuperbee: ${pins.superbee.commit}\nstable package: superbee@${stableVersion}\nportal: ${pins.portal.commit}`);
