@@ -24,7 +24,8 @@ jobs:
       - run: npm run tools:bootstrap
       - name: Bootstrap the exact MkDocs environment
         run: |
-          python -m pip install uv==0.9.18
+          UV_VERSION=$(node --input-type=module -e 'import { MKDOCS_UV_VERSION_V1 } from "@superbee/docs-mkdocs"; process.stdout.write(MKDOCS_UV_VERSION_V1)')
+          python -m pip install "uv==$UV_VERSION"
           npm run portal:build
           npm run mkdocs:sync
       - run: npm run check

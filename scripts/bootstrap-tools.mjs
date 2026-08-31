@@ -14,7 +14,7 @@ const packs = resolve(root, ".deps/packs");
 const stablePackageRoot = resolve(root, ".deps/stable-package");
 const pins = {
   superbee: { repository: "https://github.com/Holaxis-ai/superbee.git", commit: "77c20318205156d5020a16763e2791845f17826c" },
-  portal: { repository: "https://github.com/Holaxis-ai/superbee-portal.git", commit: "7328eb117cf33ca467ec12c07d8011afa8760b34" },
+  portal: { repository: "https://github.com/Holaxis-ai/superbee-portal.git", commit: "24010319dc897184d2814ce84bed6d21ebd45f0e" },
 };
 
 await ensureCompleteRepositoryHistory(root);
