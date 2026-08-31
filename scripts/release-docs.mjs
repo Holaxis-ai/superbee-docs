@@ -322,8 +322,11 @@ async function updatePortalVersionLabel(options, version) {
   }
   const versionLabel = stableReleaseVersionLabel(version);
   let changed = false;
-  if (config.documentation.versionLabel !== versionLabel) {
-    config.documentation.versionLabel = versionLabel;
+  if (!config.documentation.product || typeof config.documentation.product !== "object" || Array.isArray(config.documentation.product)) {
+    throw new Error("portal.config.json must declare documentation.product");
+  }
+  if (config.documentation.product.versionLabel !== versionLabel) {
+    config.documentation.product.versionLabel = versionLabel;
     changed = true;
   }
   const releases = config.documentation.navigation?.find((section) => section.documents?.includes("releases/current"));
@@ -376,13 +379,14 @@ async function immutableReleaseSupport(options) {
 }
 
 async function updateDocumentationSelection(options) {
-  const path = resolve(options.root, "documentation-selection.json");
-  const selection = JSON.parse(await readFile(path, "utf8"));
-  if (!Array.isArray(selection.supportingDocuments)) throw new Error("documentation selection must declare supportingDocuments");
-  const expected = [...new Set([...selection.supportingDocuments, ...await immutableReleaseSupport(options)])].sort();
-  if (JSON.stringify(selection.supportingDocuments) === JSON.stringify(expected)) return { changed: false, supportingDocuments: expected };
-  selection.supportingDocuments = expected;
-  await writeFile(path, `${JSON.stringify(selection, null, 2)}\n`);
+  const path = resolve(options.root, "portal.config.json");
+  const config = JSON.parse(await readFile(path, "utf8"));
+  const supportingDocuments = config.documentation?.supportingDocuments;
+  if (!Array.isArray(supportingDocuments)) throw new Error("documentation config must declare supportingDocuments");
+  const expected = [...new Set([...supportingDocuments, ...await immutableReleaseSupport(options)])].sort();
+  if (JSON.stringify(supportingDocuments) === JSON.stringify(expected)) return { changed: false, supportingDocuments: expected };
+  config.documentation.supportingDocuments = expected;
+  await writeFile(path, `${JSON.stringify(config, null, 2)}\n`);
   return { changed: true, supportingDocuments: expected };
 }
 
@@ -476,10 +480,9 @@ async function check(options) {
   if (releaseIds.some((id) => /^releases\/\d+\.\d+\.\d+/.test(id))) throw new Error("Portal navigation must not pin a versioned release document");
   assertStableReleaseVersionLabel(config.documentation, version);
 
-  const selection = JSON.parse(await readFile(resolve(options.root, "documentation-selection.json"), "utf8"));
   const requiredSupport = await immutableReleaseSupport(options);
-  const missingSupport = requiredSupport.filter((id) => !selection.supportingDocuments?.includes(id));
-  if (missingSupport.length) throw new Error(`documentation selection omits immutable release history: ${missingSupport.join(", ")}`);
+  const missingSupport = requiredSupport.filter((id) => !config.documentation?.supportingDocuments?.includes(id));
+  if (missingSupport.length) throw new Error(`documentation config omits immutable release history: ${missingSupport.join(", ")}`);
 
   const scratch = await mkdtemp(resolve(tmpdir(), "superbee-release-check-"));
   try {

@@ -10,10 +10,10 @@ into this repository or its `.superbee/` bundle.
 - Product behavior answers to exact Superbee source, tests, schemas, packed packages, and verified
   release receipts. Documentation interprets those sources; it never overrides them.
 - `.superbee/` is the public documentation bundle and documentation authority.
-- `portal.config.json` owns primary navigation; `documentation-selection.json` owns the explicit
-  supporting-document allowlist shared by documentation outputs, plus the optional `agentGuidance`
-  pointer naming which section of which selected page `llms.txt` quotes. That pointer never carries
-  prose: the quoted bytes and their links stay owned by the published document it names.
+- `portal.config.json` owns the renderer-neutral product identity, navigation, supporting-document
+  allowlist, branding, and optional guidance pointer shared by both outputs. Portal-only and
+  MkDocs-only settings live under their target blocks. The guidance pointer never carries prose:
+  the quoted bytes and their links stay owned by the published document it names.
 - Generated static SVG, Portal data, MkDocs input/site files, and deployed bytes are projections of
   the bundle and declared source inputs.
 - `scripts/deployment-assets.mjs` owns host deployment configuration and assembles the uploaded

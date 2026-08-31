@@ -16,21 +16,20 @@ const sha256 = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("h
 test("one owned projection drives exact Portal and MkDocs documentation outputs", async () => {
   const temporary = await mkdtemp(path.join(tmpdir(), "superbee-docs-dual-output-"));
   try {
-    const [composed, config, selection, publication] = await Promise.all([
+    const [composed, config, publication] = await Promise.all([
       composeDocumentationOutputs({ mkdocsOutput: temporary }),
       json("portal.config.json"),
-      json("documentation-selection.json"),
       json("diagrams/publications.json"),
     ]);
     const { result, artifact, projectionManifest, mkdocsManifest } = composed;
     const navigated = config.documentation.navigation.flatMap((section) => section.documents);
-    const selected = [...new Set([...navigated, ...selection.supportingDocuments])].sort();
+    const selected = [...new Set([...navigated, ...config.documentation.supportingDocuments])].sort();
 
     assert.equal(result.selectedDocuments, 52);
     assert.equal(result.navigatedDocuments, 40);
     assert.equal(result.supportingDocuments, 12);
     assert.deepEqual(projectionManifest.selectedDocuments, selected);
-    assert.deepEqual(projectionManifest.supportingDocuments, selection.supportingDocuments);
+    assert.deepEqual(projectionManifest.supportingDocuments, config.documentation.supportingDocuments);
     for (const id of [
       "get-started/verify-host-setup",
       "guides/choose-privacy-and-bundle-boundaries",
@@ -136,11 +135,11 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     // The agent entry point quotes one exact section of one published page, with every internal
     // link resolved to the exact published Markdown of a selected document.
     const llms = Buffer.from(artifact.files.get("llms.txt")).toString("utf8");
-    const bound = await readFile(path.join(".superbee", `${selection.agentGuidance.documentId}.md`), "utf8");
-    assert.match(llms, new RegExp(`\n## ${selection.agentGuidance.label}\n\n`));
-    const quoted = llms.slice(llms.indexOf(`## ${selection.agentGuidance.label}`)).split("\n## ")[0];
+    const bound = await readFile(path.join(".superbee", `${config.documentation.guidance.documentId}.md`), "utf8");
+    assert.match(llms, new RegExp(`\n## ${config.documentation.guidance.label}\n\n`));
+    const quoted = llms.slice(llms.indexOf(`## ${config.documentation.guidance.label}`)).split("\n## ")[0];
     const boundLines = bound.split("\n");
-    const boundStart = boundLines.indexOf(`# ${selection.agentGuidance.heading}`);
+    const boundStart = boundLines.indexOf(`# ${config.documentation.guidance.heading}`);
     assert.ok(boundStart >= 0, "the bound heading must exist in its source document");
     const boundEnd = boundLines.findIndex((line, index) => index > boundStart && /^#{1}\s/.test(line));
     for (const line of boundLines.slice(boundStart + 1, boundEnd === -1 ? undefined : boundEnd)) {
@@ -152,7 +151,7 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
       const relative = new URL(href).pathname.replace(/^\//, "");
       assert.ok(artifact.files.has(relative), href);
     }
-    assert.ok(llms.indexOf(`## ${selection.agentGuidance.label}`) < llms.indexOf("## Get started"));
+    assert.ok(llms.indexOf(`## ${config.documentation.guidance.label}`) < llms.indexOf("## Get started"));
     assert.match(llms, /## Machine-readable resources\n\n- \[Documentation index\]\(https:\/\/docs\.getsuperbee\.com\/\)/);
     assert.match(llms, /- \[Crawler policy\]\(https:\/\/docs\.getsuperbee\.com\/robots\.txt\)/);
     assert.match(llms, /- \[Source repository\]\(https:\/\/github\.com\/Holaxis-ai\/superbee\)/);
@@ -177,8 +176,8 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     // Site metadata asserts only facts the projection already carries.
     const graph = JSON.parse(startHerePage.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
     assert.deepEqual(graph["@graph"].map((node) => node["@type"]), ["WebSite", "SoftwareApplication", "TechArticle"]);
-    assert.equal(graph["@graph"][1].codeRepository, config.documentation.repositoryUrl);
-    assert.equal(graph["@graph"][1].softwareVersion, config.documentation.versionLabel);
+    assert.equal(graph["@graph"][1].codeRepository, config.documentation.product.repositoryUrl);
+    assert.equal(graph["@graph"][1].softwareVersion, config.documentation.product.versionLabel);
     for (const node of graph["@graph"]) {
       for (const forbidden of ["address", "telephone", "email", "contactPoint", "sameAs", "image", "logo"]) {
         assert.equal(Object.hasOwn(node, forbidden), false, `${node["@type"]}.${forbidden} has no source of record`);
@@ -198,7 +197,7 @@ test("the publication path rejects a release label that disagrees with its captu
     await writeFile(path.join(root, ".superbee", "index.md"), "---\nokf_version: '0.2'\n---\n# Test bundle\n");
     await writeFile(path.join(root, ".superbee", "releases", "current.md"), "---\ntype: Release\nversion: 1.2.3\n---\n# Current release\n");
     const config = await json("portal.config.json");
-    config.documentation.versionLabel = "v9.9.9";
+    config.documentation.product.versionLabel = "v9.9.9";
     await writeFile(path.join(root, "portal.config.json"), JSON.stringify(config));
 
     await assert.rejects(

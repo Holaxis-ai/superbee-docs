@@ -16,9 +16,13 @@ test("consumer uses only public packed package surfaces and nested versioned con
     json("wrangler.jsonc"),
   ]);
   assert.equal(consumer.workspaces, undefined);
-  assert.equal(config.schema, "https://getsuperbee.com/schemas/docs-site/v1");
+  assert.equal(config.schema, "https://getsuperbee.com/schemas/docs-site/v2");
   assert.equal(config.portal.schema, "https://getsuperbee.com/schemas/portal-config/v1");
-  assert.equal(config.documentation.schema, "https://getsuperbee.com/schemas/portal-docs/v1");
+  assert.equal(config.documentation.schema, "https://getsuperbee.com/schemas/documentation-source-config/v1");
+  assert.equal(config.targets.portal.schema, "https://getsuperbee.com/schemas/portal-docs-target/v1");
+  assert.equal(config.targets.mkdocs.schema, "https://getsuperbee.com/schemas/mkdocs-documentation-config/v1");
+  assert.equal(config.portal.title, undefined);
+  assert.equal(config.portal.description, undefined);
   assert.equal(config.presentation, undefined);
   assert.equal(config.views, undefined);
   assert.equal(diagram.renderer, RENDERER_IDENTITY);
@@ -46,9 +50,8 @@ test("consumer uses only public packed package surfaces and nested versioned con
 });
 
 test("built site preserves documentation, View, diagram, discovery, and presentation agreement", async () => {
-  const [config, selection, manifest, home, llms, portalRobots, mkdocsLlms, mkdocsRobots, search, whatSuperbeePage, domainModelPage, privacyPage, sharingPage, handoffPage, releaseNotesPage, currentReleasePage, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
+  const [config, manifest, home, llms, portalRobots, mkdocsLlms, mkdocsRobots, search, whatSuperbeePage, domainModelPage, privacyPage, sharingPage, handoffPage, releaseNotesPage, currentReleasePage, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
     json("portal.config.json"),
-    json("documentation-selection.json"),
     json("dist/data/portal-manifest.json"),
     readFile("dist/index.html", "utf8"),
     readFile("dist/llms.txt", "utf8"),
@@ -138,7 +141,7 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   const searchById = new Map(search.documents.map((document) => [document.id, document]));
   const selectedDocuments = [...new Set([
     ...config.documentation.navigation.flatMap((section) => section.documents),
-    ...selection.supportingDocuments,
+    ...config.documentation.supportingDocuments,
   ])];
   for (const id of selectedDocuments) {
     const source = await readFile(`.superbee/${id}.md`);

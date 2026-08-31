@@ -102,7 +102,7 @@ async function main() {
     return;
   }
   const config = JSON.parse(await readFile(resolve(root, "portal.config.json"), "utf8"));
-  const version = String(config.documentation.versionLabel).replace(/^v/, "");
+  const version = String(config.documentation.product.versionLabel).replace(/^v/, "");
   const identity = JSON.parse(await run(options.bin, ["version", "--json"]));
   if (identity.identity?.package?.version !== version || identity.identity?.artifact?.channel !== "npm-package") {
     throw new Error(`reference binary must be npm-package superbee@${version}`);

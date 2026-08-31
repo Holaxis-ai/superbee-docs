@@ -10,14 +10,12 @@ import {
 } from "@superbee/docs-projection";
 import {
   materializeMkDocsDocumentationV1,
-  MKDOCS_DOCUMENTATION_CONFIG_V1,
 } from "@superbee/docs-mkdocs";
 import {
   createDocumentationPresentationContributionFromProjectionV1,
-  DOCUMENTATION_PORTAL_TARGET_V1,
 } from "@superbee/portal-docs";
 import { checkPublishedAgreement } from "@superbee/docs-tooling";
-import { readDocumentationSiteConfigV1 } from "@superbee/docs-tooling/site";
+import { readDocumentationSiteConfigV2 } from "@superbee/docs-tooling/site";
 import { capturePublicationSnapshot, PUBLICATION_SNAPSHOT_V1 } from "superbee/publication";
 import {
   authorizePortalWrite,
@@ -26,7 +24,7 @@ import {
   writePortalArtifact,
 } from "superbee-portal";
 
-import { validateDocumentationSelection } from "./documentation-selection.mjs";
+import { validateDocumentationSourceFiles } from "./documentation-source-files.mjs";
 import { deriveDocumentationFreshness } from "./documentation-freshness.mjs";
 import { assertSnapshotReleaseVersionLabel } from "./release-version-label.mjs";
 
@@ -67,14 +65,10 @@ function exactDiagramRows(manifest, bindings) {
 }
 
 async function projectionInput({ root, config, snapshot, diagramAgreement }) {
-  const selectionFile = path.join(root, "documentation-selection.json");
-  const [selection, diagramManifest] = await Promise.all([
-    json(selectionFile, "documentation selection"),
+  const [sourceFiles, diagramManifest] = await Promise.all([
+    validateDocumentationSourceFiles(config.documentation, root),
     json(config.diagrams.manifest, "static diagram manifest"),
   ]);
-  const { supportingDocuments, agentGuidance } = await validateDocumentationSelection(selection, {
-    documentation: config.documentation,
-  }, root);
   const diagrams = exactDiagramRows(diagramManifest, diagramAgreement.bindings);
   const freshness = await deriveDocumentationFreshness({
     root,
@@ -82,7 +76,7 @@ async function projectionInput({ root, config, snapshot, diagramAgreement }) {
     snapshot,
     documentIds: [...new Set([
       ...config.documentation.navigation.flatMap((section) => section.documents),
-      ...supportingDocuments,
+      ...sourceFiles.supportingDocuments,
     ])],
   });
   let brandMark;
@@ -92,19 +86,17 @@ async function projectionInput({ root, config, snapshot, diagramAgreement }) {
     brandMark = { blob: blob.key, digest: blob.object.digest };
   }
   return {
-    agentGuidance,
+    guidance: sourceFiles.guidance,
     schema: DOCUMENTATION_PROJECTION_CONFIG_V1,
     product: {
-      name: config.documentation.productName,
-      ...(config.documentation.versionLabel ? { versionLabel: config.documentation.versionLabel } : {}),
-      ...(config.documentation.repositoryUrl ? { repositoryUrl: config.documentation.repositoryUrl } : {}),
+      ...config.documentation.product,
     },
     home: config.documentation.home,
     navigation: config.documentation.navigation.map((section) => ({
       label: section.label,
       documents: [...section.documents],
     })),
-    supportingDocuments: [...supportingDocuments],
+    supportingDocuments: [...sourceFiles.supportingDocuments],
     ...(config.documentation.operationalTypes?.length
       ? { operationalTypes: [...config.documentation.operationalTypes] }
       : {}),
@@ -125,7 +117,7 @@ export async function composeDocumentationOutputs({
   writePortal = false,
 } = {}) {
   const realRoot = await realpath(path.resolve(root));
-  const config = await readDocumentationSiteConfigV1(path.resolve(realRoot, configFile));
+  const config = await readDocumentationSiteConfigV2(path.resolve(realRoot, configFile));
   if (!config.diagrams) throw new Error("dual documentation outputs require verified static diagram configuration");
   const authority = writePortal ? await authorizePortalWrite(config.bundle, config.output) : undefined;
   const sourceDirectory = authority?.sourceDirectory ?? config.bundle;
@@ -139,17 +131,9 @@ export async function composeDocumentationOutputs({
   try {
     assertSnapshotReleaseVersionLabel(config.documentation, snapshot);
     const diagramAgreement = await checkPublishedAgreement({ root: realRoot, configPath: config.file });
-    const { agentGuidance, ...input } = await projectionInput({ root: realRoot, config, snapshot, diagramAgreement });
+    const { guidance, ...input } = await projectionInput({ root: realRoot, config, snapshot, diagramAgreement });
     projection = await createDocumentationProjectionV1(snapshot, input);
-    contribution = await createDocumentationPresentationContributionFromProjectionV1(projection, {
-      schema: DOCUMENTATION_PORTAL_TARGET_V1,
-      siteUrl: config.documentation.siteUrl,
-      indexing: "public",
-      ...(agentGuidance ? { guidance: agentGuidance } : {}),
-      ...(config.portal.title ? { title: config.portal.title } : {}),
-      ...(config.portal.description ? { description: config.portal.description } : {}),
-      attribution: config.portal.attribution ?? { mode: "superbee" },
-    });
+    contribution = await createDocumentationPresentationContributionFromProjectionV1(projection, config.targets.portal);
     const artifact = await createPortalArtifact(snapshot, config.portal, { presentation: contribution });
     const portalReceipt = authority ? await writePortalArtifact(artifact, authority) : undefined;
 
@@ -160,12 +144,7 @@ export async function composeDocumentationOutputs({
 
     const mkdocs = await materializeMkDocsDocumentationV1({
       projection,
-      config: {
-        schema: MKDOCS_DOCUMENTATION_CONFIG_V1,
-        siteUrl: config.documentation.siteUrl,
-        indexing: "public",
-        ...(agentGuidance ? { guidance: agentGuidance } : {}),
-      },
+      config: config.targets.mkdocs,
       output: path.resolve(mkdocsOutput),
     });
     const result = {
@@ -176,7 +155,7 @@ export async function composeDocumentationOutputs({
       selectedDocuments: projection.manifest.selectedDocuments.length,
       navigatedDocuments: projection.manifest.navigation.reduce((total, section) => total + section.documents.length, 0),
       supportingDocuments: projection.manifest.supportingDocuments.length,
-      ...(agentGuidance ? { agentGuidance: { documentId: agentGuidance.documentId, heading: agentGuidance.heading } } : {}),
+      ...(guidance ? { agentGuidance: { documentId: guidance.documentId, heading: guidance.heading } } : {}),
       relationships: projection.manifest.relationships.length,
       diagrams: projection.manifest.assets.diagrams.map((row) => ({ id: row.id, digest: row.object.digest })),
       ...(projection.manifest.assets.brandMark ? { brandDigest: projection.manifest.assets.brandMark.object.digest } : {}),

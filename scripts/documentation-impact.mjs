@@ -89,7 +89,7 @@ async function main(args) {
     const config = JSON.parse(await readFile(path.join(root, "portal.config.json"), "utf8"));
     if (!config.documentation?.operationalTypes?.includes(TYPE)) fail(`${TYPE} must be declared in documentation.operationalTypes`);
     const selected = new Set(config.documentation.navigation.flatMap((section) => section.documents));
-    const support = JSON.parse(await readFile(path.join(root, "documentation-selection.json"), "utf8")).supportingDocuments;
+    const support = config.documentation.supportingDocuments;
     for (const id of [...selected, ...support]) if (id.startsWith(PREFIX)) fail(`operational record '${id}' is selected for human presentation`);
     console.log(JSON.stringify({ ok: true, command: "documentation impact check", records: rows.length }));
     return;

@@ -4,7 +4,7 @@ import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
-import { validateDocumentationSelection } from "./documentation-selection.mjs";
+import { validateDocumentationSourceFiles } from "./documentation-source-files.mjs";
 
 const execFileAsync = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -42,11 +42,8 @@ for (const path of await files(root)) {
   }
 }
 
-const [selection, portalConfig] = await Promise.all([
-  readFile(resolve(root, "documentation-selection.json"), "utf8").then(JSON.parse),
-  readFile(resolve(root, "portal.config.json"), "utf8").then(JSON.parse),
-]);
-const { supportingDocuments } = await validateDocumentationSelection(selection, portalConfig, root);
+const portalConfig = JSON.parse(await readFile(resolve(root, "portal.config.json"), "utf8"));
+const { supportingDocuments } = await validateDocumentationSourceFiles(portalConfig.documentation, root);
 
 const { stdout } = await execFileAsync("superbee", ["status", "--dir", resolve(root, ".superbee"), "--json"], { maxBuffer: 4 * 1024 * 1024 });
 const status = JSON.parse(stdout);
