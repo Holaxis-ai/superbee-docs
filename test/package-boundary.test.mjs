@@ -9,11 +9,12 @@ const json = async (file) => JSON.parse(await readFile(file, "utf8"));
 const sha256 = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
 
 test("consumer uses only public packed package surfaces and nested versioned config", async () => {
-  const [consumer, config, diagram, wrangler] = await Promise.all([
+  const [consumer, config, diagram, wrangler, composition] = await Promise.all([
     json("package.json"),
     json("portal.config.json"),
     json("diagrams/manifest.json"),
     json("wrangler.jsonc"),
+    readFile("scripts/documentation-outputs.mjs", "utf8"),
   ]);
   assert.equal(consumer.workspaces, undefined);
   assert.equal(config.schema, "https://getsuperbee.com/schemas/docs-site/v2");
@@ -42,6 +43,18 @@ test("consumer uses only public packed package surfaces and nested versioned con
   );
   assert.equal(consumer.scripts["mkdocs:sync"], "superbee-docs-mkdocs sync");
   assert.equal(consumer.scripts["mkdocs:build"], "superbee-docs-mkdocs build");
+  assert.match(composition, /composeDocumentationSiteV2/);
+  assert.match(composition, /startDocumentationSitePreviewV2/);
+  assert.match(composition, /authorizePortalWrite/);
+  for (const duplicateLifecycle of [
+    "capturePublicationSnapshot",
+    "createDocumentationProjectionV1",
+    "createDocumentationPresentationContributionFromProjectionV1",
+    "createPortalArtifact",
+    "materializeMkDocsDocumentationV1",
+    "startPortalPreview",
+    "writePortalArtifact",
+  ]) assert.equal(composition.includes(duplicateLifecycle), false, duplicateLifecycle);
   assert.deepEqual(wrangler.routes, [{
     pattern: "docs.getsuperbee.com",
     custom_domain: true,

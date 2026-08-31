@@ -5,25 +5,18 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import {
-  createDocumentationProjectionV1,
   DOCUMENTATION_PROJECTION_CONFIG_V1,
 } from "@superbee/docs-projection";
-import {
-  materializeMkDocsDocumentationV1,
-} from "@superbee/docs-mkdocs";
-import {
-  createDocumentationPresentationContributionFromProjectionV1,
-} from "@superbee/portal-docs";
 import { readPortalWebMcpBrowserAssetV0 } from "@superbee/portal-webmcp/asset/v0";
 import { readPortalClientBrowserAssetV2 } from "superbee-portal/client/v2/asset";
 import { checkPublishedAgreement } from "@superbee/docs-tooling";
-import { readDocumentationSiteConfigV2 } from "@superbee/docs-tooling/site";
-import { capturePublicationSnapshot, PUBLICATION_SNAPSHOT_V1 } from "superbee/publication";
+import {
+  composeDocumentationSiteV2,
+  readDocumentationSiteConfigV2,
+  startDocumentationSitePreviewV2,
+} from "@superbee/docs-tooling/site";
 import {
   authorizePortalWrite,
-  createPortalArtifact,
-  startPortalPreview,
-  writePortalArtifact,
 } from "superbee-portal";
 
 import { validateDocumentationSourceFiles } from "./documentation-source-files.mjs";
@@ -131,11 +124,7 @@ async function projectionInput({ root, config, snapshot, diagramAgreement }) {
   };
 }
 
-/**
- * Compose both public documentation outputs from one captured snapshot and one owned projection.
- * The source snapshot is closed before the MkDocs adapter reads the projection.
- */
-export async function composeDocumentationOutputs({
+async function documentationCompositionOptions({
   root = ".",
   configFile = "portal.config.json",
   mkdocsOutput,
@@ -145,76 +134,81 @@ export async function composeDocumentationOutputs({
   const config = await readDocumentationSiteConfigV2(path.resolve(realRoot, configFile));
   if (!config.diagrams) throw new Error("dual documentation outputs require verified static diagram configuration");
   const authority = writePortal ? await authorizePortalWrite(config.bundle, config.output) : undefined;
-  const sourceDirectory = authority?.sourceDirectory ?? config.bundle;
-  const snapshot = await capturePublicationSnapshot({
-    schema: PUBLICATION_SNAPSHOT_V1,
-    source: { kind: "filesystem", root: sourceDirectory },
-  });
-  let projection;
-  let contribution;
-  let snapshotClosed = false;
-  try {
-    assertSnapshotReleaseVersionLabel(config.documentation, snapshot);
-    const diagramAgreement = await checkPublishedAgreement({ root: realRoot, configPath: config.file });
-    const { guidance, ...input } = await projectionInput({ root: realRoot, config, snapshot, diagramAgreement });
-    projection = await createDocumentationProjectionV1(snapshot, input);
-    contribution = await createDocumentationPresentationContributionFromProjectionV1(
-      projection,
-      config.targets.portal,
-      { assets: await agentToolAssets() },
-    );
-    const artifact = await createPortalArtifact(snapshot, config.portal, { presentation: contribution });
-    const portalReceipt = authority ? await writePortalArtifact(artifact, authority) : undefined;
+  return {
+    config,
+    sourceDirectory: authority?.sourceDirectory ?? config.bundle,
+    mkdocsOutput: path.resolve(mkdocsOutput),
+    ...(authority ? { portalAuthority: authority } : {}),
+    prepareProjection: async ({ snapshot }) => {
+      assertSnapshotReleaseVersionLabel(config.documentation, snapshot);
+      const diagramAgreement = await checkPublishedAgreement({ root: realRoot, configPath: config.file });
+      const { guidance, ...projectionConfig } = await projectionInput({ root: realRoot, config, snapshot, diagramAgreement });
+      return {
+        projectionConfig,
+        portalAssets: await agentToolAssets(),
+        metadata: { guidance },
+      };
+    },
+  };
+}
 
-    await contribution.close();
-    contribution = undefined;
-    await snapshot.close();
-    snapshotClosed = true;
+function documentationOutputsResult(composition) {
+  const {
+    artifact,
+    portalReceipt,
+    projectionManifest,
+    mkdocsManifest,
+    mkdocsOutput,
+    metadata,
+  } = composition;
+  const result = {
+    schema: DOCUMENTATION_OUTPUTS_RESULT_V1,
+    ok: true,
+    snapshotDigest: projectionManifest.snapshotDigest,
+    projectionDigest: projectionManifest.projectionDigest,
+    selectedDocuments: projectionManifest.selectedDocuments.length,
+    navigatedDocuments: projectionManifest.navigation.reduce((total, section) => total + section.documents.length, 0),
+    supportingDocuments: projectionManifest.supportingDocuments.length,
+    ...(metadata?.guidance
+      ? { agentGuidance: { documentId: metadata.guidance.documentId, heading: metadata.guidance.heading } }
+      : {}),
+    relationships: projectionManifest.relationships.length,
+    diagrams: projectionManifest.assets.diagrams.map((row) => ({ id: row.id, digest: row.object.digest })),
+    ...(projectionManifest.assets.brandMark ? { brandDigest: projectionManifest.assets.brandMark.object.digest } : {}),
+    portal: {
+      artifactDigest: artifact.manifest.artifactDigest,
+      snapshotDigest: artifact.manifest.snapshotDigest,
+      files: artifact.files.size,
+      ...(portalReceipt ? { output: portalReceipt.output } : {}),
+    },
+    mkdocs: {
+      output: mkdocsOutput,
+      projectionDigest: mkdocsManifest.projectionDigest,
+      materializationDigest: mkdocsManifest.materializationDigest,
+      documents: mkdocsManifest.documents.length,
+      diagrams: mkdocsManifest.diagrams.map((row) => ({ id: row.id, digest: row.sourceDigest })),
+      ...(mkdocsManifest.brandMark ? { brandDigest: mkdocsManifest.brandMark.sourceDigest } : {}),
+    },
+  };
+  return { result, artifact, projectionManifest, mkdocsManifest };
+}
 
-    const mkdocs = await materializeMkDocsDocumentationV1({
-      projection,
-      config: config.targets.mkdocs,
-      output: path.resolve(mkdocsOutput),
-    });
-    const result = {
-      schema: DOCUMENTATION_OUTPUTS_RESULT_V1,
-      ok: true,
-      snapshotDigest: projection.manifest.snapshotDigest,
-      projectionDigest: projection.manifest.projectionDigest,
-      selectedDocuments: projection.manifest.selectedDocuments.length,
-      navigatedDocuments: projection.manifest.navigation.reduce((total, section) => total + section.documents.length, 0),
-      supportingDocuments: projection.manifest.supportingDocuments.length,
-      ...(guidance ? { agentGuidance: { documentId: guidance.documentId, heading: guidance.heading } } : {}),
-      relationships: projection.manifest.relationships.length,
-      diagrams: projection.manifest.assets.diagrams.map((row) => ({ id: row.id, digest: row.object.digest })),
-      ...(projection.manifest.assets.brandMark ? { brandDigest: projection.manifest.assets.brandMark.object.digest } : {}),
-      portal: {
-        artifactDigest: artifact.manifest.artifactDigest,
-        snapshotDigest: artifact.manifest.snapshotDigest,
-        files: artifact.files.size,
-        ...(portalReceipt ? { output: portalReceipt.output } : {}),
-      },
-      mkdocs: {
-        output: mkdocs.output,
-        projectionDigest: mkdocs.manifest.projectionDigest,
-        materializationDigest: mkdocs.manifest.materializationDigest,
-        documents: mkdocs.manifest.documents.length,
-        diagrams: mkdocs.manifest.diagrams.map((row) => ({ id: row.id, digest: row.sourceDigest })),
-        ...(mkdocs.manifest.brandMark ? { brandDigest: mkdocs.manifest.brandMark.sourceDigest } : {}),
-      },
-    };
-    return { result, artifact, projectionManifest: projection.manifest, mkdocsManifest: mkdocs.manifest };
-  } finally {
-    try {
-      if (contribution) await contribution.close();
-    } finally {
-      try {
-        if (!snapshotClosed) await snapshot.close();
-      } finally {
-        if (projection) await projection.close();
-      }
-    }
-  }
+/** Compose both outputs through the package-owned one-snapshot, one-projection lifecycle. */
+export async function composeDocumentationOutputs(options = {}) {
+  const composition = await composeDocumentationSiteV2(await documentationCompositionOptions(options));
+  return documentationOutputsResult(composition);
+}
+
+export async function startDocumentationOutputsPreview(options = {}, previewOptions = {}) {
+  const preview = await startDocumentationSitePreviewV2(
+    await documentationCompositionOptions({ ...options, writePortal: true }),
+    previewOptions,
+  );
+  return {
+    ...documentationOutputsResult(preview.composition),
+    preview: preview.result,
+    close: preview.close,
+  };
 }
 
 async function run(command, options = {}) {
@@ -226,20 +220,17 @@ async function run(command, options = {}) {
     ? (temporary = await mkdtemp(path.join(tmpdir(), "superbee-docs-dual-check-")))
     : path.resolve(".tmp/mkdocs");
   try {
-    const composed = await composeDocumentationOutputs({
-      root: ".",
-      configFile: "portal.config.json",
-      mkdocsOutput,
-      writePortal: command !== "check",
-    });
+    const input = { root: ".", configFile: "portal.config.json", mkdocsOutput };
+    const composed = command === "preview"
+      ? await startDocumentationOutputsPreview(input, { port: options.port })
+      : await composeDocumentationOutputs({ ...input, writePortal: command === "build" });
     if (command !== "preview") {
       console.log(JSON.stringify({ command: `documentation ${command}`, ...composed.result }));
       return;
     }
-    const preview = await startPortalPreview(composed.result.portal.output, { port: options.port });
-    console.log(JSON.stringify({ command: "documentation preview", ...composed.result, preview: { url: preview.url, loopback: true } }));
+    console.log(JSON.stringify({ command: "documentation preview", ...composed.result, preview: composed.preview }));
     await new Promise((resolve) => {
-      const stop = () => void preview.close().finally(resolve);
+      const stop = () => void composed.close().finally(resolve);
       process.once("SIGINT", stop);
       process.once("SIGTERM", stop);
     });
