@@ -4,17 +4,17 @@ title: Share and synchronize a Git-backed bundle
 description: >-
   Join, refresh, share, and recover a Git-backed Superbee bundle without
   crossing its publication boundary.
-superbee_updated_by: openai/codex
+superbee_updated_by: openai/codex/root
 ---
 # Outcome
 
 Join a project that already shares a Superbee bundle, refresh incoming work without publishing
 local changes, and use the correct sharing path for the bundle's Git mode.
 
-This guide is for macOS and Linux users of [the current stable release](../releases/current.md). It
+This guide is for macOS, Linux, and Windows users of [the current stable release](../releases/current.md). It
 is verified against the package identity in the current release evidence, source commit
-`f4e1c37349627030f8201ff52028f71a9c92570a`, and the tagged synchronization and SessionStart tests
-linked below. The stable package requires Node.js 20 or newer and excludes Windows.
+`38e4bd1779a14c2518a7f3930ab2d9e26a76f889`, and the tagged synchronization and SessionStart tests
+linked below. The stable package requires Node.js 20 or newer.
 
 # Before you join
 
@@ -196,15 +196,15 @@ For local document persistence before sharing, see
 # Evidence
 
 - [Current stable release evidence](../sources/current-release.md)
-- [Tagged sync command implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/src/commands/sync/orchestrate.ts)
-- [Tagged channel classification](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/board-git/src/channel.ts)
-- [Tagged SessionStart implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/src/commands/session-start.ts)
-- [Tagged opportunistic refresh implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/board-git/src/autopull.ts)
-- [Join, provisioning, and full-sync tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/test/sync.test.ts)
-- [Conflict recovery acceptance tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/test/sync-conflict.test.ts)
-- [In-tree mode tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/test/sync-intree.test.ts)
-- [SessionStart awareness and failure tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/test/session-start.test.ts)
-- [Opportunistic refresh tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.3/packages/cli/test/autopull.test.ts)
+- [Tagged sync command implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/sync/orchestrate.ts)
+- [Tagged channel classification](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/board-git/src/channel.ts)
+- [Tagged SessionStart implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/session-start.ts)
+- [Tagged opportunistic refresh implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/board-git/src/autopull.ts)
+- [Join, provisioning, and full-sync tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/sync.test.ts)
+- [Conflict recovery acceptance tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/sync-conflict.test.ts)
+- [In-tree mode tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/sync-intree.test.ts)
+- [SessionStart awareness and failure tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/session-start.test.ts)
+- [Opportunistic refresh tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/autopull.test.ts)
 
 # Journey check
 

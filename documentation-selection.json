@@ -8,11 +8,12 @@
   "supportingDocuments": [
     "design/docs-operating-model",
     "design/site-experience-contract",
+    "examples/claims-and-evidence",
     "plans/docs-coverage",
     "sources/current-release",
     "sources/superbee-codebase-main",
     "sources/superbee-core",
     "sources/superbee-portal",
-    "sources/superbee-release-0.1.3"
+    "sources/superbee-release-0.1.4"
   ]
 }

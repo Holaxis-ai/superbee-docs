@@ -1,10 +1,10 @@
 ---
 type: Diagram
-title: Sharing, synchronization, and freshness
+title: 'Sharing, synchronization, and freshness'
 description: >-
   How Superbee classifies bundle channels, refreshes reads, converges shared
   changes, and preserves conflicting work.
-superbee_updated_by: openai/codex
+superbee_updated_by: openai/codex/root
 ---
 # Question answered
 
@@ -25,11 +25,11 @@ safety result: an inaccessible private remote never counts as proof that no shar
 | `branch` | The bundle is a linked worktree on `board`, with `origin/board` as the explicit shared ref | Superbee's board sync flow | Sync commits bundle changes, fetches and converges incoming history, pushes when safe, and records awareness. |
 
 The
-[`BoardChannel` contract and decision matrix](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/board-git/src/channel.ts#L38-L69)
+[`BoardChannel` contract and decision matrix](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/channel.ts#L38-L69)
 define these modes. The
-[`remote evidence rules`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/board-git/src/channel.ts#L103-L135)
+[`remote evidence rules`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/channel.ts#L103-L135)
 distinguish a successful absent result from an offline, timed-out, or unauthorized probe. The full
-[`classification matrix`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/board-git/src/channel.ts#L197-L222)
+[`classification matrix`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/channel.ts#L197-L222)
 also refuses a verified dual-board situation so a human can choose which location is authoritative.
 
 # Freshness is bounded and observable
@@ -42,11 +42,11 @@ the failed pull writes no newer cursor or awareness cache. The attempt timestamp
 still refreshed so later reads back off for the rest of the staleness window and retain evidence that
 the board checkout was confirmed. This behavior keeps reads available while preserving an honest
 boundary around what was actually fetched. The
-[`opportunistic pull contract`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/board-git/src/autopull.ts#L1-L67)
+[`opportunistic pull contract`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/autopull.ts#L1-L67)
 and
-[`pull-and-record transaction`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/board-git/src/autopull.ts#L149-L207)
+[`pull-and-record transaction`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/autopull.ts#L149-L207)
 govern content, cursor, and cache updates. The
-[`attempt and marker writes`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/board-git/src/autopull.ts#L295-L337)
+[`attempt and marker writes`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/autopull.ts#L295-L337)
 govern retry throttling on both successful and failed attempts.
 
 An `in-tree` bundle uses its current branch's configured tracking upstream as the comparison basis.
@@ -54,16 +54,16 @@ Superbee fetches that exact upstream, counts bundle-touching commits in both dir
 mode-scoped cursor and delta. Delivery still happens through the user's normal `git pull`; Superbee
 does not move the code branch. Detached HEAD, missing tracking configuration, or an unusable ref
 produces an explicit no-comparison-basis result rather than a guessed `origin/<branch>`. See the
-[`in-tree read-side boundary`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/board-git/src/intree.ts#L1-L31)
+[`in-tree read-side boundary`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/intree.ts#L1-L31)
 and
-[`fetch-and-record step`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/board-git/src/intree.ts#L140-L247).
+[`fetch-and-record step`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/intree.ts#L140-L247).
 
 # Explicit synchronization and conflict recovery
 
 For a `branch` channel, full sync runs a fixed sequence: provision or join the linked worktree,
 capture a baseline, commit local bundle changes, fetch and rebase onto `origin/board`, calculate the
 incoming and since-last-read deltas, push, then write the receipt and awareness state. The CLI
-[`orchestration sequence`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/cli/src/commands/sync/orchestrate.ts#L679-L702)
+[`orchestration sequence`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/cli/src/commands/sync/orchestrate.ts#L679-L702)
 keeps these phases in one order. `sync --pull-only` uses a fast-forward merge and never commits,
 rebases, or pushes.
 
@@ -72,9 +72,9 @@ teammate version, saves the local bytes outside the board worktree, and complete
 rebase cleanly. A parseable document also receives a body-only export that can be supplied to
 `doc update --body-file` after the user reconciles the content. The conflicted run skips its push and
 returns a conflict receipt with the recovery path. The
-[`converging rebase contract`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/board-git/src/porcelain.ts#L1547-L1578)
+[`converging rebase contract`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/porcelain.ts#L1547-L1578)
 and
-[`byte-preserving export sequence`](https://github.com/Holaxis-ai/superbee/blob/b98c1015213f5de41ef2406866a831888c75e674/packages/board-git/src/porcelain.ts#L1620-L1687)
+[`byte-preserving export sequence`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/porcelain.ts#L1620-L1687)
 make local work recoverable. A later sync can commit the reconciled document and publish it.
 
 # Diagram and nonvisual equivalent

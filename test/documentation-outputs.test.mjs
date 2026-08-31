@@ -26,24 +26,37 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     const navigated = config.documentation.navigation.flatMap((section) => section.documents);
     const selected = [...new Set([...navigated, ...selection.supportingDocuments])].sort();
 
-    assert.equal(result.selectedDocuments, 35);
-    assert.equal(result.navigatedDocuments, 27);
-    assert.equal(result.supportingDocuments, 8);
+    assert.equal(result.selectedDocuments, 48);
+    assert.equal(result.navigatedDocuments, 39);
+    assert.equal(result.supportingDocuments, 9);
     assert.deepEqual(projectionManifest.selectedDocuments, selected);
     assert.deepEqual(projectionManifest.supportingDocuments, selection.supportingDocuments);
     for (const id of [
       "get-started/verify-host-setup",
       "guides/choose-privacy-and-bundle-boundaries",
+      "guides/assigned-work-lifecycle",
+      "guides/artifacts-and-byte-channels",
+      "guides/create-a-bundle-view",
+      "guides/evolve-installed-recipes",
+      "guides/query-links-and-backlinks",
       "guides/share-and-synchronize-git-bundle",
+      "contributing/quickstart",
+      "architecture/bundle-engine-and-storage-seam",
+      "examples/claims-and-evidence",
+      "reference/cli-commands",
+      "reference/cli-errors-and-exit-codes",
       "reference/configuration-and-bundle-resolution",
       "reference/okf-compatibility",
       "reference/kind-conventions-and-recipes",
       "reference/view-contract-and-access",
       "reference/host-and-platform-support",
+      "reference/publication-snapshot-api",
+      "reference/security-and-trust-boundaries",
+      "reference/wire-protocol-and-reference-server",
     ]) {
       assert.equal(projectionManifest.selectedDocuments.includes(id), true, id);
     }
-    assert.equal(mkdocsManifest.documents.length, 35);
+    assert.equal(mkdocsManifest.documents.length, 48);
     const startHere = projectionManifest.documents.find((document) => document.id === "learn/start-here");
     assert.ok(startHere?.freshness?.updatedAt);
     assert.match(startHere.freshness.updatedAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
@@ -64,7 +77,7 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     const operational = (await readdir(".superbee/maintenance/documentation-triggers"))
       .filter((file) => file.endsWith(".md"))
       .map((file) => `maintenance/documentation-triggers/${file.slice(0, -3)}`);
-    assert.equal(operational.length, 25);
+    assert.equal(operational.length, 37);
     for (const id of operational) {
       assert.equal(projectionManifest.selectedDocuments.includes(id), false, id);
       assert.ok(artifact.files.has(`bundle/${id}.md`), id);
@@ -85,7 +98,7 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     assert.equal(projectionManifest.relationships.some((row) => !selected.includes(row.from) || !selected.includes(row.to)), false);
 
     const publishedById = new Map(publication.diagrams.map((row) => [row.id, row]));
-    assert.equal(projectionManifest.assets.diagrams.length, 7);
+    assert.equal(projectionManifest.assets.diagrams.length, 8);
     assert.deepEqual(result.diagrams, result.mkdocs.diagrams);
     for (const diagram of projectionManifest.assets.diagrams) {
       const published = publishedById.get(diagram.id);

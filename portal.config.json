@@ -47,7 +47,7 @@
     "brandMark": {
       "blob": "assets/superbee-mark.png"
     },
-    "versionLabel": "v0.1.3",
+    "versionLabel": "v0.1.4",
     "repositoryUrl": "https://github.com/Holaxis-ai/superbee",
     "operationalTypes": [
       "Documentation Trigger"
@@ -75,9 +75,14 @@
         "documents": [
           "guides/preserve-context-between-sessions",
           "guides/model-recurring-domain-concepts",
+          "guides/assigned-work-lifecycle",
+          "guides/query-links-and-backlinks",
+          "guides/artifacts-and-byte-channels",
           "guides/show-documents-and-views",
+          "guides/create-a-bundle-view",
           "guides/choose-privacy-and-bundle-boundaries",
-          "guides/share-and-synchronize-git-bundle"
+          "guides/share-and-synchronize-git-bundle",
+          "guides/evolve-installed-recipes"
         ]
       },
       {
@@ -90,11 +95,16 @@
         "label": "Reference",
         "documents": [
           "reference/cli-overview",
+          "reference/cli-commands",
+          "reference/cli-errors-and-exit-codes",
           "reference/configuration-and-bundle-resolution",
           "reference/okf-compatibility",
           "reference/kind-conventions-and-recipes",
           "reference/view-contract-and-access",
-          "reference/host-and-platform-support"
+          "reference/host-and-platform-support",
+          "reference/wire-protocol-and-reference-server",
+          "reference/publication-snapshot-api",
+          "reference/security-and-trust-boundaries"
         ]
       },
       {
@@ -112,7 +122,9 @@
           "architecture/document-mutation-lifecycle",
           "architecture/view-lifecycle-and-trust",
           "architecture/public-publication-boundary",
-          "architecture/sharing-synchronization-and-freshness"
+          "architecture/sharing-synchronization-and-freshness",
+          "architecture/bundle-engine-and-storage-seam",
+          "contributing/quickstart"
         ]
       }
     ]

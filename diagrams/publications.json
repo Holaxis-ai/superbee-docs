@@ -6,7 +6,7 @@
   },
   "renderer": "superbee-docs-mmdc-v1+mermaid-cli@11.16.0+mermaid@11.17.2",
   "admission": "https://getsuperbee.com/schemas/documentation-static-svg/v1",
-  "manifestSha256": "sha256:df870201097013b4f5a22ad17cd8c4103d9d6ea6a9a01263e987ce934f96578c",
+  "manifestSha256": "sha256:0271592d2a5930724be3e27cd6b3891bd190c8c06bae82c9a15dda4283e506d8",
   "predecessor": {
     "receipt": {
       "digest": "sha256:aaafe7dd024a8d1078d7a8f4f4bb81ef5921b6ebd439b7f1fd4bfeb31fca735d",
@@ -25,11 +25,24 @@
       "documentId": "architecture/architecture-at-a-glance",
       "publishedSource": "visuals/sources/architecture-at-a-glance.mmd",
       "publishedSvg": "visuals/diagrams/architecture-at-a-glance.svg",
-      "sourceSha256": "sha256:83d1589a892cf30363e6aa63e2f1ae2070f5ea933d6e5f81f358b8330e6aabf5",
-      "projectionSha256": "sha256:3a0e85d77dee01ca3991edb1ef4dd6575924ea304e8862a6792fb5e4bf6f130e",
-      "svgSha256": "sha256:bcc2e387fd74c68d2aad803a6d7d1a2d2adcd3241a6660517f0c72f707b2845a",
-      "sourceSize": 1261,
-      "svgSize": 21092
+      "sourceSha256": "sha256:624ebd6595f072062c081dca55a78b8b51ee52c57507f468297b99e94d4ecceb",
+      "projectionSha256": "sha256:22c4771bbd7b5d36a825fe0b6876c078149e6e3686bff9c13666bd401ee6e07a",
+      "svgSha256": "sha256:df8fe361b8e08fb0e8ac41272fe13b2bedc8f6cb91299cc085f8c79d5e72df9a",
+      "sourceSize": 1236,
+      "svgSize": 21038
+    },
+    {
+      "id": "bundle-engine-and-storage-seam",
+      "title": "Bundle engine and storage seam",
+      "description": "How core-owned OKF semantics remain consistent across filesystem, memory, and remote storage adapters.",
+      "documentId": "architecture/bundle-engine-and-storage-seam",
+      "publishedSource": "visuals/sources/bundle-engine-and-storage-seam.mmd",
+      "publishedSvg": "visuals/diagrams/bundle-engine-and-storage-seam.svg",
+      "sourceSha256": "sha256:f498ef265ea6bec94bab3d57e216fadece1976edb4b31ba41c4fa87bada9d989",
+      "projectionSha256": "sha256:62544ce745148997b76e15ac1cbc36e13b1bd555d945db7e23ea19011fcf9c1f",
+      "svgSha256": "sha256:148980d84b7cbdc0994ba17cf682de09cc7f2586a17b196ca17ec389f9e6ea39",
+      "sourceSize": 1645,
+      "svgSize": 30987
     },
     {
       "id": "core-mental-model",
@@ -110,5 +123,5 @@
       "svgSize": 42048
     }
   ],
-  "receiptDigest": "sha256:2abbd1ad78330407a8d5ebcd0887d33c5c0c24421ade5663bc8a1914ee916ecf"
+  "receiptDigest": "sha256:7ab328ac13f2b61ccab30ef2564d14acc1d4a95cbc64244e1f4182f514bc14a5"
 }
