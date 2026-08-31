@@ -13,8 +13,8 @@
  * Every dependency is loaded dynamically inside `activate`, deliberately. A static import is
  * evaluated before this module's own body runs, which put two failures outside the reach of the
  * catch below: a fetch, parse, or evaluation failure in either fixed asset produced an unhandled
- * rejection and no warning at all. Loading them here also means a browser with no WebMCP surface
- * fetches nothing beyond this file.
+ * rejection and no warning at all. A browser with no WebMCP surface loads only the tools asset
+ * needed for the support check; it does not load the Portal client, routes module, or read model.
  */
 
 /** Binds every emitted presentation URL to this site's route shape. */

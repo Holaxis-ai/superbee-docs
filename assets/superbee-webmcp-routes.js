@@ -1,10 +1,9 @@
 /**
  * Which documents have a page on this site, and what their page URL is.
  *
- * This lives apart from the bootstrap so it can be imported and exercised directly by a test. The
- * bootstrap imports its dependencies by absolute site URL, which no test runner can resolve, so a
- * resolver defined there could only ever be checked by grepping its source - and a grep cannot
- * tell a working resolver from one that answers the same way for every document.
+ * This lives apart from the bootstrap so its route rule can be imported and exercised directly.
+ * A browser test executes the published bootstrap and verifies the wiring separately, including
+ * one document with a page and one without one.
  *
  * It has no imports of its own, so it is a leaf both in the browser and in a test.
  */
