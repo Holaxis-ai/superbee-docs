@@ -38,6 +38,7 @@ workflow before broad generation.
 | P0 | Host and platform support | Reference | First-time user and integrator | current | Current stable npm metadata, setup plans, and release verification evidence |
 | P0 | Troubleshoot setup and bundle resolution | How-to | First-time user and integrator | current | Stable setup conductor, bundle resolution tests, and isolated failure probes |
 | P0 | Current release | Reference | Existing user | current | npm/GitHub release receipts |
+| P0 | Release notes archive | Reference | New and existing user | current | Immutable Release records, public npm/GitHub authorities, and the release-documentation freshness probe |
 | P0 | Migrate or upgrade safely | How-to | Existing user | current | Stable release receipts, private-state source, and disposable OKF v0.1 compatibility journey |
 | P0 | System context | Explanation | All technical readers | current | Pinned Superbee and Portal source; Diagram is its visual representation |
 | P0 | Document mutation lifecycle | Explanation | Contributor and integrator | current | Pinned Superbee source; verified read/update/history sequence; registered diagram |
@@ -109,8 +110,7 @@ checks.
 
 ## Releases and migrations
 
-- Verified release index.
-- Version-specific release notes.
+- Expand release history only through immutable verified Release records and the generated archive.
 - Compatibility and deprecation policy.
 - Legacy AgentState and pre-0.2 bundle migration.
 

@@ -110,6 +110,7 @@
       {
         "label": "Releases and migrations",
         "documents": [
+          "releases/release-notes",
           "releases/current",
           "guides/migrate-or-upgrade-safely"
         ]

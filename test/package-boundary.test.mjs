@@ -46,7 +46,7 @@ test("consumer uses only public packed package surfaces and nested versioned con
 });
 
 test("built site preserves documentation, View, diagram, discovery, and presentation agreement", async () => {
-  const [config, selection, manifest, home, llms, portalRobots, mkdocsLlms, mkdocsRobots, search, whatSuperbeePage, domainModelPage, privacyPage, sharingPage, handoffPage, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
+  const [config, selection, manifest, home, llms, portalRobots, mkdocsLlms, mkdocsRobots, search, whatSuperbeePage, domainModelPage, privacyPage, sharingPage, handoffPage, releaseNotesPage, currentReleasePage, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
     json("portal.config.json"),
     json("documentation-selection.json"),
     json("dist/data/portal-manifest.json"),
@@ -61,6 +61,8 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
     readFile("dist/docs/guides/choose-privacy-and-bundle-boundaries/index.html", "utf8"),
     readFile("dist/docs/guides/share-and-synchronize-git-bundle/index.html", "utf8"),
     readFile("dist/docs/guides/preserve-context-between-sessions/index.html", "utf8"),
+    readFile("dist/docs/releases/release-notes/index.html", "utf8"),
+    readFile("dist/docs/releases/current/index.html", "utf8"),
     readFile("dist/docs/architecture/architecture-at-a-glance/index.html", "utf8"),
     readFile("dist/docs/architecture/superbee-system-context/index.html", "utf8"),
     readFile("dist/docs/architecture/document-mutation-lifecycle/index.html", "utf8"),
@@ -85,6 +87,8 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
     "docs/guides/model-recurring-domain-concepts/index.html",
     "docs/guides/choose-privacy-and-bundle-boundaries/index.html",
     "docs/guides/share-and-synchronize-git-bundle/index.html",
+    "docs/releases/release-notes/index.html",
+    "docs/releases/current/index.html",
     "assets/docs-search.json",
     "llms.txt",
     "robots.txt",
@@ -116,6 +120,14 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.match(privacyPage, /an agent can help inspect existing bundle\s+locations/);
   assert.match(sharingPage, /ask an agent to inspect the repository/);
   assert.match(handoffPage, /Ask an agent to prepare the handoff/);
+  assert.match(releaseNotesPage, /Current stable release/);
+  assert.match(releaseNotesPage, /Previous stable releases/);
+  assert.match(releaseNotesPage, /Superbee 0\.1\.4/);
+  assert.match(releaseNotesPage, /Superbee 0\.1\.3/);
+  assert.match(currentReleasePage, /What changed/);
+  assert.match(currentReleasePage, /What you need to do/);
+  assert.match(currentReleasePage, /Compatibility/);
+  assert.match(currentReleasePage, /Recovery/);
   assert.match(home, /<link rel="alternate" type="text\/markdown" href="\/bundle\/learn\/start-here\.md">/);
   assert.match(home, /<link rel="describedby" href="\/llms\.txt">/);
   assert.match(llms, /^# Superbee\n/m);

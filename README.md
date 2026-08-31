@@ -72,7 +72,7 @@ npm run check
 
 The bootstrap command builds the exact pinned Superbee and Portal commits into local
 development packages. The Portal build captures one source snapshot and projects the same explicit
-27-document selection (19 navigated and eight supporting), brand asset, relationships, and six
+52-document selection (40 navigated and 12 supporting), brand asset, relationships, and eight
 admitted diagrams into both Portal and MkDocs target inputs. `mkdocs:sync` installs the exact locked
 Python environment once; subsequent
 `mkdocs:build` and repository checks are frozen and offline. This temporary packed-package step
@@ -84,8 +84,21 @@ contain local paths and exact recovery preimages and are intentionally ignored b
 ## Release documentation
 
 Navigation and maintained pages use the stable `releases/current` and `sources/current-release`
-bundle identities. A verified release updates those identities and creates immutable versioned
-records with one idempotent command:
+bundle identities. The reader-facing `releases/release-notes` page lists the current release and
+immutable prior releases, while migration guidance stays beside it in navigation.
+
+The daily release-freshness workflow compares the documented release with the public npm `latest`
+package, GitHub release, and exact Git tag. Run the same deterministic probe locally at any time:
+
+```bash
+npm run docs:release:status
+```
+
+When it reports `update_required`, the output carries the exact package, integrity, source commit,
+publication date, release URL, and generated GitHub notes. It also names the reader-facing fields
+that still require agent judgment and the documentation-impact events to query. A verified release
+then updates the stable identities, creates immutable versioned records, reconciles the release
+archive and selection, and updates the exact site version with one idempotent command:
 
 ```bash
 cp examples/release-input.example.json /tmp/superbee-release.json
@@ -95,9 +108,12 @@ npm run docs:release:check
 ```
 
 The JSON file is ephemeral release-process input, not another persisted documentation authority.
-The command writes all four documents through Superbee, refuses to alter existing version history,
-and converges to a no-op when retried. The repository check rejects a package version pinned in
-ordinary pages; exact versions remain available in release, evidence, and migration records.
+The command writes release documents through Superbee, refuses to alter existing version history,
+and converges to a no-op when retried. It never invents the summary, changes, user action,
+compatibility, recovery, supported platforms, or verification performed. Review those fields
+against the release and query the returned impact events before opening the documentation pull
+request. The repository check rejects a package version pinned in ordinary pages; exact versions
+remain available in release, evidence, and migration records.
 
 ## Deployment
 

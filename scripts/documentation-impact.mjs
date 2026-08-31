@@ -75,6 +75,11 @@ export async function loadDocumentationTriggerRecords(root) {
   return rows;
 }
 
+export function queryDocumentationImpact(rows, { changed = [], events = [] }) {
+  return rows.filter((row) => row.sources.some((pattern) => changed.some((file) => globRegex(pattern).test(normalize(file))))
+    || row.events.some((event) => events.includes(event)));
+}
+
 async function main(args) {
   const root = path.resolve(".");
   const command = !args[0] || args[0].startsWith("--") ? "query" : args[0];
@@ -94,12 +99,18 @@ async function main(args) {
   const events = [];
   for (let index = optionStart; index < args.length; index += 2) {
     const flag = args[index]; const value = args[index + 1];
-    if (!value || !new Set(["--changed", "--event"]).has(flag)) fail("query accepts repeatable --changed <path> and --event <name>");
-    (flag === "--changed" ? changed : events).push(normalize(value));
+    if (!value || !new Set(["--changed", "--changed-list", "--event"]).has(flag)) {
+      fail("query accepts repeatable --changed <path>, --changed-list <nul-delimited-file>, and --event <name>");
+    }
+    if (flag === "--changed-list") {
+      const listed = (await readFile(path.resolve(value))).toString("utf8").split("\0").filter(Boolean).map(normalize);
+      changed.push(...listed);
+    } else {
+      (flag === "--changed" ? changed : events).push(normalize(value));
+    }
   }
   if (!changed.length && !events.length) fail("query requires at least one --changed or --event value");
-  const affected = rows.filter((row) => row.sources.some((pattern) => changed.some((file) => globRegex(pattern).test(file)))
-    || row.events.some((event) => events.includes(event)));
+  const affected = queryDocumentationImpact(rows, { changed, events });
   console.log(JSON.stringify({ ok: true, command: "documentation impact query", changed, events, affected }, null, 2));
 }
 

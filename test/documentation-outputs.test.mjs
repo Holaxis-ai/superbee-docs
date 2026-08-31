@@ -26,9 +26,9 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     const navigated = config.documentation.navigation.flatMap((section) => section.documents);
     const selected = [...new Set([...navigated, ...selection.supportingDocuments])].sort();
 
-    assert.equal(result.selectedDocuments, 48);
-    assert.equal(result.navigatedDocuments, 39);
-    assert.equal(result.supportingDocuments, 9);
+    assert.equal(result.selectedDocuments, 52);
+    assert.equal(result.navigatedDocuments, 40);
+    assert.equal(result.supportingDocuments, 12);
     assert.deepEqual(projectionManifest.selectedDocuments, selected);
     assert.deepEqual(projectionManifest.supportingDocuments, selection.supportingDocuments);
     for (const id of [
@@ -53,10 +53,13 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
       "reference/publication-snapshot-api",
       "reference/security-and-trust-boundaries",
       "reference/wire-protocol-and-reference-server",
+      "releases/release-notes",
+      "releases/0.1.3",
+      "releases/0.1.4",
     ]) {
       assert.equal(projectionManifest.selectedDocuments.includes(id), true, id);
     }
-    assert.equal(mkdocsManifest.documents.length, 48);
+    assert.equal(mkdocsManifest.documents.length, 52);
     const startHere = projectionManifest.documents.find((document) => document.id === "learn/start-here");
     assert.ok(startHere?.freshness?.updatedAt);
     assert.match(startHere.freshness.updatedAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
@@ -77,7 +80,7 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     const operational = (await readdir(".superbee/maintenance/documentation-triggers"))
       .filter((file) => file.endsWith(".md"))
       .map((file) => `maintenance/documentation-triggers/${file.slice(0, -3)}`);
-    assert.equal(operational.length, 37);
+    assert.equal(operational.length, 38);
     for (const id of operational) {
       assert.equal(projectionManifest.selectedDocuments.includes(id), false, id);
       assert.ok(artifact.files.has(`bundle/${id}.md`), id);

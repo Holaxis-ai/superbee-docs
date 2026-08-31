@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
@@ -9,7 +11,7 @@ const script = path.resolve("scripts/documentation-impact.mjs");
 
 test("documentation trigger records are valid operational records", async () => {
   const result = JSON.parse((await run(process.execPath, [script, "check"])).stdout);
-  assert.deepEqual(result, { ok: true, command: "documentation impact check", records: 37 });
+  assert.deepEqual(result, { ok: true, command: "documentation impact check", records: 38 });
 });
 
 test("source changes and product events resolve affected reader pages", async () => {
@@ -22,6 +24,21 @@ test("source changes and product events resolve affected reader pages", async ()
   assert.equal(pages.has("architecture/document-mutation-lifecycle"), true);
   assert.equal(pages.has("troubleshooting/setup-and-bundle-resolution"), true);
   assert.equal(pages.has("architecture/architecture-at-a-glance"), false);
+});
+
+test("a nul-delimited Git change list drives the same bounded impact query", async () => {
+  const temporary = await mkdtemp(path.join(tmpdir(), "superbee-docs-impact-"));
+  const changed = path.join(temporary, "changed.zlist");
+  try {
+    await writeFile(changed, "packages/core/src/document-mutation.ts\0packages/cli/src/commands/setup.ts\0");
+    const result = JSON.parse((await run(process.execPath, [script, "--changed-list", changed])).stdout);
+    assert.deepEqual(result.changed, ["packages/core/src/document-mutation.ts", "packages/cli/src/commands/setup.ts"]);
+    const pages = new Set(result.affected.flatMap((row) => row.pages));
+    assert.equal(pages.has("architecture/document-mutation-lifecycle"), true);
+    assert.equal(pages.has("get-started/install-and-setup"), true);
+  } finally {
+    await rm(temporary, { recursive: true, force: true });
+  }
 });
 
 test("host and Skill events cover every agent-directed entry point", async () => {

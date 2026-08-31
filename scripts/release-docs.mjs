@@ -17,11 +17,14 @@ const knownInputFields = new Set([
 function usage() {
   return `Usage:
   npm run docs:release -- --manifest <release.json>
+  node scripts/release-docs.mjs archive
   npm run docs:release:check
 
 The JSON input is an ephemeral handoff from the verified release process. It is not committed as a
 second documentation authority. The command writes immutable versioned Source/Release documents and
 updates the stable sources/current-release and releases/current bundle identities through Superbee.
+The archive command reconciles the reader-facing release index, release navigation, and immutable
+release selection from the Release and Source records already in the bundle.
 
 Required manifest fields:
   schema, package, version, npmTag, publishedAt, summary, changes[], action, compatibility,
@@ -202,6 +205,56 @@ source, package receipts, and executed probes remain authoritative for the claim
 `;
 }
 
+function compareStableVersions(left, right) {
+  const leftParts = left.split(".").map(Number);
+  const rightParts = right.split(".").map(Number);
+  for (let index = 0; index < 3; index++) {
+    if (leftParts[index] !== rightParts[index]) return rightParts[index] - leftParts[index];
+  }
+  return 0;
+}
+
+function releaseArchiveDocument(current, releases) {
+  const previous = releases.filter((release) => release.version !== current.version);
+  const prior = previous.length
+    ? previous.map((release) => {
+      const published = release.publishedAt ? ` Published ${release.publishedAt}.` : "";
+      return `## Superbee ${release.version}\n\n${release.description}${published}\n\n[Read the ${release.version} release notes](${release.version}.md).`;
+    }).join("\n\n")
+    : "There are no previous stable releases yet.";
+  const published = current.publishedAt ? ` Published ${current.publishedAt}.` : "";
+  return `---
+type: Guide
+title: ${yaml("Release notes")}
+description: ${yaml("What changed in each stable Superbee release, what users need to do, and where to find verified evidence and recovery guidance.")}
+superbee_updated_by: ${yaml("release-docs-automation")}
+---
+# Release notes
+
+Use this page to find the current stable release and the history of earlier stable releases. Each
+release note states the reader-facing changes, required action, compatibility, recovery path, and
+the exact package and source evidence used to verify it.
+
+# Current stable release
+
+## Superbee ${current.version}
+
+${current.description}${published}
+
+[Read the current ${current.version} release notes](current.md).
+
+# Previous stable releases
+
+${prior}
+
+# Upgrade and recovery guidance
+
+[Migrate or upgrade safely](../guides/migrate-or-upgrade-safely.md) explains how to inspect the
+installed version, follow the verified setup path, preserve legacy bundles, and recover by pinning
+an earlier release when necessary.
+`;
+}
+
 function runSuperbee(options, args, { allowFailure = false } = {}) {
   const result = spawnSync(options.superbeeBin, [...args, "--dir", resolve(options.root, ".superbee")], {
     cwd: options.root,
@@ -210,7 +263,8 @@ function runSuperbee(options, args, { allowFailure = false } = {}) {
   });
   if (result.error) throw result.error;
   if (result.status !== 0 && !allowFailure) {
-    throw new Error(`superbee ${args.join(" ")} failed (${result.status}): ${result.stderr.toString("utf8").trim()}`);
+    const detail = [result.stderr, result.stdout].map((value) => value.toString("utf8").trim()).filter(Boolean).join("\n");
+    throw new Error(`superbee ${args.join(" ")} failed (${result.status}): ${detail}`);
   }
   return result;
 }
@@ -267,10 +321,83 @@ async function updatePortalVersionLabel(options, version) {
     throw new Error("portal.config.json must declare a documentation object");
   }
   const versionLabel = stableReleaseVersionLabel(version);
-  if (config.documentation.versionLabel === versionLabel) return { changed: false, versionLabel };
-  config.documentation.versionLabel = versionLabel;
-  await writeFile(path, `${JSON.stringify(config, null, 2)}\n`);
-  return { changed: true, versionLabel };
+  let changed = false;
+  if (config.documentation.versionLabel !== versionLabel) {
+    config.documentation.versionLabel = versionLabel;
+    changed = true;
+  }
+  const releases = config.documentation.navigation?.find((section) => section.documents?.includes("releases/current"));
+  if (!releases) throw new Error("Portal navigation must contain releases/current");
+  const withoutArchive = releases.documents.filter((id) => id !== "releases/release-notes");
+  const currentIndex = withoutArchive.indexOf("releases/current");
+  const expected = [...withoutArchive];
+  expected.splice(currentIndex, 0, "releases/release-notes");
+  if (JSON.stringify(releases.documents) !== JSON.stringify(expected)) {
+    releases.documents = expected;
+    changed = true;
+  }
+  if (changed) await writeFile(path, `${JSON.stringify(config, null, 2)}\n`);
+  return { changed, versionLabel };
+}
+
+async function releaseRows(options) {
+  const directory = resolve(options.root, ".superbee", "releases");
+  const ids = (await readdir(directory))
+    .filter((name) => /^\d+\.\d+\.\d+\.md$/.test(name))
+    .map((name) => `releases/${name.slice(0, -3)}`);
+  const releases = ids.map((id) => {
+    const metadata = documentProjection(options, id).metadata;
+    const version = String(metadata.version ?? "");
+    if (!/^\d+\.\d+\.\d+$/.test(version) || id !== `releases/${version}`) {
+      throw new Error(`release archive encountered invalid immutable release identity ${id}`);
+    }
+    return {
+      id,
+      version,
+      description: String(metadata.description ?? "").trim(),
+      publishedAt: metadata.published_at ? String(metadata.published_at) : undefined,
+    };
+  }).sort((left, right) => compareStableVersions(left.version, right.version));
+  if (!releases.length) throw new Error("release archive requires at least one immutable stable release");
+  const currentMetadata = documentProjection(options, "releases/current").metadata;
+  const current = releases.find((release) => release.version === String(currentMetadata.version ?? ""));
+  if (!current) throw new Error("releases/current does not identify an immutable stable release");
+  return { current, releases };
+}
+
+async function immutableReleaseSupport(options) {
+  const releases = (await readdir(resolve(options.root, ".superbee", "releases")))
+    .filter((name) => /^\d+\.\d+\.\d+\.md$/.test(name))
+    .map((name) => `releases/${name.slice(0, -3)}`);
+  const sources = (await readdir(resolve(options.root, ".superbee", "sources")))
+    .filter((name) => /^superbee-release-\d+\.\d+\.\d+\.md$/.test(name))
+    .map((name) => `sources/${name.slice(0, -3)}`);
+  return [...releases, ...sources].sort();
+}
+
+async function updateDocumentationSelection(options) {
+  const path = resolve(options.root, "documentation-selection.json");
+  const selection = JSON.parse(await readFile(path, "utf8"));
+  if (!Array.isArray(selection.supportingDocuments)) throw new Error("documentation selection must declare supportingDocuments");
+  const expected = [...new Set([...selection.supportingDocuments, ...await immutableReleaseSupport(options)])].sort();
+  if (JSON.stringify(selection.supportingDocuments) === JSON.stringify(expected)) return { changed: false, supportingDocuments: expected };
+  selection.supportingDocuments = expected;
+  await writeFile(path, `${JSON.stringify(selection, null, 2)}\n`);
+  return { changed: true, supportingDocuments: expected };
+}
+
+async function updateReleaseArchive(options, scratch) {
+  const { current, releases } = await releaseRows(options);
+  const archive = await normalizeDocument(options, scratch, "normalized/release-index", Buffer.from(releaseArchiveDocument(current, releases)));
+  return promote(options, scratch, "releases/release-notes", archive, { immutable: false });
+}
+
+async function reconcilePresentation(options, scratch) {
+  const currentVersion = runSuperbee(options, ["doc", "read", "releases/current", "--field", "version"]).stdout.toString("utf8").trim();
+  const archive = await updateReleaseArchive(options, scratch);
+  const portal = await updatePortalVersionLabel(options, currentVersion);
+  const selection = await updateDocumentationSelection(options);
+  return { currentVersion, archive, portal, selection };
 }
 
 async function update(options) {
@@ -287,8 +414,32 @@ async function update(options) {
     results.push(await promote(options, scratch, `releases/${input.version}`, release, { immutable: true }));
     results.push(await promote(options, scratch, "sources/current-release", source, { immutable: false }));
     results.push(await promote(options, scratch, "releases/current", release, { immutable: false }));
-    const portal = await updatePortalVersionLabel(options, input.version);
-    console.log(JSON.stringify({ version: input.version, versionLabel: portal.versionLabel, portalConfigChanged: portal.changed, changed: results.filter((row) => row.changed).map((row) => row.id), results }));
+    const presentation = await reconcilePresentation(options, scratch);
+    results.push(presentation.archive);
+    console.log(JSON.stringify({
+      version: input.version,
+      versionLabel: presentation.portal.versionLabel,
+      portalConfigChanged: presentation.portal.changed,
+      selectionChanged: presentation.selection.changed,
+      changed: results.filter((row) => row.changed).map((row) => row.id),
+      results,
+    }));
+  } finally {
+    await rm(scratch, { recursive: true, force: true });
+  }
+}
+
+async function archive(options) {
+  const scratch = await mkdtemp(resolve(tmpdir(), "superbee-release-archive-"));
+  try {
+    const presentation = await reconcilePresentation(options, scratch);
+    console.log(JSON.stringify({
+      version: presentation.currentVersion,
+      versionLabel: presentation.portal.versionLabel,
+      archiveChanged: presentation.archive.changed,
+      portalConfigChanged: presentation.portal.changed,
+      selectionChanged: presentation.selection.changed,
+    }));
   } finally {
     await rm(scratch, { recursive: true, force: true });
   }
@@ -321,8 +472,25 @@ async function check(options) {
   const config = JSON.parse(await readFile(resolve(options.root, "portal.config.json"), "utf8"));
   const releaseIds = config.documentation?.navigation?.flatMap((section) => section.documents ?? []).filter((id) => id.startsWith("releases/")) ?? [];
   if (!releaseIds.includes("releases/current")) throw new Error("Portal navigation must include releases/current");
+  if (!releaseIds.includes("releases/release-notes")) throw new Error("Portal navigation must include releases/release-notes");
   if (releaseIds.some((id) => /^releases\/\d+\.\d+\.\d+/.test(id))) throw new Error("Portal navigation must not pin a versioned release document");
   assertStableReleaseVersionLabel(config.documentation, version);
+
+  const selection = JSON.parse(await readFile(resolve(options.root, "documentation-selection.json"), "utf8"));
+  const requiredSupport = await immutableReleaseSupport(options);
+  const missingSupport = requiredSupport.filter((id) => !selection.supportingDocuments?.includes(id));
+  if (missingSupport.length) throw new Error(`documentation selection omits immutable release history: ${missingSupport.join(", ")}`);
+
+  const scratch = await mkdtemp(resolve(tmpdir(), "superbee-release-check-"));
+  try {
+    const { current, releases } = await releaseRows(options);
+    const expectedArchive = await normalizeDocument(options, scratch, "normalized/release-index", Buffer.from(releaseArchiveDocument(current, releases)));
+    if (!documentBytes(options, "releases/release-notes").equals(expectedArchive)) {
+      throw new Error("releases/release-notes does not match immutable release history");
+    }
+  } finally {
+    await rm(scratch, { recursive: true, force: true });
+  }
 
   const bundle = resolve(options.root, ".superbee");
   const allowed = /^(?:releases|sources|migrations|evidence)\//;
@@ -344,10 +512,11 @@ async function check(options) {
 
 const command = process.argv[2];
 try {
-  if (!command || !new Set(["update", "check"]).has(command)) throw new Error("expected update or check");
+  if (!command || !new Set(["update", "archive", "check"]).has(command)) throw new Error("expected update, archive, or check");
   const options = parseOptions(process.argv.slice(3));
   if (options.help) console.log(usage());
   else if (command === "update") await update(options);
+  else if (command === "archive") await archive(options);
   else await check(options);
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
