@@ -8,6 +8,10 @@
     "exposure": "complete-publication-bundle",
     "title": "Superbee documentation",
     "description": "Source-grounded guidance for using, understanding, and evolving Superbee.",
+    "htmlRouting": {
+      "mode": "extensionless",
+      "redirectStatus": 307
+    },
     "views": [
       {
         "id": "views-registry/architecture-at-a-glance",

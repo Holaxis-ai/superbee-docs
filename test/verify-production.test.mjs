@@ -1,169 +1,114 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import path from "node:path";
+import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { DEPLOYMENT_REDIRECTS } from "../scripts/deployment-assets.mjs";
-import {
-  DOCUMENTATION_DEPLOYMENT_VERIFICATION_V1,
-  verifyDocumentationDeploymentV1,
-} from "../scripts/verify-production.mjs";
+import { documentationVerificationExtensionV1 } from "../scripts/verify-production.mjs";
 
-const ORIGIN = "https://docs.example.test/";
-const INDEX = [
-  "<!doctype html><html lang=\"en\"><head>",
-  "<link rel=\"canonical\" href=\"https://docs.example.test/\">",
-  "<link rel=\"alternate\" type=\"text/markdown\" href=\"/bundle/learn/start-here.md\">",
-  "<link rel=\"describedby\" href=\"/llms.txt\">",
-  "<meta property=\"og:url\" content=\"https://docs.example.test/\">",
-  "<meta name=\"twitter:card\" content=\"summary\">",
-  "<script type=\"application/ld+json\">{\"@context\":\"https://schema.org\"}</script>",
-  "</head><body>index</body></html>\n",
-].join("");
-
-const FILES = {
-  "index.html": INDEX,
-  "llms.txt": "# Superbee\n",
-  "robots.txt": "User-agent: *\nAllow: /\nSitemap: https://docs.example.test/sitemap.xml\n",
-  "sitemap.xml": "<urlset/>\n",
-  "404.md": "# Page not found\n",
-  "404.html": "<!doctype html><title>Page not found</title>\n",
-  "bundle/learn/start-here.md": "# Start here\n",
+const ORIGIN = "https://docs.getsuperbee.com/";
+const MARKDOWN = Buffer.from("# Start here\n");
+const sha256 = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
+const declaredMarkdown = {
+  path: "bundle/learn/start-here.md",
+  digest: sha256(MARKDOWN),
+  size: MARKDOWN.byteLength,
+  mediaType: "text/markdown; charset=utf-8",
 };
 
-const MEDIA_TYPES = {
-  "index.html": "text/html; charset=utf-8",
-  "llms.txt": "text/markdown; charset=utf-8",
-  "robots.txt": "text/plain; charset=utf-8",
-  "sitemap.xml": "application/xml; charset=utf-8",
-  "404.md": "text/markdown; charset=utf-8",
-  "404.html": "text/html; charset=utf-8",
-  "bundle/learn/start-here.md": "text/markdown; charset=utf-8",
-};
+function page({ omit = "", alternate = "/bundle/learn/start-here.md" } = {}) {
+  return Buffer.from([
+    "<!doctype html><html><head>",
+    omit === "canonical" ? "" : `<link rel="canonical" href="${ORIGIN}">`,
+    `<link rel="alternate" type="text/markdown" href="${alternate}">`,
+    '<link rel="describedby" href="/llms.txt">',
+    `<meta property="og:url" content="${ORIGIN}">`,
+    '<meta name="twitter:card" content="summary">',
+    '<script type="application/ld+json">{}</script>',
+    "</head><body>Start here</body></html>\n",
+  ].join(""));
+}
 
-async function artifact() {
-  const directory = await mkdtemp(path.join(tmpdir(), "superbee-docs-verify-"));
-  for (const [relative, body] of Object.entries(FILES)) {
-    const target = path.join(directory, ...relative.split("/"));
-    await mkdir(path.dirname(target), { recursive: true });
-    await writeFile(target, body);
+function context(options = {}) {
+  const html = page(options);
+  const redirects = new Map(DEPLOYMENT_REDIRECTS.map((rule) => [rule.from, rule]));
+  return {
+    origin: ORIGIN,
+    routes: [{ route: "/", artifactPath: "index.html", disposition: "shell" }],
+    declared: (relative) => relative === declaredMarkdown.path ? declaredMarkdown : undefined,
+    digest: sha256,
+    probe: async (route) => {
+      const redirect = redirects.get(route);
+      if (redirect) {
+        return {
+          route,
+          status: redirect.status,
+          contentType: null,
+          vary: null,
+          headers: { location: redirect.to },
+          bytes: new Uint8Array(),
+          digest: sha256(new Uint8Array()),
+        };
+      }
+      const bytes = route === "/" ? html : MARKDOWN;
+      return {
+        route,
+        status: 200,
+        contentType: route === "/" ? "text/html; charset=utf-8" : declaredMarkdown.mediaType,
+        vary: null,
+        headers: {},
+        bytes,
+        digest: sha256(bytes),
+      };
+    },
+  };
+}
+
+test("the Docs extension verifies presentation facts, the advertised Markdown, and site entry redirects", async () => {
+  const rows = await documentationVerificationExtensionV1(context(), ORIGIN);
+  assert.deepEqual(rows.map((row) => row.id), [
+    "documentation presentation /",
+    "documentation Markdown alternate /",
+    "documentation entry redirect /docs",
+    "documentation entry redirect /docs/",
+  ]);
+  assert.equal(rows.every((row) => row.outcome === "pass"), true, JSON.stringify(rows, null, 2));
+});
+
+test("presentation drift and an unsafe Markdown alternate fail their own Docs rows", async () => {
+  const missingCanonical = await documentationVerificationExtensionV1(context({ omit: "canonical" }), ORIGIN);
+  assert.deepEqual(missingCanonical.filter((row) => row.outcome === "fail").map((row) => row.id), [
+    "documentation presentation /",
+  ]);
+
+  const outside = await documentationVerificationExtensionV1(context({ alternate: "https://elsewhere.test/source.md" }), ORIGIN);
+  assert.deepEqual(outside.filter((row) => row.outcome === "fail").map((row) => row.id), [
+    "documentation presentation /",
+    "documentation Markdown alternate /",
+  ]);
+});
+
+test("the built artifact declares exact canonical routes and aliases in hosting requirements v2", async () => {
+  const requirements = JSON.parse(await readFile("dist/data/hosting-requirements.json", "utf8"));
+  assert.equal(requirements.schema, "https://getsuperbee.com/schemas/hosting-requirements/v2");
+  assert.ok(requirements.requiredCapabilities.includes("canonical-route-redirects.v1"));
+
+  const canonical = new Map(requirements.routes
+    .filter((row) => row.artifactPath?.endsWith(".html"))
+    .map((row) => [row.artifactPath, row.pattern]));
+  assert.equal(canonical.get("index.html"), "/");
+  assert.equal(canonical.get("404.html"), "/404");
+  assert.equal(canonical.get("docs/learn/start-here/index.html"), "/docs/learn/start-here/");
+
+  const aliases = new Map(requirements.redirects.map((row) => [row.source, row]));
+  for (const [artifactPath, route] of canonical) {
+    const source = `/${artifactPath}`;
+    if (source === route) continue;
+    assert.deepEqual(aliases.get(source), {
+      source,
+      destination: route,
+      status: 307,
+      methods: ["GET", "HEAD"],
+    });
   }
-  await mkdir(path.join(directory, "data"), { recursive: true });
-  await writeFile(path.join(directory, "data", "portal-manifest.json"), JSON.stringify({
-    artifactDigest: "sha256:0000000000000000000000000000000000000000000000000000000000000000",
-    files: Object.entries(MEDIA_TYPES).map(([relative, mediaType]) => ({ path: relative, mediaType })),
-  }));
-  return directory;
-}
-
-/** A deterministic stand-in for the deployed origin; each option injects one realistic defect. */
-function origin({
-  emptyNotFound = false,
-  staleLlms = false,
-  varyAccept = false,
-  plainTextLlms = false,
-  strippedHead = false,
-  missingRedirect = false,
-} = {}) {
-  return async (url, init = {}) => {
-    const route = new URL(url).pathname;
-    const pathname = route.replace(/^\//, "") || "index.html";
-    const headers = new Headers();
-    if (varyAccept) headers.set("Vary", "Accept, Accept-Encoding");
-    const redirect = missingRedirect ? undefined : DEPLOYMENT_REDIRECTS.find((rule) => rule.from === route);
-    if (redirect) {
-      headers.set("Location", redirect.to);
-      return new Response(null, { status: redirect.status, headers });
-    }
-    if (Object.hasOwn(FILES, pathname)) {
-      let body = FILES[pathname];
-      if (pathname === "llms.txt" && staleLlms) body = "# Stale\n";
-      if (pathname === "index.html" && strippedHead) body = body.replace(/<link rel="alternate"[^>]*>/, "");
-      headers.set("Content-Type", pathname === "llms.txt" && plainTextLlms ? "text/plain" : MEDIA_TYPES[pathname]);
-      return new Response(body, { status: 200, headers });
-    }
-    if (emptyNotFound) return new Response(null, { status: 404, headers });
-    headers.set("Content-Type", "text/html; charset=utf-8");
-    return new Response(FILES["404.html"], { status: 404, headers });
-  };
-}
-
-test("a faithful deployment passes every published-byte comparison", async () => {
-  const dist = await artifact();
-  try {
-    const result = await verifyDocumentationDeploymentV1({ baseUrl: ORIGIN, dist, fetchImpl: origin() });
-    assert.equal(result.schema, DOCUMENTATION_DEPLOYMENT_VERIFICATION_V1);
-    assert.equal(result.ok, true, JSON.stringify(result.results.filter((row) => !row.ok), null, 2));
-    assert.equal(result.failed, 0);
-    assert.deepEqual(result.mediaTypeDrift, []);
-    assert.deepEqual(result.results.map((row) => row.name), [
-      "agent entry point",
-      "crawler policy",
-      "sitemap",
-      "recovery body (markdown)",
-      "documentation index",
-      "unknown route recovery",
-      "markdown alternate",
-      "no unadvertised content negotiation",
-      "entry redirect /docs",
-      "entry redirect /docs/",
-      "declared media types",
-    ]);
-  } finally { await rm(dist, { recursive: true, force: true }); }
-});
-
-test("each realistic deployment defect fails its own named check", async () => {
-  const dist = await artifact();
-  const failing = async (options) => {
-    const result = await verifyDocumentationDeploymentV1({ baseUrl: ORIGIN, dist, fetchImpl: origin(options) });
-    assert.equal(result.ok, false, JSON.stringify(options));
-    return result.results.filter((row) => !row.ok).map((row) => row.name);
-  };
-  try {
-    // The baseline defect this work exists to close: a status-only 404 with no recovery body.
-    assert.deepEqual(await failing({ emptyNotFound: true }), ["unknown route recovery"]);
-    // A stale edge cache serving a previous agent entry point.
-    assert.deepEqual(await failing({ staleLlms: true }), ["agent entry point"]);
-    // A Vary: Accept header the origin cannot honour would fragment every shared cache.
-    assert.deepEqual(await failing({ varyAccept: true }), ["no unadvertised content negotiation"]);
-    // A page that lost its Markdown alternate stops advertising the agent-facing source.
-    assert.deepEqual(await failing({ strippedHead: true }), ["documentation index", "markdown alternate"]);
-    // A deployment that dropped the entry redirects answers a declared route with the 404 body.
-    assert.deepEqual(await failing({ missingRedirect: true }), ["entry redirect /docs", "entry redirect /docs/"]);
-  } finally { await rm(dist, { recursive: true, force: true }); }
-});
-
-test("an unexpected status is never reported as media type drift", async () => {
-  const dist = await artifact();
-  try {
-    // A status-only 404 carries no Content-Type. Recording that as drift-to-empty would hide the
-    // real failure -- the missing recovery body -- behind a second, invented one.
-    const result = await verifyDocumentationDeploymentV1({
-      baseUrl: ORIGIN, dist, fetchImpl: origin({ emptyNotFound: true }),
-    });
-    assert.equal(result.ok, false);
-    assert.deepEqual(result.results.filter((row) => !row.ok).map((row) => row.name), ["unknown route recovery"]);
-    assert.deepEqual(result.mediaTypeDrift, []);
-  } finally { await rm(dist, { recursive: true, force: true }); }
-});
-
-test("media type drift fails its own check without being confused for a byte regression", async () => {
-  const dist = await artifact();
-  try {
-    const result = await verifyDocumentationDeploymentV1({
-      baseUrl: ORIGIN, dist, fetchImpl: origin({ plainTextLlms: true }),
-    });
-    // The deployment declares this path's type, so an extension-derived Content-Type is now a
-    // regression in that configuration; the published bytes still arrived intact.
-    assert.equal(result.ok, false);
-    assert.deepEqual(result.results.filter((row) => !row.ok).map((row) => row.name), ["declared media types"]);
-    assert.deepEqual(result.mediaTypeDrift, [
-      { path: "/llms.txt", declared: "text/markdown", observed: "text/plain" },
-    ]);
-    const row = result.results.find((candidate) => candidate.name === "agent entry point");
-    assert.equal(row.ok, true, "the agent entry point still served its exact published bytes");
-    assert.equal(row.declaredMediaType, "text/markdown");
-    assert.equal(row.observedMediaType, "text/plain");
-  } finally { await rm(dist, { recursive: true, force: true }); }
 });
