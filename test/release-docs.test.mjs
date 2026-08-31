@@ -43,16 +43,24 @@ test("release update is idempotent, advances stable identities, and preserves im
     await mkdir(path.join(root, ".superbee"), { recursive: true });
     await writeFile(path.join(root, ".superbee", "index.md"), "---\nokf_version: '0.2'\n---\n# Test bundle\n");
     await writeFile(path.join(root, "portal.config.json"), JSON.stringify({ documentation: { versionLabel: "Latest", navigation: [{ label: "Releases", documents: ["releases/current"] }] } }));
+    await writeFile(path.join(root, "documentation-selection.json"), JSON.stringify({ schema: "test", supportingDocuments: [] }));
     const firstManifest = path.join(root, "first.json");
     await writeFile(firstManifest, JSON.stringify(input("1.2.3")));
     const first = JSON.parse((await invoke(root, "update", ["--manifest", firstManifest])).stdout);
-    assert.equal(first.changed.length, 4);
+    assert.equal(first.changed.length, 5);
     assert.equal(first.versionLabel, "v1.2.3");
     assert.equal(first.portalConfigChanged, true);
-    assert.equal(JSON.parse(await readFile(path.join(root, "portal.config.json"), "utf8")).documentation.versionLabel, "v1.2.3");
+    assert.equal(first.selectionChanged, true);
+    const firstConfig = JSON.parse(await readFile(path.join(root, "portal.config.json"), "utf8"));
+    assert.equal(firstConfig.documentation.versionLabel, "v1.2.3");
+    assert.deepEqual(firstConfig.documentation.navigation[0].documents, ["releases/release-notes", "releases/current"]);
+    assert.deepEqual(JSON.parse(await readFile(path.join(root, "documentation-selection.json"), "utf8")).supportingDocuments,
+      ["releases/1.2.3", "sources/superbee-release-1.2.3"]);
+    assert.match(await readFile(path.join(root, ".superbee", "releases", "release-notes.md"), "utf8"), /# Current stable release[\s\S]+Superbee 1\.2\.3/);
     const repeat = JSON.parse((await invoke(root, "update", ["--manifest", firstManifest])).stdout);
     assert.deepEqual(repeat.changed, []);
     assert.equal(repeat.portalConfigChanged, false);
+    assert.equal(repeat.selectionChanged, false);
     await invoke(root, "check");
     await writeFile(firstManifest, JSON.stringify({ ...input("1.2.3"), summary: "A changed account of an already published release." }));
     await assert.rejects(invoke(root, "update", ["--manifest", firstManifest]), /refusing to replace immutable release document/);
@@ -78,10 +86,16 @@ test("release update is idempotent, advances stable identities, and preserves im
     const nextManifest = path.join(root, "next.json");
     await writeFile(nextManifest, JSON.stringify(input("1.2.4")));
     const next = JSON.parse((await invoke(root, "update", ["--manifest", nextManifest])).stdout);
-    assert.deepEqual(next.changed.sort(), ["releases/1.2.4", "releases/current", "sources/current-release", "sources/superbee-release-1.2.4"].sort());
+    assert.deepEqual(next.changed.sort(), ["releases/1.2.4", "releases/current", "releases/release-notes", "sources/current-release", "sources/superbee-release-1.2.4"].sort());
     assert.equal(next.versionLabel, "v1.2.4");
     assert.equal(next.portalConfigChanged, true);
+    assert.equal(next.selectionChanged, true);
     assert.equal(JSON.parse(await readFile(path.join(root, "portal.config.json"), "utf8")).documentation.versionLabel, "v1.2.4");
+    assert.deepEqual(JSON.parse(await readFile(path.join(root, "documentation-selection.json"), "utf8")).supportingDocuments,
+      ["releases/1.2.3", "releases/1.2.4", "sources/superbee-release-1.2.3", "sources/superbee-release-1.2.4"]);
+    const archive = await readFile(path.join(root, ".superbee", "releases", "release-notes.md"), "utf8");
+    assert.match(archive, /# Current stable release[\s\S]+Superbee 1\.2\.4/);
+    assert.match(archive, /# Previous stable releases[\s\S]+Superbee 1\.2\.3/);
     assert.deepEqual(await readFile(path.join(root, ".superbee", "releases", "1.2.3.md")), oldRelease);
     assert.deepEqual(await readFile(path.join(root, ".superbee", "releases", "current.md")), await readFile(path.join(root, ".superbee", "releases", "1.2.4.md")));
     assert.deepEqual(await readFile(path.join(root, ".superbee", "sources", "current-release.md")), await readFile(path.join(root, ".superbee", "sources", "superbee-release-1.2.4.md")));

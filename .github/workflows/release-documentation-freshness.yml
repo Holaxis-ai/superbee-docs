@@ -1,0 +1,89 @@
+name: Release documentation freshness
+
+on:
+  schedule:
+    - cron: "19 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-documentation-freshness
+  cancel-in-progress: false
+
+jobs:
+  status:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Compare public release authorities with the documented release
+        id: release
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/release-maintenance.mjs > release-documentation-status.json
+          cat release-documentation-status.json
+          echo "status=$(jq -r .status release-documentation-status.json)" >> "$GITHUB_OUTPUT"
+          echo "version=$(jq -r .registryVersion release-documentation-status.json)" >> "$GITHUB_OUTPUT"
+          echo "base=$(jq -r .sourceDiff.base release-documentation-status.json)" >> "$GITHUB_OUTPUT"
+          echo "head=$(jq -r .sourceDiff.head release-documentation-status.json)" >> "$GITHUB_OUTPUT"
+          node --input-type=module <<'NODE' >> "$GITHUB_STEP_SUMMARY"
+          import { readFileSync } from "node:fs";
+          const result = JSON.parse(readFileSync("release-documentation-status.json", "utf8"));
+          console.log("## Release documentation freshness");
+          console.log(`- documented: \`${result.documentedVersion}\``);
+          console.log(`- npm latest: \`${result.registryVersion}\``);
+          console.log(`- result: **${result.status}**`);
+          if (result.status === "update_required") {
+            console.log(`- GitHub release: ${result.verifiedFacts.githubReleaseUrl}`);
+            console.log(`- source commit: \`${result.verifiedFacts.sourceCommit}\``);
+            console.log(`- authored review still required: ${result.authoredFieldsRequired.join(", ")}`);
+          }
+          NODE
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.release.outputs.status == 'update_required'
+        with:
+          repository: Holaxis-ai/superbee
+          ref: v${{ steps.release.outputs.version }}
+          fetch-depth: 0
+          persist-credentials: false
+          path: source/superbee
+
+      - name: Calculate the complete affected-page set
+        if: steps.release.outputs.status == 'update_required'
+        env:
+          BASE: ${{ steps.release.outputs.base }}
+          HEAD: ${{ steps.release.outputs.head }}
+        run: |
+          set -euo pipefail
+          test "$(git -C source/superbee rev-parse HEAD)" = "$HEAD"
+          git -C source/superbee merge-base --is-ancestor "$BASE" "$HEAD"
+          git -C source/superbee diff --name-only -z --no-renames "$BASE..$HEAD" -- > changed-paths.zlist
+          node scripts/documentation-impact.mjs \
+            --changed-list changed-paths.zlist \
+            --event npm-latest \
+            --event stable-release-identity \
+            --event stable-release-verified | tee release-documentation-impact.json
+          node --input-type=module <<'NODE' >> "$GITHUB_STEP_SUMMARY"
+          import { readFileSync } from "node:fs";
+          const result = JSON.parse(readFileSync("release-documentation-impact.json", "utf8"));
+          const pages = [...new Set(result.affected.flatMap((record) => record.pages))].sort();
+          console.log("### Pages requiring agent review");
+          for (const page of pages) console.log(`- \`${page}\``);
+          NODE
+
+      - name: Require a release documentation update
+        if: steps.release.outputs.status == 'update_required'
+        run: |
+          echo "::error::A newer verified stable release requires a documentation pull request."
+          exit 1
