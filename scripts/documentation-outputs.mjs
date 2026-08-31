@@ -14,6 +14,8 @@ import {
 import {
   createDocumentationPresentationContributionFromProjectionV1,
 } from "@superbee/portal-docs";
+import { readPortalWebMcpBrowserAssetV0 } from "@superbee/portal-webmcp/asset/v0";
+import { readPortalClientBrowserAssetV2 } from "superbee-portal/client/v2/asset";
 import { checkPublishedAgreement } from "@superbee/docs-tooling";
 import { readDocumentationSiteConfigV2 } from "@superbee/docs-tooling/site";
 import { capturePublicationSnapshot, PUBLICATION_SNAPSHOT_V1 } from "superbee/publication";
@@ -36,6 +38,29 @@ const sha256 = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("h
 async function json(file, subject) {
   try { return JSON.parse(await readFile(file, "utf8")); }
   catch (error) { throw new Error(`${subject} must be readable JSON`, { cause: error }); }
+}
+
+/**
+ * The four files that make the documentation agent-callable, contributed to this site's own
+ * presentation so their bytes enter the Portal artifact digest like any other published file.
+ *
+ * Only the bootstrap is linked from pages. The other three are published because the bootstrap
+ * imports them by URL, and linking them separately would run library code that registers nothing.
+ * Ordering is irrelevant for the same reason: the module graph decides load order, not the page.
+ */
+async function agentToolAssets() {
+  const [client, tools, routes, bootstrap] = await Promise.all([
+    readPortalClientBrowserAssetV2(),
+    readPortalWebMcpBrowserAssetV0(),
+    readFile(new URL("../assets/superbee-webmcp-routes.js", import.meta.url)),
+    readFile(new URL("../assets/superbee-webmcp.js", import.meta.url)),
+  ]);
+  return [
+    { path: client.path, bytes: client.bytes },
+    { path: tools.path, bytes: tools.bytes },
+    { path: "assets/superbee-webmcp-routes.js", bytes: new Uint8Array(routes) },
+    { path: "assets/superbee-webmcp.js", bytes: new Uint8Array(bootstrap), loadAsModule: true },
+  ];
 }
 
 function exactDiagramRows(manifest, bindings) {
@@ -133,7 +158,11 @@ export async function composeDocumentationOutputs({
     const diagramAgreement = await checkPublishedAgreement({ root: realRoot, configPath: config.file });
     const { guidance, ...input } = await projectionInput({ root: realRoot, config, snapshot, diagramAgreement });
     projection = await createDocumentationProjectionV1(snapshot, input);
-    contribution = await createDocumentationPresentationContributionFromProjectionV1(projection, config.targets.portal);
+    contribution = await createDocumentationPresentationContributionFromProjectionV1(
+      projection,
+      config.targets.portal,
+      { assets: await agentToolAssets() },
+    );
     const artifact = await createPortalArtifact(snapshot, config.portal, { presentation: contribution });
     const portalReceipt = authority ? await writePortalArtifact(artifact, authority) : undefined;
 
