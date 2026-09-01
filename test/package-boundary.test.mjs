@@ -27,6 +27,10 @@ test("consumer uses only public published package surfaces and nested versioned 
     superbee: "0.1.4",
   });
   assert.equal(consumer.scripts["tools:bootstrap"], undefined);
+  assert.equal(
+    consumer.scripts["repository-history:ensure"],
+    "node scripts/bootstrap-repository-history.mjs",
+  );
   assert.equal(config.schema, "https://getsuperbee.com/schemas/docs-site/v2");
   assert.equal(config.portal.schema, "https://getsuperbee.com/schemas/portal-config/v1");
   assert.equal(config.documentation.schema, "https://getsuperbee.com/schemas/documentation-source-config/v1");

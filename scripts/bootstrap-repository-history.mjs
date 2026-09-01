@@ -1,4 +1,6 @@
 import { execFile } from "node:child_process";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
 const execFileAsync = promisify(execFile);
@@ -18,4 +20,11 @@ export async function ensureCompleteRepositoryHistory(root) {
     throw new Error("repository remains shallow after fetching complete history");
   }
   return true;
+}
+
+const modulePath = fileURLToPath(import.meta.url);
+if (process.argv[1] && resolve(process.argv[1]) === modulePath) {
+  const root = resolve(dirname(modulePath), "..");
+  const expanded = await ensureCompleteRepositoryHistory(root);
+  console.log(`repository_history: ${expanded ? "expanded" : "complete"}`);
 }

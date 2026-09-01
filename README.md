@@ -165,10 +165,14 @@ assertions to the same receipt. No static-byte or canonical-redirect capability 
 Cloudflare Workers Builds uses these commands:
 
 ```text
-Build:   npm ci && npm run portal:build
+Build:   npm ci && npm run repository-history:ensure && npm run portal:build
 Deploy:  npx wrangler deploy
 Preview: npx wrangler versions upload
 ```
+
+The history step expands Cloudflare's shallow checkout so Git-backed page freshness remains part of
+the exact deployment artifact. Package dependencies still come only from `npm ci` and the committed
+lockfile.
 
 `main` is the production branch. Other branches upload isolated Worker versions with preview URLs.
 
