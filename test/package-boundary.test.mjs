@@ -18,12 +18,12 @@ test("consumer uses only public published package surfaces and nested versioned 
   ]);
   assert.equal(consumer.workspaces, undefined);
   assert.deepEqual(consumer.dependencies, {
-    "@superbee/docs-mkdocs": "0.1.0",
-    "@superbee/docs-projection": "0.1.0",
-    "@superbee/docs-tooling": "0.1.0",
-    "@superbee/portal": "0.1.0",
-    "@superbee/portal-docs": "0.1.0",
-    "@superbee/portal-webmcp": "0.1.0",
+    "@superbee/docs-mkdocs": "0.2.0",
+    "@superbee/docs-projection": "0.2.0",
+    "@superbee/docs-tooling": "0.2.0",
+    "@superbee/portal": "0.2.0",
+    "@superbee/portal-docs": "0.2.0",
+    "@superbee/portal-webmcp": "0.2.0",
     superbee: "0.1.4",
   });
   assert.equal(consumer.scripts["tools:bootstrap"], undefined);

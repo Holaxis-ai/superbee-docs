@@ -39,12 +39,12 @@
     "check": "npm run diagram:check && npm run docs:release:check && npm run cli-reference:check && npm run architecture:check && npm run docs:impact:check && npm run prose:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run mkdocs:build && npm run cloudflare:check && npm test"
   },
   "dependencies": {
-    "@superbee/docs-mkdocs": "0.1.0",
-    "@superbee/docs-projection": "0.1.0",
-    "@superbee/docs-tooling": "0.1.0",
-    "@superbee/portal": "0.1.0",
-    "@superbee/portal-docs": "0.1.0",
-    "@superbee/portal-webmcp": "0.1.0",
+    "@superbee/docs-mkdocs": "0.2.0",
+    "@superbee/docs-projection": "0.2.0",
+    "@superbee/docs-tooling": "0.2.0",
+    "@superbee/portal": "0.2.0",
+    "@superbee/portal-docs": "0.2.0",
+    "@superbee/portal-webmcp": "0.2.0",
     "superbee": "0.1.4"
   },
   "devDependencies": {

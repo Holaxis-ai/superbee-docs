@@ -188,7 +188,15 @@ test("the published bootstrap really registers the tools in a browser", { timeou
     const warnings = await page.evaluate(() => globalThis.__warnings);
     assert.deepEqual(warnings, [], "activation must not warn on a correctly wired page");
     const registered = await page.evaluate(() => globalThis.__registered);
-    assert.equal(registered.length, 6, `expected the six baseline tools, got ${registered.join(", ")}`);
+    assert.deepEqual(new Set(registered), new Set([
+      "superbee_describe_bundle",
+      "superbee_search_documents",
+      "superbee_get_document",
+      "superbee_list_documents",
+      "superbee_list_document_facets",
+      "superbee_get_relationships",
+      "superbee_list_views",
+    ]));
     for (const name of registered) {
       assert.match(name, /^superbee_/u, "every registered tool must use the reserved prefix");
     }
