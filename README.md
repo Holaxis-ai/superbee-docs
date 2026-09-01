@@ -49,7 +49,7 @@ Cloudflare selects those bytes through the `not_found_handling: "404-page"` asse
 
 The Markdown access contract is explicit URLs, not `Accept:` content negotiation. The reviewed
 evidence in `research/agent-docs-discovery-surfaces` ruled negotiation a layer violation for this
-stack — it would make the edge a second renderer over digest-bound bytes — so the origin serves the
+stack because it would make the edge a second renderer over digest-bound bytes, so the origin serves the
 `.md` sibling every page advertises and deliberately emits no `Vary: Accept`. Advertising a
 negotiation the origin does not perform would fragment every shared cache in front of it while
 changing nothing an agent receives. Portal's production verifier asserts that absence.
@@ -173,6 +173,19 @@ Preview: npx wrangler versions upload
 The history step expands Cloudflare's shallow checkout so Git-backed page freshness remains part of
 the exact deployment artifact. Package dependencies still come only from `npm ci` and the committed
 lockfile.
+
+The Wrangler command only uploads the assembled bytes. It is not, by itself, proof that production
+serves the requested commit. After every push to `main`, `.github/workflows/verify-production.yml`
+rebuilds that exact commit, waits for the independently managed Cloudflare build to finish, and
+verifies the live origin against every expected route, byte digest, media type, response policy,
+redirect, fallback, and admitted View. The workflow also runs daily to detect hosting drift.
+
+Every completed run preserves `production-verification-receipt.json` as a GitHub Actions artifact
+for 30 days. The receipt records the source repository and commit, expected Portal artifact digest,
+target origin, attempt count, and complete Portal verification result. The verifier refreshes the
+receipt after each attempt, and an `if: always()` step uploads the latest result even when
+verification fails. A newer `main` push cancels an obsolete verification so the workflow never
+reports an old artifact as a current deployment failure.
 
 `main` is the production branch. Other branches upload isolated Worker versions with preview URLs.
 

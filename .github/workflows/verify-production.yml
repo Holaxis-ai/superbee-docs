@@ -1,0 +1,48 @@
+name: Verify production documentation
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: superbee-docs-production-verification
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build the exact production expectation
+        run: npm run repository-history:ensure && npm run portal:build
+      - name: Wait for and verify the exact production deployment
+        run: >-
+          node scripts/verify-production.mjs
+          --receipt production-verification-receipt.json
+          --source-repository "$GITHUB_REPOSITORY"
+          --source-commit "$GITHUB_SHA"
+          --attempts 25
+          --delay-ms 15000
+      - name: Preserve the production verification receipt
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: superbee-docs-production-verification-${{ github.sha }}-${{ github.run_attempt }}
+          path: production-verification-receipt.json
+          if-no-files-found: error
+          retention-days: 30
