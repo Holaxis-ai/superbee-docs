@@ -1,12 +1,17 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import test from "node:test";
 
 import { DEPLOYMENT_REDIRECTS } from "../scripts/deployment-assets.mjs";
 import {
   DOCUMENTATION_NOT_FOUND_PROBE_ROUTE,
   documentationVerificationExtensionV1,
+  PRODUCTION_VERIFICATION_RECEIPT_V1,
+  verifyProductionWithRetryV1,
+  writeProductionVerificationReceiptV1,
 } from "../scripts/verify-production.mjs";
 
 const ORIGIN = "https://docs.getsuperbee.com/";
@@ -117,5 +122,87 @@ test("the built artifact declares exact canonical routes and aliases in hosting 
       status: 307,
       methods: ["GET", "HEAD"],
     });
+  }
+});
+
+test("production verification retries until the exact artifact is live and identifies its source", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "superbee-docs-production-verification-"));
+  const artifactDigest = `sha256:${"a".repeat(64)}`;
+  await mkdir(path.join(directory, "data"));
+  await writeFile(path.join(directory, "data", "portal-manifest.json"), JSON.stringify({ artifactDigest }));
+  const sleeps = [];
+  const attemptReceipts = [];
+  let calls = 0;
+  try {
+    const receipt = await verifyProductionWithRetryV1({
+      baseUrl: ORIGIN,
+      dist: directory,
+      siteUrl: ORIGIN,
+      sourceRepository: "Holaxis-ai/superbee-docs",
+      sourceCommit: "A".repeat(40),
+      attempts: 3,
+      delayMs: 15_000,
+      verify: async () => {
+        calls += 1;
+        return { ok: calls === 3, artifactDigest };
+      },
+      sleep: async (delay) => { sleeps.push(delay); },
+      observedAt: () => "2026-09-01T12:00:00.000Z",
+      onAttempt: async (attemptReceipt) => { attemptReceipts.push(attemptReceipt); },
+    });
+    assert.deepEqual(receipt, {
+      schema: PRODUCTION_VERIFICATION_RECEIPT_V1,
+      outcome: "VERIFIED",
+      observedAt: "2026-09-01T12:00:00.000Z",
+      source: { repository: "Holaxis-ai/superbee-docs", commit: "a".repeat(40) },
+      target: { origin: "https://docs.getsuperbee.com" },
+      artifactDigest,
+      attempts: 3,
+      verification: { ok: true, artifactDigest },
+    });
+    assert.deepEqual(sleeps, [15_000, 15_000]);
+    assert.deepEqual(attemptReceipts.map(({ attempts, outcome }) => ({ attempts, outcome })), [
+      { attempts: 1, outcome: "FAILED" },
+      { attempts: 2, outcome: "FAILED" },
+      { attempts: 3, outcome: "VERIFIED" },
+    ]);
+
+    const receiptPath = path.join(directory, "receipts", "production.json");
+    assert.equal(await writeProductionVerificationReceiptV1(receipt, receiptPath), receiptPath);
+    assert.deepEqual(JSON.parse(await readFile(receiptPath, "utf8")), receipt);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
+  }
+});
+
+test("production verification preserves the final failure without retrying past its bound", async () => {
+  const directory = await mkdtemp(path.join(tmpdir(), "superbee-docs-production-verification-"));
+  const artifactDigest = `sha256:${"b".repeat(64)}`;
+  await mkdir(path.join(directory, "data"));
+  await writeFile(path.join(directory, "data", "portal-manifest.json"), JSON.stringify({ artifactDigest }));
+  let calls = 0;
+  try {
+    const receipt = await verifyProductionWithRetryV1({
+      baseUrl: ORIGIN,
+      dist: directory,
+      siteUrl: ORIGIN,
+      sourceRepository: "Holaxis-ai/superbee-docs",
+      sourceCommit: "b".repeat(40),
+      attempts: 2,
+      verify: async () => {
+        calls += 1;
+        throw new Error("origin unavailable");
+      },
+      sleep: async () => {},
+      observedAt: () => "2026-09-01T12:00:00.000Z",
+    });
+    assert.equal(calls, 2);
+    assert.equal(receipt.outcome, "FAILED");
+    assert.equal(receipt.attempts, 2);
+    assert.equal(receipt.error, "origin unavailable");
+    assert.equal(receipt.verification, null);
+    assert.equal(receipt.artifactDigest, artifactDigest);
+  } finally {
+    await rm(directory, { recursive: true, force: true });
   }
 });

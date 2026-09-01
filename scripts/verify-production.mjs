@@ -7,8 +7,10 @@
  * a read-only GET through Portal's origin-confined probe.
  */
 
+import { randomBytes } from "node:crypto";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
-import { readFile } from "node:fs/promises";
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
 import { verifyPortalDeploymentV1 } from "@superbee/portal";
@@ -17,6 +19,8 @@ import { DEPLOYMENT_REDIRECTS } from "./deployment-assets.mjs";
 
 const decoder = new TextDecoder("utf-8", { fatal: true });
 export const DOCUMENTATION_NOT_FOUND_PROBE_ROUTE = "/docs/superbee-portal-verify/unknown-route/";
+export const PRODUCTION_VERIFICATION_RECEIPT_V1 =
+  "https://getsuperbee.com/schemas/superbee-docs/production-verification-receipt/v1";
 
 function attribute(tag, name) {
   return tag.match(new RegExp(`\\s${name}=(?:"([^"]*)"|'([^']*)')`, "iu"))?.slice(1).find((value) => value !== undefined) ?? null;
@@ -160,20 +164,132 @@ export async function verifyDocumentationDeploymentV1({
   });
 }
 
+const wait = (delayMs) => new Promise((resolve) => setTimeout(resolve, delayMs));
+
+function currentGitCommit() {
+  const result = spawnSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" });
+  return result.status === 0 ? result.stdout.trim() : null;
+}
+
+/**
+ * Retry the exact artifact verification while the independently managed host finishes activation.
+ * The returned receipt always identifies the source commit and expected artifact digest.
+ */
+export async function verifyProductionWithRetryV1({
+  baseUrl,
+  dist,
+  siteUrl,
+  sourceRepository,
+  sourceCommit,
+  attempts = 1,
+  delayMs = 0,
+  unenforcedCapabilities = [],
+  fetchImpl = fetch,
+  verify = verifyDocumentationDeploymentV1,
+  sleep = wait,
+  observedAt = () => new Date().toISOString(),
+  onAttempt = async () => {},
+}) {
+  if (!Number.isSafeInteger(attempts) || attempts < 1) throw new Error("attempts must be a positive integer");
+  if (!Number.isSafeInteger(delayMs) || delayMs < 0) throw new Error("delay must be a non-negative integer");
+  if (typeof sourceRepository !== "string" || sourceRepository.trim() === "") {
+    throw new Error("source repository must be a non-empty string");
+  }
+  if (typeof sourceCommit !== "string" || !/^[0-9a-f]{40,64}$/iu.test(sourceCommit)) {
+    throw new Error("source commit must be a 40 to 64 character hexadecimal Git object ID");
+  }
+
+  const manifest = JSON.parse(await readFile(path.join(dist, "data", "portal-manifest.json"), "utf8"));
+  if (typeof manifest.artifactDigest !== "string" || !/^sha256:[0-9a-f]{64}$/u.test(manifest.artifactDigest)) {
+    throw new Error("the built portal manifest does not declare a valid artifact digest");
+  }
+
+  let verification = null;
+  let error = null;
+  let completedAttempts = 0;
+  let receipt = null;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    completedAttempts = attempt;
+    try {
+      verification = await verify({ baseUrl, dist, siteUrl, unenforcedCapabilities, fetchImpl });
+      error = null;
+    } catch (caught) {
+      verification = null;
+      error = caught instanceof Error ? caught.message : String(caught);
+    }
+    const verified = verification?.ok === true;
+    receipt = {
+      schema: PRODUCTION_VERIFICATION_RECEIPT_V1,
+      outcome: verified ? "VERIFIED" : "FAILED",
+      observedAt: observedAt(),
+      source: { repository: sourceRepository, commit: sourceCommit.toLowerCase() },
+      target: { origin: new URL(baseUrl).origin },
+      artifactDigest: manifest.artifactDigest,
+      attempts: completedAttempts,
+      verification,
+      ...(verified || error === null ? {} : { error }),
+    };
+    await onAttempt(receipt);
+    if (verified) break;
+    if (attempt < attempts) await sleep(delayMs);
+  }
+  return receipt;
+}
+
+export async function writeProductionVerificationReceiptV1(receipt, destination) {
+  const absolute = path.resolve(destination);
+  await mkdir(path.dirname(absolute), { recursive: true });
+  const temporary = `${absolute}.${randomBytes(8).toString("hex")}.tmp`;
+  await writeFile(temporary, `${JSON.stringify(receipt, null, 2)}\n`, { mode: 0o600, flag: "wx" });
+  await rename(temporary, absolute);
+  return absolute;
+}
+
 async function main(argv) {
-  const options = { baseUrl: "https://docs.getsuperbee.com", dist: "dist", unenforcedCapabilities: [] };
+  const options = {
+    baseUrl: "https://docs.getsuperbee.com",
+    dist: "dist",
+    unenforcedCapabilities: [],
+    receipt: null,
+    sourceRepository: process.env.GITHUB_REPOSITORY ?? "Holaxis-ai/superbee-docs",
+    sourceCommit: process.env.GITHUB_SHA ?? currentGitCommit(),
+    attempts: 1,
+    delayMs: 0,
+  };
   for (let index = 0; index < argv.length; index += 2) {
     const flag = argv[index];
     const value = argv[index + 1];
     if (flag === "--base" && value) options.baseUrl = value;
     else if (flag === "--dist" && value) options.dist = value;
     else if (flag === "--unenforced" && value) options.unenforcedCapabilities.push(value);
-    else throw new Error("usage: node scripts/verify-production.mjs [--base <origin>] [--dist <directory>] [--unenforced <capability>]...");
+    else if (flag === "--receipt" && value) options.receipt = value;
+    else if (flag === "--source-repository" && value) options.sourceRepository = value;
+    else if (flag === "--source-commit" && value) options.sourceCommit = value;
+    else if (flag === "--attempts" && value) options.attempts = Number(value);
+    else if (flag === "--delay-ms" && value) options.delayMs = Number(value);
+    else throw new Error([
+      "usage: node scripts/verify-production.mjs",
+      "[--base <origin>] [--dist <directory>] [--unenforced <capability>]...",
+      "[--receipt <path>] [--source-repository <owner/repo>] [--source-commit <commit>]",
+      "[--attempts <count>] [--delay-ms <milliseconds>]",
+    ].join(" "));
   }
   const config = JSON.parse(await readFile("portal.config.json", "utf8"));
-  const result = await verifyDocumentationDeploymentV1({ ...options, siteUrl: config.targets.portal.siteUrl });
-  console.log(JSON.stringify(result, null, 2));
-  if (!result.ok) process.exitCode = 1;
+  if (!options.sourceCommit) {
+    throw new Error("source commit is required; pass --source-commit or set GITHUB_SHA");
+  }
+  const receipt = await verifyProductionWithRetryV1({
+    ...options,
+    siteUrl: config.targets.portal.siteUrl,
+    onAttempt: options.receipt
+      ? async (attemptReceipt) => {
+        await writeProductionVerificationReceiptV1(attemptReceipt, options.receipt);
+        console.error(`production verification attempt ${attemptReceipt.attempts}: ${attemptReceipt.outcome}`);
+      }
+      : async () => {},
+  });
+  console.log(JSON.stringify(receipt, null, 2));
+  if (receipt.outcome !== "VERIFIED") process.exitCode = 1;
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
