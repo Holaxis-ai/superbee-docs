@@ -54,7 +54,7 @@ Diagram source uses directive-free flowchart syntax without font overrides and p
 v1. This keeps renderer inputs bounded and every layout glyph inside the pinned embedded
 font; unsupported syntax or characters fail before rendering.
 
-The pinned packed `@superbee/docs-tooling` package owns validation and source-bound source-to-SVG
+The exact `@superbee/docs-tooling` package owns validation and source-bound source-to-SVG
 compilation. It must not import deployment code or this site's content.
 Its explicit `superbee-docs diagram apply` conductor is the only diagram publication adapter; this
 repository supplies the source, manifest, docs-site configuration, and resulting receipt.

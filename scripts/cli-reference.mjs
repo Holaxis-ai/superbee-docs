@@ -17,7 +17,7 @@ function usage() {
   node scripts/cli-reference.mjs build [--bin <path>]
   node scripts/cli-reference.mjs check [--bin <path>]
 
-The default executable is the exact current stable package installed by npm run tools:bootstrap.
+The default executable is the exact current stable package installed by npm ci.
 The generated inventory is written through Superbee; check mode is read-only and fails on drift.
 `;
 }
@@ -26,7 +26,7 @@ function parseOptions(argv) {
   const mode = argv[0];
   if (mode === "--help" || mode === "-h") return { help: true };
   if (mode !== "build" && mode !== "check") throw new Error("first argument must be build or check");
-  let bin = resolve(root, ".deps/stable-package/node_modules/.bin/superbee");
+  let bin = resolve(root, "node_modules/.bin/superbee");
   for (let index = 1; index < argv.length; index += 1) {
     if (argv[index] === "--help" || argv[index] === "-h") return { help: true };
     if (argv[index] !== "--bin") throw new Error(`unknown option: ${argv[index]}`);

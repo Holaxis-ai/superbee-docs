@@ -64,19 +64,20 @@ Node.js 22.12 or newer is required.
 
 ```bash
 npm ci
-npm run tools:bootstrap
+npm run source:sync
 npm run portal:build
 npm run mkdocs:sync
 npm run check
 ```
 
-The bootstrap command builds the exact pinned Superbee and Portal commits into local
-development packages. The Portal build captures one source snapshot and projects the same explicit
+`npm ci` installs the exact Portal and Superbee packages recorded by the lockfile. The source sync
+keeps an exact Superbee checkout only for source-grounded architecture checks. The Portal build
+captures one source snapshot and projects the same explicit
 52-document selection (40 navigated and 12 supporting), brand asset, relationships, and eight
 admitted diagrams into both Portal and MkDocs target inputs. The `@superbee/docs-mkdocs` package
 owns the pinned uv command sequence: `mkdocs:sync` installs the exact locked Python environment
-once, while `mkdocs:build` and repository checks are frozen and offline. This temporary
-packed-package step disappears once compatible releases are available from npm. Before changing either exact pin,
+once, while `mkdocs:build` and repository checks are frozen and offline. Before changing the source
+pin or package versions,
 confirm that no `*.apply-intent.json` transaction journal is pending; finish or roll back that
 operation with the package version that created it first. Journals
 contain local paths and exact recovery preimages and are intentionally ignored by Git.
@@ -164,7 +165,7 @@ assertions to the same receipt. No static-byte or canonical-redirect capability 
 Cloudflare Workers Builds uses these commands:
 
 ```text
-Build:   npm ci && npm run tools:bootstrap && npm run portal:build
+Build:   npm ci && npm run portal:build
 Deploy:  npx wrangler deploy
 Preview: npx wrangler versions upload
 ```
@@ -182,7 +183,7 @@ npm run diagram:check   # prove checked-in source/SVG/receipt agreement
 npm run portal:preview  # inspect the exact Portal artifact locally
 ```
 
-The pinned packed `@superbee/docs-tooling` package owns both reusable compilation and the explicit,
+The exact `@superbee/docs-tooling` package owns both reusable compilation and the explicit,
 namespace-bounded `superbee-docs diagram apply` publication conductor; this repository owns its
 source, manifest, configuration, and receipt. Diagram source uses directive-free flowchart syntax
 without font overrides and printable ASCII in v1. Browser layout geometry may

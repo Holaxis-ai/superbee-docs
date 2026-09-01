@@ -11,7 +11,7 @@ import path from "node:path";
 import { readFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 
-import { verifyPortalDeploymentV1 } from "superbee-portal";
+import { verifyPortalDeploymentV1 } from "@superbee/portal";
 
 import { DEPLOYMENT_REDIRECTS } from "./deployment-assets.mjs";
 
