@@ -8,7 +8,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
-    "tools:bootstrap": "node scripts/bootstrap-tools.mjs",
+    "source:sync": "node scripts/sync-source.mjs",
     "docs:release": "node scripts/release-docs.mjs update",
     "docs:release:archive": "node scripts/release-docs.mjs archive",
     "docs:release:status": "node scripts/release-maintenance.mjs",
@@ -36,6 +36,15 @@
     "verify:production": "node scripts/verify-production.mjs",
     "test": "node --test test/*.test.mjs",
     "check": "npm run diagram:check && npm run docs:release:check && npm run cli-reference:check && npm run architecture:check && npm run docs:impact:check && npm run prose:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run mkdocs:build && npm run cloudflare:check && npm test"
+  },
+  "dependencies": {
+    "@superbee/docs-mkdocs": "0.1.0",
+    "@superbee/docs-projection": "0.1.0",
+    "@superbee/docs-tooling": "0.1.0",
+    "@superbee/portal": "0.1.0",
+    "@superbee/portal-docs": "0.1.0",
+    "@superbee/portal-webmcp": "0.1.0",
+    "superbee": "0.1.4"
   },
   "devDependencies": {
     "wrangler": "4.127.1"

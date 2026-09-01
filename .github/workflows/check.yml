@@ -21,7 +21,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run tools:bootstrap
+      - run: npm run source:sync
       - name: Bootstrap the exact MkDocs environment
         run: |
           UV_VERSION=$(node --input-type=module -e 'import { MKDOCS_UV_VERSION_V1 } from "@superbee/docs-mkdocs"; process.stdout.write(MKDOCS_UV_VERSION_V1)')

@@ -8,7 +8,7 @@ import test from "node:test";
 import puppeteer from "puppeteer";
 
 import { readPortalWebMcpBrowserAssetV0 } from "@superbee/portal-webmcp/asset/v0";
-import { readPortalClientBrowserAssetV2 } from "superbee-portal/client/v2/asset";
+import { readPortalClientBrowserAssetV2 } from "@superbee/portal/client/v2/asset";
 
 import { composeDocumentationOutputs } from "../scripts/documentation-outputs.mjs";
 // The real resolver, imported rather than reimplemented. It lives in its own module precisely so

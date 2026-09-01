@@ -8,7 +8,7 @@ import {
   DOCUMENTATION_PROJECTION_CONFIG_V1,
 } from "@superbee/docs-projection";
 import { readPortalWebMcpBrowserAssetV0 } from "@superbee/portal-webmcp/asset/v0";
-import { readPortalClientBrowserAssetV2 } from "superbee-portal/client/v2/asset";
+import { readPortalClientBrowserAssetV2 } from "@superbee/portal/client/v2/asset";
 import { checkPublishedAgreement } from "@superbee/docs-tooling";
 import {
   composeDocumentationSiteV2,
@@ -17,7 +17,7 @@ import {
 } from "@superbee/docs-tooling/site";
 import {
   authorizePortalWrite,
-} from "superbee-portal";
+} from "@superbee/portal";
 
 import { validateDocumentationSourceFiles } from "./documentation-source-files.mjs";
 import { deriveDocumentationFreshness } from "./documentation-freshness.mjs";
