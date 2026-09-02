@@ -19,7 +19,7 @@ async function fixture() {
   const root = await mkdtemp(path.join(tmpdir(), "superbee-docs-reconciliation-"));
   await writeFile(path.join(root, "package.json"), JSON.stringify({
     dependencies: {
-      "@superbee/portal": "0.2.2",
+      "@superbee/portal": "0.2.3",
       "@superbee/portal-cloudflare": "0.2.2",
       superbee: "0.1.4",
     },
@@ -36,7 +36,7 @@ test("Docs binds the exact artifact, host assembly, target, and immutable proven
       site: { repository: REPOSITORY, commit: COMMIT, configPath: "portal.config.json" },
       toolchain: {
         superbee: "superbee@0.1.4",
-        portal: "@superbee/portal@0.2.2",
+        portal: "@superbee/portal@0.2.3",
         action: `@superbee/portal-cloudflare@0.2.2+superbee-docs/scripts/reconcile-cloudflare.mjs@${COMMIT}`,
       },
     });
