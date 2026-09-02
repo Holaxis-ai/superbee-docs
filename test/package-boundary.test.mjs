@@ -22,7 +22,7 @@ test("consumer uses only public published package surfaces and nested versioned 
     "@superbee/docs-projection": "0.2.2",
     "@superbee/docs-tooling": "0.2.2",
     "@superbee/portal": "0.2.3",
-    "@superbee/portal-cloudflare": "0.2.3",
+    "@superbee/portal-cloudflare": "0.2.4",
     "@superbee/portal-docs": "0.2.2",
     "@superbee/portal-webmcp": "0.2.2",
     superbee: "0.1.4",
