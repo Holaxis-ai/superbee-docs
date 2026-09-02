@@ -190,6 +190,8 @@ test("the workflow separates build from credentials and serializes durable recon
   assert.match(workflow, /git fetch --no-tags origin main[\s\S]+--observed-commit/u);
   assert.equal((workflow.match(/CLOUDFLARE_API_TOKEN:/gu) ?? []).length, 1);
   const buildJob = workflow.slice(workflow.indexOf("  build:"), workflow.indexOf("  reconcile:"));
-  assert.doesNotMatch(buildJob, /CLOUDFLARE|secrets\./u);
+  assert.doesNotMatch(buildJob, /CLOUDFLARE/u);
+  assert.match(buildJob, /NODE_AUTH_TOKEN: \$\{\{ secrets\.NPM_READ_TOKEN \}\}/u);
+  assert.equal((buildJob.match(/secrets\./gu) ?? []).length, 1);
   assert.doesNotMatch(workflow, /npx wrangler deploy(?:\s|$)/u);
 });
