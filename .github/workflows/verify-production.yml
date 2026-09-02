@@ -1,4 +1,4 @@
-name: Verify production documentation
+name: Reconcile and verify production documentation
 
 on:
   push:
@@ -11,11 +11,11 @@ permissions:
   contents: read
 
 concurrency:
-  group: superbee-docs-production-verification
-  cancel-in-progress: true
+  group: superbee-docs-cloudflare-production
+  cancel-in-progress: false
 
 jobs:
-  verify:
+  build:
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -28,21 +28,85 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Build the exact production expectation
+      - name: Build the exact immutable Portal artifact
         run: npm run repository-history:ensure && npm run portal:build
-      - name: Wait for and verify the exact production deployment
+      - name: Prove Cloudflare can stage the completed deployment offline
+        run: npm run cloudflare:check && npm run cloudflare:reconciliation:check
+      - name: Hand off the exact completed Portal artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: superbee-docs-portal-${{ github.sha }}-${{ github.run_attempt }}
+          path: dist
+          if-no-files-found: error
+          retention-days: 1
+
+  reconcile:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Restore the exact completed Portal artifact
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: superbee-docs-portal-${{ github.sha }}-${{ github.run_attempt }}
+          path: dist
+      - name: Assemble the package-owned Cloudflare asset layer
+        run: node scripts/deployment-assets.mjs
+      - name: Prove the restored activation unit can stage offline
+        run: npm run cloudflare:check && npm run cloudflare:reconciliation:check
+      - name: Re-resolve the desired production commit
+        id: desired
+        shell: bash
+        run: |
+          git fetch --no-tags origin main
+          echo "commit=$(git rev-parse origin/main)" >> "$GITHUB_OUTPUT"
+      - name: Reconcile the exact artifact with Cloudflare
+        id: reconciliation
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          RECONCILIATION_MODE: ${{ github.event_name == 'schedule' && 'probe' || 'deploy' }}
+        run: >-
+          node scripts/reconcile-cloudflare.mjs
+          --mode "$RECONCILIATION_MODE"
+          --repository "$GITHUB_REPOSITORY"
+          --desired-commit "$GITHUB_SHA"
+          --observed-commit "${{ steps.desired.outputs.commit }}"
+          --receipt cloudflare-reconciliation-receipt.json
+      - name: Verify Docs-specific production behavior
+        id: verification
+        continue-on-error: true
         run: >-
           node scripts/verify-production.mjs
           --receipt production-verification-receipt.json
           --source-repository "$GITHUB_REPOSITORY"
           --source-commit "$GITHUB_SHA"
-          --attempts 25
-          --delay-ms 15000
-      - name: Preserve the production verification receipt
+          --attempts 1
+      - name: Preserve reconciliation and verification receipts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: superbee-docs-production-verification-${{ github.sha }}-${{ github.run_attempt }}
-          path: production-verification-receipt.json
+          name: superbee-docs-production-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            cloudflare-reconciliation-receipt.json
+            production-verification-receipt.json
           if-no-files-found: error
           retention-days: 30
+      - name: Require verified reconciliation and Docs behavior
+        if: always()
+        env:
+          RECONCILIATION_OUTCOME: ${{ steps.reconciliation.outcome }}
+          VERIFICATION_OUTCOME: ${{ steps.verification.outcome }}
+        run: |
+          test "$RECONCILIATION_OUTCOME" = success
+          test "$VERIFICATION_OUTCOME" = success

@@ -118,36 +118,34 @@ remain available in release, evidence, and migration records.
 
 ## Deployment
 
-Portal builds the immutable public site artifact into `dist`, and `npm run portal:build` then
-assembles the uploaded directory `deploy` from it: every declared artifact file, verified against
-the manifest digest it was published under, plus the deployment configuration Cloudflare reads from
-an assets root and never serves. The two directories stay separate because the artifact is
-inventory-exact, and Portal refuses to replace an output holding any file its manifest does not
-name. `scripts/deployment-assets.mjs` owns that assembly and generates both configuration files, so
-a deployed copy cannot drift from what was reviewed.
+Portal builds the immutable public site artifact into `dist`. The public
+`@superbee/portal-cloudflare/static-assets` adapter then verifies that complete artifact and
+atomically assembles `deploy`: every inventoried byte plus only the host configuration Cloudflare
+consumes and does not serve. The two directories stay separate because `dist` is inventory-exact.
+Portal must be able to reject any extra or changed byte in it.
 
-`_redirects` comes from a reviewable rule table. Today it sends the two guessed entry paths `/docs`
-and `/docs/` to the canonical root; each rule names one exact path, so every other missing route
-still reaches the published recovery body as a real 404.
+The package derives `_headers` from the artifact's declared response policy and exact media types.
+It also derives every canonical 307 HTML alias from the artifact's hosting requirements. This
+repository contributes only two site-specific rules: `/docs` and `/docs/` return 301 redirects to
+the canonical root. Each names one exact path, so every other missing route still reaches the
+published recovery body as a real 404. `scripts/deployment-assets.mjs` is the small consumer binding
+for that policy. It does not duplicate Cloudflare limits, MIME tables, integrity checks, or
+filesystem replacement logic.
 
-`_headers` comes from the artifact's own inventory. Wrangler labels each uploaded asset from its
-file extension and never consults the declared inventory, so a declared type can drift from the
-served one: `/llms.txt` is declared `text/markdown` and was served as `text/plain`, while Cloudflare
-currently omits the declared UTF-8 parameter from text responses. The generator compares every
-published path's declared type against a measured table of what this host sends for that extension.
-It emits an extension splat only when the complete inventoried family has one declared type, keeps
-mixed or unmeasured cases on exact paths, and maps clean HTML routes back to their artifact files.
-The trailing-slash documentation family also gives a missing documentation route the declared HTML
-recovery type. If the resulting rules exhaust Cloudflare's hundred-rule budget, the build fails.
+`scripts/cloudflare-worker.mjs` is similarly small. It exports the package's verified public Portal
+handler under a stable Wrangler entry path. Portal owns byte validation, route admission, recovery,
+opaque downloads, View isolation and bridge behavior, and the live deployment-effect identity.
+Wrangler keeps presentation routes asset-first so generated headers and canonical redirects apply,
+then sends `/data/*`, `/bundle/*`, and the View bridge to the Worker for verified dynamic policy.
 
 The MkDocs adapter independently materializes a conventional reference site under ignored
 `.tmp/mkdocs/site` from the same owned projection; it is validated but not deployed by this
-repository. Cloudflare Workers Static Assets serves only `deploy`, without a Worker script.
-Validate the generated deployment locally before uploading it:
+repository. Validate the exact artifact, Cloudflare assembly, and staged runtime locally:
 
 ```bash
 npm run portal:build
 npm run cloudflare:check
+npm run cloudflare:reconciliation:check
 ```
 
 After a deployment, compare the live origin against the exact artifact this repository built:
@@ -162,32 +160,32 @@ HTML routes, and their exact 307 aliases from the artifact's hosting requirement
 adds only its page metadata, advertised Markdown-alternate, and two guessed `/docs` entry-route
 assertions to the same receipt. No static-byte or canonical-redirect capability is waived.
 
-Cloudflare Workers Builds uses these commands:
+Production activation belongs to `.github/workflows/verify-production.yml`, not to Cloudflare Git
+builds or a bare Wrangler command. Its uncredentialed build job checks out the exact `main` commit,
+expands repository history, runs the deterministic build and staging checks, and uploads only the
+completed `dist` artifact. The reconciliation job downloads those exact bytes, assembles the
+package-owned Cloudflare layer without rebuilding the site, and re-resolves `origin/main`
+immediately before activation. A changed desired commit fails closed.
 
-```text
-Build:   npm ci && npm run repository-history:ensure && npm run portal:build
-Deploy:  npx wrangler deploy
-Preview: npx wrangler versions upload
-```
+Only the reconciliation step receives `CLOUDFLARE_API_TOKEN`. It calls the package's public
+reconciler through `scripts/reconcile-cloudflare.mjs` with an immutable source, site, and toolchain
+provenance tuple. The reconciler inspects provider generation, stages and digests the complete
+activation unit, activates with strict generation protection, then externally verifies the live
+effect. If a new activation fails verification and the prior generation was verified, the package
+rolls back and verifies recovery. The workflow concurrency group never cancels an in-flight run, so
+one production target has one serialized activation stream.
 
-The history step expands Cloudflare's shallow checkout so Git-backed page freshness remains part of
-the exact deployment artifact. Package dependencies still come only from `npm ci` and the committed
-lockfile.
+The workflow then runs the Docs-specific verifier over every expected status, byte digest, media
+type, response header, redirect, fallback, and admitted View. An `if: always()` step uploads both
+the reconciliation receipt and the Docs verification receipt for 30 days, including bounded
+preflight failures and verified rollback outcomes. Its daily scheduled run uses probe mode and does
+not mutate production, so deployment drift is detected against the current exact artifact.
 
-The Wrangler command only uploads the assembled bytes. It is not, by itself, proof that production
-serves the requested commit. After every push to `main`, `.github/workflows/verify-production.yml`
-rebuilds that exact commit, waits for the independently managed Cloudflare build to finish, and
-verifies the live origin against every expected route, byte digest, media type, response policy,
-redirect, fallback, and admitted View. The workflow also runs daily to detect hosting drift.
-
-Every completed run preserves `production-verification-receipt.json` as a GitHub Actions artifact
-for 30 days. The receipt records the source repository and commit, expected Portal artifact digest,
-target origin, attempt count, and complete Portal verification result. The verifier refreshes the
-receipt after each attempt, and an `if: always()` step uploads the latest result even when
-verification fails. A newer `main` push cancels an obsolete verification so the workflow never
-reports an old artifact as a current deployment failure.
-
-`main` is the production branch. Other branches upload isolated Worker versions with preview URLs.
+Cloudflare's repository integration must remain disabled while this workflow is the production
+writer. Enabling both would create two independent activation authorities. The
+`npm run cloudflare:check` command remains a credential-free dry run, not deployment agreement, and
+this repository intentionally exposes no `cloudflare:deploy` or `cloudflare:preview` script. `main`
+is the production branch.
 
 ## Diagrams
 

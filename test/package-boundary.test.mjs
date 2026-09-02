@@ -18,12 +18,13 @@ test("consumer uses only public published package surfaces and nested versioned 
   ]);
   assert.equal(consumer.workspaces, undefined);
   assert.deepEqual(consumer.dependencies, {
-    "@superbee/docs-mkdocs": "0.2.0",
-    "@superbee/docs-projection": "0.2.0",
-    "@superbee/docs-tooling": "0.2.0",
-    "@superbee/portal": "0.2.0",
-    "@superbee/portal-docs": "0.2.0",
-    "@superbee/portal-webmcp": "0.2.0",
+    "@superbee/docs-mkdocs": "0.2.2",
+    "@superbee/docs-projection": "0.2.2",
+    "@superbee/docs-tooling": "0.2.2",
+    "@superbee/portal": "0.2.3",
+    "@superbee/portal-cloudflare": "0.2.2",
+    "@superbee/portal-docs": "0.2.2",
+    "@superbee/portal-webmcp": "0.2.2",
     superbee: "0.1.4",
   });
   assert.equal(consumer.scripts["tools:bootstrap"], undefined);
@@ -45,6 +46,9 @@ test("consumer uses only public published package surfaces and nested versioned 
   assert.match(import.meta.resolve("@superbee/docs-mkdocs"), /\/node_modules\/@superbee\/docs-mkdocs\//);
   assert.match(import.meta.resolve("@superbee/docs-tooling"), /\/node_modules\/@superbee\/docs-tooling\//);
   assert.match(import.meta.resolve("@superbee/portal-docs"), /\/node_modules\/@superbee\/portal-docs\//);
+  assert.match(import.meta.resolve("@superbee/portal-cloudflare"), /\/node_modules\/@superbee\/portal-cloudflare\//);
+  assert.match(import.meta.resolve("@superbee/portal-cloudflare/static-assets"), /\/node_modules\/@superbee\/portal-cloudflare\//);
+  assert.match(import.meta.resolve("@superbee/portal-cloudflare/reconcile"), /\/node_modules\/@superbee\/portal-cloudflare\//);
   assert.match(import.meta.resolve("@superbee/portal"), /\/node_modules\/@superbee\/portal\//);
   // The two fixed browser assets this site contributes. Resolved through their own subpath exports
   // so a package that stopped publishing either is caught here rather than at deploy time.
@@ -57,6 +61,10 @@ test("consumer uses only public published package surfaces and nested versioned 
   );
   assert.equal(consumer.scripts["mkdocs:sync"], "superbee-docs-mkdocs sync");
   assert.equal(consumer.scripts["mkdocs:build"], "superbee-docs-mkdocs build");
+  assert.equal(consumer.scripts["cloudflare:preview"], undefined);
+  assert.equal(consumer.scripts["cloudflare:deploy"], undefined);
+  assert.equal(consumer.scripts["cloudflare:reconciliation:check"], "node scripts/check-cloudflare-reconciliation.mjs");
+  assert.equal(consumer.scripts["cloudflare:reconcile"], "node scripts/reconcile-cloudflare.mjs");
   assert.match(composition, /composeDocumentationSiteV2/);
   assert.match(composition, /startDocumentationSitePreviewV2/);
   assert.match(composition, /authorizePortalWrite/);
@@ -77,6 +85,14 @@ test("consumer uses only public published package surfaces and nested versioned 
   // it, so host configuration never enters the inventory-exact artifact.
   assert.equal(config.output, "dist");
   assert.notEqual(config.output, wrangler.assets.directory.replace(/^\.\//, ""));
+  assert.equal(wrangler.main, "./scripts/cloudflare-worker.mjs");
+  assert.deepEqual(wrangler.compatibility_flags, ["nodejs_compat"]);
+  assert.equal(wrangler.assets.binding, "ASSETS");
+  assert.deepEqual(wrangler.assets.run_worker_first, [
+    "/data/*",
+    "/bundle/*",
+    "/__superbee/bridge/*",
+  ]);
   await assert.rejects(readFile("scripts/apply-diagrams.mjs"), (error) => error.code === "ENOENT");
   await assert.rejects(readFile("scripts/mkdocs-runtime.mjs"), (error) => error.code === "ENOENT");
   await assert.rejects(readFile("spikes/mkdocs/materialize.mjs"), (error) => error.code === "ENOENT");
