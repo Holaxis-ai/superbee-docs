@@ -20,7 +20,10 @@ jobs:
         with:
           node-version: 22
           cache: npm
+          registry-url: "https://registry.npmjs.org"
       - run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
       - run: npm run source:sync
       - name: Bootstrap the exact MkDocs environment
         run: |
