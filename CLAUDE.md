@@ -1,4 +1,4 @@
-# Superbee documentation — project guide
+# Superbee documentation project guide
 
 This public repository is the source and publication workspace for Superbee's public documentation.
 Everything committed here is public by design. Never copy private strategy, embargoed plans,
@@ -16,11 +16,12 @@ into this repository or its `.superbee/` bundle.
   the quoted bytes and their links stay owned by the published document it names.
 - Generated static SVG, Portal data, MkDocs input/site files, and deployed bytes are projections of
   the bundle and declared source inputs.
-- `scripts/deployment-assets.mjs` owns host deployment configuration and assembles the uploaded
-  `deploy` directory from the exact `dist` artifact. Change a routing rule in that rule table; never
-  hand-edit a generated `_redirects` or `_headers` file or add a file to the inventory-exact
-  artifact. Served media types come from the artifact's declared inventory, never from a hand-kept
-  list, and the table of what this host derives per extension records measurements, never guesses.
+- `@superbee/portal-cloudflare` owns verified host assembly, Cloudflare capability translation,
+  reconciliation, external probes, and rollback. `scripts/deployment-assets.mjs` contributes only
+  this site's two exact entry redirects, `scripts/cloudflare-worker.mjs` supplies the stable Worker
+  entry, and `scripts/reconcile-cloudflare.mjs` binds the Docs target and immutable provenance. Never
+  hand-edit generated `_redirects` or `_headers`, add a file to the inventory-exact `dist` artifact,
+  or treat a bare Wrangler command as deployment agreement.
 - Page freshness is a derived publication fact, never hand-authored display text. `Last updated`
   means the document's OKF meaningful-change clock when one exists; otherwise it is the last commit
   time for the exact clean, tracked source file in a full Git history. `Last verified` is reserved

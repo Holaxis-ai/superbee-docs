@@ -129,8 +129,15 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     const wrangler = await json("wrangler.jsonc");
     // Cloudflare uploads the assembled deployment, never the inventory-exact artifact directly.
     assert.equal(wrangler.assets.directory, "./deploy");
+    assert.equal(wrangler.assets.binding, "ASSETS");
+    assert.deepEqual(wrangler.assets.run_worker_first, [
+      "/data/*",
+      "/bundle/*",
+      "/__superbee/bridge/*",
+    ]);
     // Cloudflare selects the artifact's own 404.html only under this exact assets setting.
     assert.equal(wrangler.assets.not_found_handling, "404-page");
+    assert.equal(wrangler.assets.html_handling, "auto-trailing-slash");
 
     // The agent entry point quotes one exact section of one published page, with every internal
     // link resolved to the exact published Markdown of a selected document.

@@ -32,19 +32,20 @@
     "mkdocs:sync": "superbee-docs-mkdocs sync",
     "mkdocs:build": "superbee-docs-mkdocs build",
     "cloudflare:check": "wrangler deploy --dry-run",
-    "cloudflare:preview": "wrangler versions upload",
-    "cloudflare:deploy": "wrangler deploy",
+    "cloudflare:reconciliation:check": "node scripts/check-cloudflare-reconciliation.mjs",
+    "cloudflare:reconcile": "node scripts/reconcile-cloudflare.mjs",
     "verify:production": "node scripts/verify-production.mjs",
     "test": "node --test test/*.test.mjs",
-    "check": "npm run diagram:check && npm run docs:release:check && npm run cli-reference:check && npm run architecture:check && npm run docs:impact:check && npm run prose:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run mkdocs:build && npm run cloudflare:check && npm test"
+    "check": "npm run diagram:check && npm run docs:release:check && npm run cli-reference:check && npm run architecture:check && npm run docs:impact:check && npm run prose:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run mkdocs:build && npm run cloudflare:check && npm run cloudflare:reconciliation:check && npm test"
   },
   "dependencies": {
-    "@superbee/docs-mkdocs": "0.2.0",
-    "@superbee/docs-projection": "0.2.0",
-    "@superbee/docs-tooling": "0.2.0",
-    "@superbee/portal": "0.2.0",
-    "@superbee/portal-docs": "0.2.0",
-    "@superbee/portal-webmcp": "0.2.0",
+    "@superbee/docs-mkdocs": "0.2.2",
+    "@superbee/docs-projection": "0.2.2",
+    "@superbee/docs-tooling": "0.2.2",
+    "@superbee/portal": "0.2.2",
+    "@superbee/portal-cloudflare": "0.2.2",
+    "@superbee/portal-docs": "0.2.2",
+    "@superbee/portal-webmcp": "0.2.2",
     "superbee": "0.1.4"
   },
   "devDependencies": {
