@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -101,8 +101,10 @@ async function main() {
     process.stdout.write(usage());
     return;
   }
-  const config = JSON.parse(await readFile(resolve(root, "portal.config.json"), "utf8"));
-  const version = String(config.documentation.product.versionLabel).replace(/^v/, "");
+  const versionLabel = (await run(options.bin, [
+    "doc", "read", "documentation-systems/main", "--field", "version_label", "--dir", resolve(root, ".superbee"),
+  ])).trim();
+  const version = versionLabel.replace(/^v/, "");
   const identity = JSON.parse(await run(options.bin, ["version", "--json"]));
   if (identity.identity?.package?.version !== version || identity.identity?.artifact?.channel !== "npm-package") {
     throw new Error(`reference binary must be npm-package superbee@${version}`);

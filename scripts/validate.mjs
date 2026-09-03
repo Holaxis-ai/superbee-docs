@@ -4,8 +4,6 @@ import { dirname, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
-import { validateDocumentationSourceFiles } from "./documentation-source-files.mjs";
-
 const execFileAsync = promisify(execFile);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const skipped = new Set([".git", ".deps", ".tmp", "deploy", "dist", "node_modules"]);
@@ -42,12 +40,15 @@ for (const path of await files(root)) {
   }
 }
 
-const portalConfig = JSON.parse(await readFile(resolve(root, "portal.config.json"), "utf8"));
-const { supportingDocuments } = await validateDocumentationSourceFiles(portalConfig.documentation, root);
-
-const { stdout } = await execFileAsync("superbee", ["status", "--dir", resolve(root, ".superbee"), "--json"], { maxBuffer: 4 * 1024 * 1024 });
-const status = JSON.parse(stdout);
-for (const field of ["malformed", "unresolved_links", "registry_warnings", "dangling_view_entries", "invalid_view_registrations"]) {
+const [statusResult, publicationResult] = await Promise.all([
+  execFileAsync("superbee", ["status", "--dir", resolve(root, ".superbee"), "--json"], { maxBuffer: 4 * 1024 * 1024 }),
+  execFileAsync("superbee", ["doc", "read", "documentation-publications/current", "--dir", resolve(root, ".superbee"), "--json"], { maxBuffer: 4 * 1024 * 1024 }),
+]);
+const status = JSON.parse(statusResult.stdout);
+const publication = JSON.parse(publicationResult.stdout);
+for (const field of ["malformed", "kind_warnings", "unresolved_links", "registry_warnings", "link_type_violations", "missing_expected_links", "conformance_debt", "dangling_view_entries", "invalid_view_registrations"]) {
   if ((status[field] ?? 0) !== 0) throw new Error(`bundle ${field} must be zero (observed ${status[field]})`);
 }
-console.log(`public_bundle: valid\ndocs: ${status.docs}\nsupporting_documents: ${supportingDocuments.length}\nmalformed: ${status.malformed}\nunresolved_links: ${status.unresolved_links}`);
+const supportingDocuments = publication.supporting_documents ?? [];
+if (!Array.isArray(supportingDocuments)) throw new Error("documentation publication supporting_documents must be a list");
+console.log(`public_bundle: valid\ndocs: ${status.docs}\nkinds: ${status.kinds}\nsupporting_documents: ${supportingDocuments.length}\nmalformed: ${status.malformed}\nunresolved_links: ${status.unresolved_links}`);

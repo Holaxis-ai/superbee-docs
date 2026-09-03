@@ -7,7 +7,8 @@ tooling that publishes it as a human site.
 verified product evidence
   -> public .superbee bundle
   -> one superbee/publication snapshot
-  -> one owned @superbee/docs-projection projection
+  -> codebase-documentation recipe + bundle-native publication model
+  -> one Recipe Studio-compiled @superbee/docs-projection projection
   -> Portal site at docs.getsuperbee.com + conventional MkDocs reference output
 ```
 
@@ -16,14 +17,18 @@ communications belong elsewhere.
 
 ## Documentation selection
 
-`portal.config.json` owns one renderer-neutral documentation selection. Its `navigation` names the
-ordered primary pages and `supportingDocuments` names additional public pages that both outputs
-include without placing them in navigation. Adapters must not follow links to expand that explicit
-selection.
+The installed `codebase-documentation` recipe defines Documentation System, Documentation
+Publication, Documentation Section, and Documentation Trigger Kinds. Ordinary documents under
+`documentation-systems/`, `documentation-publications/`, and `documentation-sections/` own the
+renderer-neutral product identity and selection. Sections name ordered primary pages; the
+publication names additional public pages that both outputs include outside navigation. Adapters
+must not follow links to expand that explicit selection.
 
-Keep the support list unique and canonically ordered. The projection-owned config normalizer
-rejects overlap with primary navigation, and `npm run bundle:check` confirms every selected support
-document exists in `.superbee`.
+`portal.config.json` now carries only the publication identity and target/build overlays such as
+brand assets, agent guidance, diagrams, indexing, Views, routes, and deployment settings. Recipe
+Studio compiles the installed recipe and the linked bundle records into one projection. It rejects
+missing pages, duplicate selection, navigation/support overlap, invalid operational exposure, or
+recipe drift before either output is built.
 
 Both outputs publish a bounded `llms.txt` over that exact selection. Documentation pages advertise
 their byte-exact Markdown source and the root discovery index; operational maintenance records stay
@@ -72,15 +77,22 @@ npm run check
 
 `npm ci` installs the exact Portal and Superbee packages recorded by the lockfile. The source sync
 keeps an exact Superbee checkout only for source-grounded architecture checks. The Portal build
-captures one source snapshot and projects the same explicit
+captures one source snapshot and compiles the same explicit
 52-document selection (40 navigated and 12 supporting), brand asset, relationships, and eight
-admitted diagrams into both Portal and MkDocs target inputs. The `@superbee/docs-mkdocs` package
+admitted diagrams into one projection consumed by both Portal and MkDocs. The
+`@superbee/docs-mkdocs` package
 owns the pinned uv command sequence: `mkdocs:sync` installs the exact locked Python environment
 once, while `mkdocs:build` and repository checks are frozen and offline. Before changing the source
 pin or package versions,
 confirm that no `*.apply-intent.json` transaction journal is pending; finish or roll back that
 operation with the package version that created it first. Journals
 contain local paths and exact recovery preimages and are intentionally ignored by Git.
+
+The adoption is one atomic repository change. If the private compiler or bundle-native model must
+be rolled back, revert the adoption commit and run `npm ci`; that restores the prior docs-site/v2
+configuration and local adapters together. Do not delete only the installed conventions or model
+documents while docs-site/v3 remains active, because compilation intentionally fails closed on a
+missing or drifted recipe.
 
 ## Release documentation
 
@@ -110,7 +122,8 @@ npm run docs:release:check
 
 The JSON file is ephemeral release-process input, not another persisted documentation authority.
 The command writes release documents through Superbee, refuses to alter existing version history,
-and converges to a no-op when retried. It never invents the summary, changes, user action,
+and updates the bundle-native Documentation System and Publication records when needed. It
+converges to a no-op when retried and never invents the summary, changes, user action,
 compatibility, recovery, supported platforms, or verification performed. Review those fields
 against the release and query the returned impact events before opening the documentation pull
 request. The repository check rejects a package version pinned in ordinary pages; exact versions

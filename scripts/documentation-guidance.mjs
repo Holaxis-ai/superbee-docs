@@ -13,11 +13,8 @@ async function regularDocument(root, id, subject) {
   return file;
 }
 
-/** Verify consumer-owned source facts that a package-level config normalizer cannot inspect. */
-export async function validateDocumentationSourceFiles(documentation, root) {
-  const supportingDocuments = documentation.supportingDocuments ?? [];
-  for (const id of supportingDocuments) await regularDocument(root, id, "documentation support");
-
+/** Verify the one consumer-owned guidance binding that target configuration cannot inspect. */
+export async function validateDocumentationGuidance(documentation, root) {
   if (documentation.guidance) {
     const file = await regularDocument(root, documentation.guidance.documentId, "documentation guidance");
     const markdown = await readFile(file, "utf8");
@@ -26,5 +23,5 @@ export async function validateDocumentationSourceFiles(documentation, root) {
       throw new Error(`documentation guidance heading '${documentation.guidance.heading}' must appear exactly once in '${documentation.guidance.documentId}'`);
     }
   }
-  return Object.freeze({ supportingDocuments: [...supportingDocuments], ...(documentation.guidance ? { guidance: documentation.guidance } : {}) });
+  return documentation.guidance;
 }

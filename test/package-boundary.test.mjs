@@ -19,12 +19,13 @@ test("consumer uses only public published package surfaces and nested versioned 
   assert.equal(consumer.workspaces, undefined);
   assert.deepEqual(consumer.dependencies, {
     "@superbee/docs-mkdocs": "0.2.2",
-    "@superbee/docs-projection": "0.2.2",
-    "@superbee/docs-tooling": "0.2.2",
+    "@superbee/docs-projection": "0.2.3",
+    "@superbee/docs-tooling": "0.2.3",
     "@superbee/portal": "0.2.3",
     "@superbee/portal-cloudflare": "0.2.4",
     "@superbee/portal-docs": "0.2.2",
     "@superbee/portal-webmcp": "0.2.2",
+    "@superbee/recipe-studio": "0.1.0",
     superbee: "0.1.4",
   });
   assert.equal(consumer.scripts["tools:bootstrap"], undefined);
@@ -32,9 +33,13 @@ test("consumer uses only public published package surfaces and nested versioned 
     consumer.scripts["repository-history:ensure"],
     "node scripts/bootstrap-repository-history.mjs",
   );
-  assert.equal(config.schema, "https://getsuperbee.com/schemas/docs-site/v2");
+  assert.equal(config.schema, "https://getsuperbee.com/schemas/docs-site/v3");
   assert.equal(config.portal.schema, "https://getsuperbee.com/schemas/portal-config/v1");
-  assert.equal(config.documentation.schema, "https://getsuperbee.com/schemas/documentation-source-config/v1");
+  assert.deepEqual(config.documentation, {
+    publicationId: "documentation-publications/current",
+    brandMark: { blob: "assets/superbee-mark.png" },
+    guidance: { documentId: "learn/start-here", heading: "Superbee in one minute", label: "When to use Superbee" },
+  });
   assert.equal(config.targets.portal.schema, "https://getsuperbee.com/schemas/portal-docs-target/v1");
   assert.equal(config.targets.mkdocs.schema, "https://getsuperbee.com/schemas/mkdocs-documentation-config/v1");
   assert.equal(config.portal.title, undefined);
@@ -45,6 +50,8 @@ test("consumer uses only public published package surfaces and nested versioned 
   assert.match(import.meta.resolve("@superbee/docs-projection"), /\/node_modules\/@superbee\/docs-projection\//);
   assert.match(import.meta.resolve("@superbee/docs-mkdocs"), /\/node_modules\/@superbee\/docs-mkdocs\//);
   assert.match(import.meta.resolve("@superbee/docs-tooling"), /\/node_modules\/@superbee\/docs-tooling\//);
+  assert.match(import.meta.resolve("@superbee/docs-tooling/freshness/v1"), /\/node_modules\/@superbee\/docs-tooling\//);
+  assert.match(import.meta.resolve("@superbee/recipe-studio/codebase-documentation/v0"), /\/node_modules\/@superbee\/recipe-studio\//);
   assert.match(import.meta.resolve("@superbee/portal-docs"), /\/node_modules\/@superbee\/portal-docs\//);
   assert.match(import.meta.resolve("@superbee/portal-cloudflare"), /\/node_modules\/@superbee\/portal-cloudflare\//);
   assert.match(import.meta.resolve("@superbee/portal-cloudflare/static-assets"), /\/node_modules\/@superbee\/portal-cloudflare\//);
@@ -65,8 +72,9 @@ test("consumer uses only public published package surfaces and nested versioned 
   assert.equal(consumer.scripts["cloudflare:deploy"], undefined);
   assert.equal(consumer.scripts["cloudflare:reconciliation:check"], "node scripts/check-cloudflare-reconciliation.mjs");
   assert.equal(consumer.scripts["cloudflare:reconcile"], "node scripts/reconcile-cloudflare.mjs");
-  assert.match(composition, /composeDocumentationSiteV2/);
-  assert.match(composition, /startDocumentationSitePreviewV2/);
+  assert.match(composition, /composeDocumentationSiteV3/);
+  assert.match(composition, /startDocumentationSitePreviewV3/);
+  assert.match(composition, /compileCodebaseDocumentationV0/);
   assert.match(composition, /authorizePortalWrite/);
   for (const duplicateLifecycle of [
     "capturePublicationSnapshot",
@@ -188,10 +196,7 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.match(llms, /## Optional\n/);
   assert.doesNotMatch(llms, /maintenance\/documentation-triggers|Documentation Trigger/);
   const searchById = new Map(search.documents.map((document) => [document.id, document]));
-  const selectedDocuments = [...new Set([
-    ...config.documentation.navigation.flatMap((section) => section.documents),
-    ...config.documentation.supportingDocuments,
-  ])];
+  const selectedDocuments = search.documents.map((document) => document.id);
   for (const id of selectedDocuments) {
     const source = await readFile(`.superbee/${id}.md`);
     const digest = sha256(source).slice("sha256:".length);
