@@ -20,12 +20,12 @@ test("consumer uses only public published package surfaces and nested versioned 
   assert.deepEqual(consumer.dependencies, {
     "@superbee/docs-mkdocs": "0.2.2",
     "@superbee/docs-projection": "0.2.3",
-    "@superbee/docs-tooling": "0.2.3",
+    "@superbee/docs-tooling": "0.2.4",
     "@superbee/portal": "0.2.3",
     "@superbee/portal-cloudflare": "0.2.4",
     "@superbee/portal-docs": "0.2.2",
     "@superbee/portal-webmcp": "0.2.2",
-    "@superbee/recipe-studio": "0.1.0",
+    "@superbee/recipe-studio": "0.1.1",
     superbee: "0.1.4",
   });
   assert.equal(consumer.scripts["tools:bootstrap"], undefined);
@@ -50,7 +50,9 @@ test("consumer uses only public published package surfaces and nested versioned 
   assert.match(import.meta.resolve("@superbee/docs-projection"), /\/node_modules\/@superbee\/docs-projection\//);
   assert.match(import.meta.resolve("@superbee/docs-mkdocs"), /\/node_modules\/@superbee\/docs-mkdocs\//);
   assert.match(import.meta.resolve("@superbee/docs-tooling"), /\/node_modules\/@superbee\/docs-tooling\//);
+  assert.match(import.meta.resolve("@superbee/docs-tooling/architecture/v1"), /\/node_modules\/@superbee\/docs-tooling\//);
   assert.match(import.meta.resolve("@superbee/docs-tooling/freshness/v1"), /\/node_modules\/@superbee\/docs-tooling\//);
+  assert.match(import.meta.resolve("@superbee/recipe-studio/codebase-documentation/authoring/v0"), /\/node_modules\/@superbee\/recipe-studio\//);
   assert.match(import.meta.resolve("@superbee/recipe-studio/codebase-documentation/v0"), /\/node_modules\/@superbee\/recipe-studio\//);
   assert.match(import.meta.resolve("@superbee/portal-docs"), /\/node_modules\/@superbee\/portal-docs\//);
   assert.match(import.meta.resolve("@superbee/portal-cloudflare"), /\/node_modules\/@superbee\/portal-cloudflare\//);
