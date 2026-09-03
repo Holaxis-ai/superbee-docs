@@ -5,22 +5,24 @@ import path from "node:path";
 import { pathToFileURL } from "node:url";
 
 import {
-  DOCUMENTATION_PROJECTION_CONFIG_V1,
-} from "@superbee/docs-projection";
+  compileCodebaseDocumentationV0,
+  createCodebaseDocumentationRecipeArtifactV0,
+  createCodebaseDocumentationSolutionDescriptorV0,
+} from "@superbee/recipe-studio/codebase-documentation/v0";
 import { readPortalWebMcpBrowserAssetV0 } from "@superbee/portal-webmcp/asset/v0";
 import { readPortalClientBrowserAssetV2 } from "@superbee/portal/client/v2/asset";
 import { checkPublishedAgreement } from "@superbee/docs-tooling";
+import { deriveGitDocumentationFreshnessV1 } from "@superbee/docs-tooling/freshness/v1";
 import {
-  composeDocumentationSiteV2,
-  readDocumentationSiteConfigV2,
-  startDocumentationSitePreviewV2,
+  composeDocumentationSiteV3,
+  readDocumentationSiteConfigV3,
+  startDocumentationSitePreviewV3,
 } from "@superbee/docs-tooling/site";
 import {
   authorizePortalWrite,
 } from "@superbee/portal";
 
-import { validateDocumentationSourceFiles } from "./documentation-source-files.mjs";
-import { deriveDocumentationFreshness } from "./documentation-freshness.mjs";
+import { validateDocumentationGuidance } from "./documentation-guidance.mjs";
 import { assertSnapshotReleaseVersionLabel } from "./release-version-label.mjs";
 
 export const DOCUMENTATION_OUTPUTS_RESULT_V1 =
@@ -82,21 +84,9 @@ function exactDiagramRows(manifest, bindings) {
   });
 }
 
-async function projectionInput({ root, config, snapshot, diagramAgreement }) {
-  const [sourceFiles, diagramManifest] = await Promise.all([
-    validateDocumentationSourceFiles(config.documentation, root),
-    json(config.diagrams.manifest, "static diagram manifest"),
-  ]);
+async function projectionOverlay({ root, config, snapshot, diagramAgreement, freshness = [] }) {
+  const diagramManifest = await json(config.diagrams.manifest, "static diagram manifest");
   const diagrams = exactDiagramRows(diagramManifest, diagramAgreement.bindings);
-  const freshness = await deriveDocumentationFreshness({
-    root,
-    bundle: config.bundle,
-    snapshot,
-    documentIds: [...new Set([
-      ...config.documentation.navigation.flatMap((section) => section.documents),
-      ...sourceFiles.supportingDocuments,
-    ])],
-  });
   let brandMark;
   if (config.documentation.brandMark) {
     const blob = snapshot.manifest.blobs.find((row) => row.key === config.documentation.brandMark.blob);
@@ -104,20 +94,6 @@ async function projectionInput({ root, config, snapshot, diagramAgreement }) {
     brandMark = { blob: blob.key, digest: blob.object.digest };
   }
   return {
-    guidance: sourceFiles.guidance,
-    schema: DOCUMENTATION_PROJECTION_CONFIG_V1,
-    product: {
-      ...config.documentation.product,
-    },
-    home: config.documentation.home,
-    navigation: config.documentation.navigation.map((section) => ({
-      label: section.label,
-      documents: [...section.documents],
-    })),
-    supportingDocuments: [...sourceFiles.supportingDocuments],
-    ...(config.documentation.operationalTypes?.length
-      ? { operationalTypes: [...config.documentation.operationalTypes] }
-      : {}),
     ...(freshness.length ? { freshness } : {}),
     ...(brandMark ? { brandMark } : {}),
     diagrams,
@@ -131,7 +107,7 @@ async function documentationCompositionOptions({
   writePortal = false,
 } = {}) {
   const realRoot = await realpath(path.resolve(root));
-  const config = await readDocumentationSiteConfigV2(path.resolve(realRoot, configFile));
+  const config = await readDocumentationSiteConfigV3(path.resolve(realRoot, configFile));
   if (!config.diagrams) throw new Error("dual documentation outputs require verified static diagram configuration");
   const authority = writePortal ? await authorizePortalWrite(config.bundle, config.output) : undefined;
   return {
@@ -139,15 +115,56 @@ async function documentationCompositionOptions({
     sourceDirectory: authority?.sourceDirectory ?? config.bundle,
     mkdocsOutput: path.resolve(mkdocsOutput),
     ...(authority ? { portalAuthority: authority } : {}),
-    prepareProjection: async ({ snapshot }) => {
-      assertSnapshotReleaseVersionLabel(config.documentation, snapshot);
-      const diagramAgreement = await checkPublishedAgreement({ root: realRoot, configPath: config.file });
-      const { guidance, ...projectionConfig } = await projectionInput({ root: realRoot, config, snapshot, diagramAgreement });
-      return {
-        projectionConfig,
-        portalAssets: await agentToolAssets(),
-        metadata: { guidance },
-      };
+    compileProjection: async ({ snapshot }) => {
+      const [guidance, diagramAgreement, runtimePackage, portalAssets] = await Promise.all([
+        validateDocumentationGuidance(config.documentation, realRoot),
+        checkPublishedAgreement({ root: realRoot, configPath: config.file }),
+        json(new URL("../node_modules/superbee/package.json", import.meta.url), "Superbee runtime package"),
+        agentToolAssets(),
+      ]);
+      const recipeArtifact = createCodebaseDocumentationRecipeArtifactV0();
+      try {
+        const solution = createCodebaseDocumentationSolutionDescriptorV0(recipeArtifact);
+        const overlay = await projectionOverlay({ root: realRoot, config, snapshot, diagramAgreement });
+        const provisional = await compileCodebaseDocumentationV0({
+          snapshot,
+          recipeArtifact,
+          solution,
+          recipeRuntimeVersion: runtimePackage.version,
+          publicationId: config.documentation.publicationId,
+          overlay,
+        });
+        let freshness;
+        try {
+          assertSnapshotReleaseVersionLabel(provisional.config, snapshot);
+          freshness = await deriveGitDocumentationFreshnessV1({
+            root: realRoot,
+            bundle: config.bundle,
+            snapshot,
+            documentIds: [
+              ...provisional.config.navigation.flatMap((section) => section.documents),
+              ...provisional.config.supportingDocuments,
+            ],
+          });
+        } finally {
+          await provisional.projection.close();
+        }
+        const compiled = await compileCodebaseDocumentationV0({
+          snapshot,
+          recipeArtifact,
+          solution,
+          recipeRuntimeVersion: runtimePackage.version,
+          publicationId: config.documentation.publicationId,
+          overlay: { ...overlay, ...(freshness.length ? { freshness } : {}) },
+        });
+        return {
+          projection: compiled.projection,
+          portalAssets,
+          metadata: { guidance, compilation: compiled.receipt },
+        };
+      } finally {
+        await recipeArtifact.close();
+      }
     },
   };
 }
@@ -195,12 +212,12 @@ function documentationOutputsResult(composition) {
 
 /** Compose both outputs through the package-owned one-snapshot, one-projection lifecycle. */
 export async function composeDocumentationOutputs(options = {}) {
-  const composition = await composeDocumentationSiteV2(await documentationCompositionOptions(options));
+  const composition = await composeDocumentationSiteV3(await documentationCompositionOptions(options));
   return documentationOutputsResult(composition);
 }
 
 export async function startDocumentationOutputsPreview(options = {}, previewOptions = {}) {
-  const preview = await startDocumentationSitePreviewV2(
+  const preview = await startDocumentationSitePreviewV3(
     await documentationCompositionOptions({ ...options, writePortal: true }),
     previewOptions,
   );

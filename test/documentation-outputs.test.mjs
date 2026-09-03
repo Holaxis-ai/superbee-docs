@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { cp, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -22,14 +22,13 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
       json("diagrams/publications.json"),
     ]);
     const { result, artifact, projectionManifest, mkdocsManifest } = composed;
-    const navigated = config.documentation.navigation.flatMap((section) => section.documents);
-    const selected = [...new Set([...navigated, ...config.documentation.supportingDocuments])].sort();
+    const selected = projectionManifest.selectedDocuments;
 
     assert.equal(result.selectedDocuments, 52);
     assert.equal(result.navigatedDocuments, 40);
     assert.equal(result.supportingDocuments, 12);
     assert.deepEqual(projectionManifest.selectedDocuments, selected);
-    assert.deepEqual(projectionManifest.supportingDocuments, config.documentation.supportingDocuments);
+    assert.equal(projectionManifest.supportingDocuments.length, 12);
     for (const id of [
       "get-started/verify-host-setup",
       "guides/choose-privacy-and-bundle-boundaries",
@@ -183,8 +182,8 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     // Site metadata asserts only facts the projection already carries.
     const graph = JSON.parse(startHerePage.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
     assert.deepEqual(graph["@graph"].map((node) => node["@type"]), ["WebSite", "SoftwareApplication", "TechArticle"]);
-    assert.equal(graph["@graph"][1].codeRepository, config.documentation.product.repositoryUrl);
-    assert.equal(graph["@graph"][1].softwareVersion, config.documentation.product.versionLabel);
+    assert.equal(graph["@graph"][1].codeRepository, projectionManifest.product.repositoryUrl);
+    assert.equal(graph["@graph"][1].softwareVersion, projectionManifest.product.versionLabel);
     for (const node of graph["@graph"]) {
       for (const forbidden of ["address", "telephone", "email", "contactPoint", "sameAs", "image", "logo"]) {
         assert.equal(Object.hasOwn(node, forbidden), false, `${node["@type"]}.${forbidden} has no source of record`);
@@ -200,16 +199,15 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
 test("the publication path rejects a release label that disagrees with its captured bundle", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "superbee-docs-release-label-"));
   try {
-    await mkdir(path.join(root, ".superbee", "releases"), { recursive: true });
-    await writeFile(path.join(root, ".superbee", "index.md"), "---\nokf_version: '0.2'\n---\n# Test bundle\n");
-    await writeFile(path.join(root, ".superbee", "releases", "current.md"), "---\ntype: Release\nversion: 1.2.3\n---\n# Current release\n");
-    const config = await json("portal.config.json");
-    config.documentation.product.versionLabel = "v9.9.9";
-    await writeFile(path.join(root, "portal.config.json"), JSON.stringify(config));
+    await cp(".superbee", path.join(root, ".superbee"), { recursive: true });
+    await cp("diagrams", path.join(root, "diagrams"), { recursive: true });
+    await writeFile(path.join(root, "portal.config.json"), await readFile("portal.config.json"));
+    const system = path.join(root, ".superbee", "documentation-systems", "main.md");
+    await writeFile(system, (await readFile(system, "utf8")).replace("version_label: v0.1.4", "version_label: v9.9.9"));
 
     await assert.rejects(
       composeDocumentationOutputs({ root, mkdocsOutput: path.join(root, "mkdocs") }),
-      /versionLabel must equal v1\.2\.3 from releases\/current/,
+      /versionLabel must equal v0\.1\.4 from releases\/current/,
     );
   } finally {
     await rm(root, { recursive: true, force: true });

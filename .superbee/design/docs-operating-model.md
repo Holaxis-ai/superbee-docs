@@ -4,7 +4,7 @@ title: Documentation operating model
 description: >-
   Audience, content, authority, lifecycle, and maintenance contract for
   Superbee's public documentation.
-superbee_updated_by: openai/codex
+superbee_updated_by: codebase-documentation-adoption
 ---
 # Outcome
 
@@ -176,20 +176,21 @@ The persisted lifecycle is deliberately small:
    scope.
 
 `Planned` belongs in the coverage plan. A branch or pull request is the draft and review state; the
-bundle does not need duplicate workflow records. After several real pages prove which fields and
-transitions recur, the bundle may promote the stable shape into Kinds. Until then, the coverage plan
-is the one planning projection and Git history is the audit trail.
+bundle does not need duplicate workflow records. The installed codebase-documentation recipe owns
+the stable recurring publication structure as Kinds, while the coverage plan remains the planning
+projection and Git history remains the audit trail.
 
 # Operational documentation records
 
 `Documentation Trigger` records live under `maintenance/documentation-triggers/`. Each record names
 its affected page, exact source-path patterns or product events, the required review action, and the
-governing evidence. They remain generic OKF documents until repeated authoring demonstrates that a
-Kind would reduce real maintenance effort.
+governing evidence. They are instances of the Documentation Trigger Kind installed by the canonical
+codebase-documentation recipe.
 
-The documentation profile declares `Documentation Trigger` in `operationalTypes`. The complete
-Portal publication therefore retains every trigger under its raw bundle route, while the shared
-documentation projection rejects any attempt to select one as navigation or supporting content.
+The bundle-native Documentation Publication declares `Documentation Trigger` in
+`operational_types`. The complete Portal publication therefore retains every trigger under its raw
+bundle route, while the shared documentation projection rejects any attempt to select one as
+navigation or supporting content.
 This is a presentation rule, not an authorization or privacy boundary.
 
 Run `npm run docs:impact:check` to validate the records and their affected-page links. For a product
@@ -226,8 +227,8 @@ npm run docs:release -- --manifest <release.json>
 The input is transport, not a persisted documentation authority. The command normalizes and writes
 the four bundle documents through Superbee, refuses to replace immutable history, and is idempotent
 when retried. `npm run docs:release:check` verifies stable-to-immutable agreement, stable Portal
-navigation, and the absence of hardcoded Superbee package versions outside release, evidence, or
-migration records. Authored behavioral claims still require the declared release verification;
+navigation, bundle-native release navigation and selection, and the absence of hardcoded Superbee package
+versions outside release, evidence, migration, or publication records. Authored behavioral claims still require the declared release verification;
 automation never promotes an unverified version merely by changing a number.
 
 An agent run ends with a durable update to the relevant page or plan, the evidence examined, checks
@@ -248,8 +249,9 @@ run, and unresolved questions. Private chat is not the handoff mechanism.
 # Site and bundle boundary
 
 The bundle owns documents, relationships, evidence links, registered Views, and the information
-architecture. One captured Superbee publication snapshot and one explicit, owned documentation
-projection bind the selected documents, navigation, relationships, brand asset, and admitted static
+architecture. The installed recipe defines the reusable model; the Documentation System,
+Publication, and ordered Section instances own this site's publication intent. One captured Superbee
+publication snapshot and one Recipe Studio-compiled documentation projection bind the selected documents, navigation, relationships, brand asset, and admitted static
 diagrams before any output adapter runs. Portal owns its deterministic publication artifact,
 integrity and View-admission boundaries, browser primitives, and deployment adapters. The Portal
 documentation client owns routing, layout, navigation rendering, search presentation, and responsive

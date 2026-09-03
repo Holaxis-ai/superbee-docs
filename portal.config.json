@@ -1,5 +1,5 @@
 {
-  "schema": "https://getsuperbee.com/schemas/docs-site/v2",
+  "schema": "https://getsuperbee.com/schemas/docs-site/v3",
   "bundle": ".superbee",
   "output": "dist",
   "portal": {
@@ -38,110 +38,10 @@
     ]
   },
   "documentation": {
-    "schema": "https://getsuperbee.com/schemas/documentation-source-config/v1",
-    "product": {
-      "name": "Superbee",
-      "versionLabel": "v0.1.4",
-      "repositoryUrl": "https://github.com/Holaxis-ai/superbee"
-    },
-    "home": "learn/start-here",
+    "publicationId": "documentation-publications/current",
     "brandMark": {
       "blob": "assets/superbee-mark.png"
     },
-    "operationalTypes": [
-      "Documentation Trigger"
-    ],
-    "navigation": [
-      {
-        "label": "Get started",
-        "documents": [
-          "learn/start-here",
-          "get-started/install-and-setup",
-          "get-started/verify-host-setup",
-          "get-started/first-durable-workspace"
-        ]
-      },
-      {
-        "label": "Core concepts",
-        "documents": [
-          "concepts/what-superbee-is",
-          "concepts/bundles-documents-and-relationships",
-          "concepts/reusable-domain-structure"
-        ]
-      },
-      {
-        "label": "Guides",
-        "documents": [
-          "guides/preserve-context-between-sessions",
-          "guides/model-recurring-domain-concepts",
-          "guides/assigned-work-lifecycle",
-          "guides/query-links-and-backlinks",
-          "guides/artifacts-and-byte-channels",
-          "guides/show-documents-and-views",
-          "guides/create-a-bundle-view",
-          "guides/choose-privacy-and-bundle-boundaries",
-          "guides/share-and-synchronize-git-bundle",
-          "guides/evolve-installed-recipes"
-        ]
-      },
-      {
-        "label": "Troubleshooting",
-        "documents": [
-          "troubleshooting/setup-and-bundle-resolution"
-        ]
-      },
-      {
-        "label": "Reference",
-        "documents": [
-          "reference/cli-overview",
-          "reference/cli-commands",
-          "reference/cli-errors-and-exit-codes",
-          "reference/configuration-and-bundle-resolution",
-          "reference/okf-compatibility",
-          "reference/kind-conventions-and-recipes",
-          "reference/view-contract-and-access",
-          "reference/host-and-platform-support",
-          "reference/wire-protocol-and-reference-server",
-          "reference/publication-snapshot-api",
-          "reference/security-and-trust-boundaries"
-        ]
-      },
-      {
-        "label": "Releases and migrations",
-        "documents": [
-          "releases/release-notes",
-          "releases/current",
-          "guides/migrate-or-upgrade-safely"
-        ]
-      },
-      {
-        "label": "Architecture and contributing",
-        "documents": [
-          "architecture/architecture-at-a-glance",
-          "architecture/superbee-system-context",
-          "architecture/document-mutation-lifecycle",
-          "architecture/view-lifecycle-and-trust",
-          "architecture/public-publication-boundary",
-          "architecture/sharing-synchronization-and-freshness",
-          "architecture/bundle-engine-and-storage-seam",
-          "contributing/quickstart"
-        ]
-      }
-    ],
-    "supportingDocuments": [
-      "design/docs-operating-model",
-      "design/site-experience-contract",
-      "examples/claims-and-evidence",
-      "plans/docs-coverage",
-      "releases/0.1.3",
-      "releases/0.1.4",
-      "sources/current-release",
-      "sources/superbee-codebase-main",
-      "sources/superbee-core",
-      "sources/superbee-portal",
-      "sources/superbee-release-0.1.3",
-      "sources/superbee-release-0.1.4"
-    ],
     "guidance": {
       "documentId": "learn/start-here",
       "heading": "Superbee in one minute",

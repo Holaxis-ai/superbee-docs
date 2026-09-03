@@ -314,33 +314,22 @@ async function normalizeDocument(options, scratch, id, bytes) {
   return documentBytes(normalizedOptions, id);
 }
 
-async function updatePortalVersionLabel(options, version) {
-  const path = resolve(options.root, "portal.config.json");
-  const config = JSON.parse(await readFile(path, "utf8"));
-  if (!config.documentation || typeof config.documentation !== "object" || Array.isArray(config.documentation)) {
-    throw new Error("portal.config.json must declare a documentation object");
-  }
+function updateKindField(options, id, field, values) {
+  const current = documentProjection(options, id).metadata[field];
+  if (JSON.stringify(current) === JSON.stringify(values)) return { changed: false };
+  const version = documentVersion(options, id);
+  const list = Array.isArray(values) ? values : [values];
+  const args = ["doc", "update", id];
+  for (const value of list) args.push(`--${field}`, value);
+  args.push("--expected-version", version, "--actor", "release-docs-automation", "--strict", "--json");
+  const receipt = JSON.parse(runSuperbee(options, args).stdout.toString("utf8"));
+  return { changed: receipt.changed === true };
+}
+
+async function updateDocumentationSystemVersionLabel(options, version) {
   const versionLabel = stableReleaseVersionLabel(version);
-  let changed = false;
-  if (!config.documentation.product || typeof config.documentation.product !== "object" || Array.isArray(config.documentation.product)) {
-    throw new Error("portal.config.json must declare documentation.product");
-  }
-  if (config.documentation.product.versionLabel !== versionLabel) {
-    config.documentation.product.versionLabel = versionLabel;
-    changed = true;
-  }
-  const releases = config.documentation.navigation?.find((section) => section.documents?.includes("releases/current"));
-  if (!releases) throw new Error("Portal navigation must contain releases/current");
-  const withoutArchive = releases.documents.filter((id) => id !== "releases/release-notes");
-  const currentIndex = withoutArchive.indexOf("releases/current");
-  const expected = [...withoutArchive];
-  expected.splice(currentIndex, 0, "releases/release-notes");
-  if (JSON.stringify(releases.documents) !== JSON.stringify(expected)) {
-    releases.documents = expected;
-    changed = true;
-  }
-  if (changed) await writeFile(path, `${JSON.stringify(config, null, 2)}\n`);
-  return { changed, versionLabel };
+  const result = updateKindField(options, "documentation-systems/main", "version_label", versionLabel);
+  return { ...result, versionLabel };
 }
 
 async function releaseRows(options) {
@@ -379,15 +368,13 @@ async function immutableReleaseSupport(options) {
 }
 
 async function updateDocumentationSelection(options) {
-  const path = resolve(options.root, "portal.config.json");
-  const config = JSON.parse(await readFile(path, "utf8"));
-  const supportingDocuments = config.documentation?.supportingDocuments;
-  if (!Array.isArray(supportingDocuments)) throw new Error("documentation config must declare supportingDocuments");
+  const publication = documentProjection(options, "documentation-publications/current").metadata;
+  const supportingDocuments = publication.supporting_documents ?? [];
+  if (!Array.isArray(supportingDocuments)) throw new Error("documentation publication supporting_documents must be a list");
   const expected = [...new Set([...supportingDocuments, ...await immutableReleaseSupport(options)])].sort();
   if (JSON.stringify(supportingDocuments) === JSON.stringify(expected)) return { changed: false, supportingDocuments: expected };
-  config.documentation.supportingDocuments = expected;
-  await writeFile(path, `${JSON.stringify(config, null, 2)}\n`);
-  return { changed: true, supportingDocuments: expected };
+  const result = updateKindField(options, "documentation-publications/current", "supporting_documents", expected);
+  return { ...result, supportingDocuments: expected };
 }
 
 async function updateReleaseArchive(options, scratch) {
@@ -399,9 +386,9 @@ async function updateReleaseArchive(options, scratch) {
 async function reconcilePresentation(options, scratch) {
   const currentVersion = runSuperbee(options, ["doc", "read", "releases/current", "--field", "version"]).stdout.toString("utf8").trim();
   const archive = await updateReleaseArchive(options, scratch);
-  const portal = await updatePortalVersionLabel(options, currentVersion);
+  const system = await updateDocumentationSystemVersionLabel(options, currentVersion);
   const selection = await updateDocumentationSelection(options);
-  return { currentVersion, archive, portal, selection };
+  return { currentVersion, archive, system, selection };
 }
 
 async function update(options) {
@@ -422,8 +409,8 @@ async function update(options) {
     results.push(presentation.archive);
     console.log(JSON.stringify({
       version: input.version,
-      versionLabel: presentation.portal.versionLabel,
-      portalConfigChanged: presentation.portal.changed,
+      versionLabel: presentation.system.versionLabel,
+      documentationSystemChanged: presentation.system.changed,
       selectionChanged: presentation.selection.changed,
       changed: results.filter((row) => row.changed).map((row) => row.id),
       results,
@@ -439,9 +426,9 @@ async function archive(options) {
     const presentation = await reconcilePresentation(options, scratch);
     console.log(JSON.stringify({
       version: presentation.currentVersion,
-      versionLabel: presentation.portal.versionLabel,
+      versionLabel: presentation.system.versionLabel,
       archiveChanged: presentation.archive.changed,
-      portalConfigChanged: presentation.portal.changed,
+      documentationSystemChanged: presentation.system.changed,
       selectionChanged: presentation.selection.changed,
     }));
   } finally {
@@ -473,15 +460,17 @@ async function check(options) {
       throw new Error(`${current} must be semantically identical to ${immutable}`);
     }
   }
-  const config = JSON.parse(await readFile(resolve(options.root, "portal.config.json"), "utf8"));
-  const releaseIds = config.documentation?.navigation?.flatMap((section) => section.documents ?? []).filter((id) => id.startsWith("releases/")) ?? [];
+  const releaseIds = documentProjection(options, "documentation-sections/releases-and-migrations").metadata.documents
+    .filter((id) => id.startsWith("releases/"));
   if (!releaseIds.includes("releases/current")) throw new Error("Portal navigation must include releases/current");
   if (!releaseIds.includes("releases/release-notes")) throw new Error("Portal navigation must include releases/release-notes");
   if (releaseIds.some((id) => /^releases\/\d+\.\d+\.\d+/.test(id))) throw new Error("Portal navigation must not pin a versioned release document");
-  assertStableReleaseVersionLabel(config.documentation, version);
+  const system = documentProjection(options, "documentation-systems/main").metadata;
+  assertStableReleaseVersionLabel({ versionLabel: system.version_label }, version);
 
   const requiredSupport = await immutableReleaseSupport(options);
-  const missingSupport = requiredSupport.filter((id) => !config.documentation?.supportingDocuments?.includes(id));
+  const support = documentProjection(options, "documentation-publications/current").metadata.supporting_documents;
+  const missingSupport = requiredSupport.filter((id) => !support?.includes(id));
   if (missingSupport.length) throw new Error(`documentation config omits immutable release history: ${missingSupport.join(", ")}`);
 
   const scratch = await mkdtemp(resolve(tmpdir(), "superbee-release-check-"));
@@ -496,7 +485,7 @@ async function check(options) {
   }
 
   const bundle = resolve(options.root, ".superbee");
-  const allowed = /^(?:releases|sources|migrations|evidence)\//;
+  const allowed = /^(?:releases|sources|migrations|evidence|documentation-publications)\//;
   const volatileVersion = /\b(?:superbee@|Superbee\s+|released\s+)[v]?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?\b|\breleased\s+`?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?`?\b|(?:sources\/superbee-release-|releases\/)[v]?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\.md)?|(?:npmjs\.com\/package\/superbee\/v\/|registry\.npmjs\.org\/superbee\/-\/superbee-)[v]?\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?/i;
   const stale = [];
   for (const path of await markdownFiles(bundle)) {
