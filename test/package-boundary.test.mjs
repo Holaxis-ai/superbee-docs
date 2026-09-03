@@ -109,7 +109,7 @@ test("consumer uses only public published package surfaces and nested versioned 
 });
 
 test("built site preserves documentation, View, diagram, discovery, and presentation agreement", async () => {
-  const [config, manifest, home, llms, portalRobots, mkdocsLlms, mkdocsRobots, search, whatSuperbeePage, domainModelPage, privacyPage, sharingPage, handoffPage, releaseNotesPage, currentReleasePage, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
+  const [config, manifest, home, llms, portalRobots, mkdocsLlms, mkdocsRobots, search, whatSuperbeePage, domainModelPage, privacyPage, sharingPage, firstWorkspacePage, handoffPage, releaseNotesPage, currentReleasePage, architectureGlancePage, systemContextPage, mutationLifecyclePage, viewLifecyclePage, architectureGlanceView, systemContextView, mutationLifecycleView, viewLifecycleView] = await Promise.all([
     json("portal.config.json"),
     json("dist/data/portal-manifest.json"),
     readFile("dist/index.html", "utf8"),
@@ -122,6 +122,7 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
     readFile("dist/docs/guides/model-recurring-domain-concepts/index.html", "utf8"),
     readFile("dist/docs/guides/choose-privacy-and-bundle-boundaries/index.html", "utf8"),
     readFile("dist/docs/guides/share-and-synchronize-git-bundle/index.html", "utf8"),
+    readFile("dist/docs/get-started/first-durable-workspace/index.html", "utf8"),
     readFile("dist/docs/guides/preserve-context-between-sessions/index.html", "utf8"),
     readFile("dist/docs/releases/release-notes/index.html", "utf8"),
     readFile("dist/docs/releases/current/index.html", "utf8"),
@@ -149,6 +150,7 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
     "docs/guides/model-recurring-domain-concepts/index.html",
     "docs/guides/choose-privacy-and-bundle-boundaries/index.html",
     "docs/guides/share-and-synchronize-git-bundle/index.html",
+    "docs/get-started/first-durable-workspace/index.html",
     "docs/releases/release-notes/index.html",
     "docs/releases/current/index.html",
     "assets/docs-search.json",
@@ -181,6 +183,12 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.match(domainModelPage, /Create an Experiment Model recipe and an Experiment kind/);
   assert.match(privacyPage, /an agent can help inspect existing bundle\s+locations/);
   assert.match(sharingPage, /ask an agent to inspect the repository/);
+  assert.match(sharingPage, /Keep the three systems separate/);
+  assert.match(sharingPage, /Repository-creation permission is irrelevant/);
+  assert.match(sharingPage, /Please keep.*as an outside collaborator/s);
+  assert.match(sharingPage, /https:\/\/docs\.github\.com\/en\/organizations\/managing-organization-settings\/restricting-repository-creation-in-your-organization/);
+  assert.match(firstWorkspacePage, /publishes <code>board<\/code> into an existing remote repository/);
+  assert.match(firstWorkspacePage, /leaves both facts unknown/);
   assert.match(handoffPage, /Ask an agent to prepare the handoff/);
   assert.match(releaseNotesPage, /Current stable release/);
   assert.match(releaseNotesPage, /Previous stable releases/);
@@ -194,6 +202,8 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.match(home, /<link rel="describedby" href="\/llms\.txt">/);
   assert.match(llms, /^# Superbee\n/m);
   assert.match(llms, /## Get started\n/);
+  assert.match(llms, /\[Create your first durable workspace\]\(https:\/\/docs\.getsuperbee\.com\/bundle\/get-started\/first-durable-workspace\.md\)/);
+  assert.match(llms, /\[Share and synchronize a Git-backed bundle\]\(https:\/\/docs\.getsuperbee\.com\/bundle\/guides\/share-and-synchronize-git-bundle\.md\)/);
   assert.match(llms, /\]\(https:\/\/docs\.getsuperbee\.com\/bundle\/learn\/start-here\.md\)/);
   assert.match(llms, /## Optional\n/);
   assert.doesNotMatch(llms, /maintenance\/documentation-triggers|Documentation Trigger/);
@@ -211,6 +221,31 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
     const searchDocument = searchById.get(id);
     assert.ok(searchDocument, `search is missing ${id}`);
     assert.notEqual(searchDocument.body.trim(), "", `search body is empty for ${id}`);
+  }
+  const sharingSource = await readFile(".superbee/guides/share-and-synchronize-git-bundle.md");
+  const firstWorkspaceSource = await readFile(".superbee/get-started/first-durable-workspace.md");
+  const sharingDigest = sha256(sharingSource).slice("sha256:".length);
+  const firstWorkspaceDigest = sha256(firstWorkspaceSource).slice("sha256:".length);
+  const permissionProjections = await Promise.all([
+    readFile("dist/bundle/guides/share-and-synchronize-git-bundle.md", "utf8"),
+    readFile("dist/bundle/get-started/first-durable-workspace.md", "utf8"),
+    readFile(`.tmp/mkdocs/site/assets/source/guides/share-and-synchronize-git-bundle.${sharingDigest}.md.txt`, "utf8"),
+    readFile(`.tmp/mkdocs/site/assets/source/get-started/first-durable-workspace.${firstWorkspaceDigest}.md.txt`, "utf8"),
+    Promise.resolve(searchById.get("guides/share-and-synchronize-git-bundle")?.body ?? ""),
+    Promise.resolve(searchById.get("get-started/first-durable-workspace")?.body ?? ""),
+  ]);
+  for (const projection of permissionProjections) {
+    assert.match(projection, /existing remote repository/);
+    assert.match(projection, /(?:unknown|unresolved)/);
+  }
+  for (const index of [0, 2, 4]) {
+    assert.match(permissionProjections[index], /outside collaborator/);
+    assert.match(permissionProjections[index], /repository-specific Write/);
+    assert.match(permissionProjections[index], /rules applying to `?board`?/);
+  }
+  for (const index of [1, 3, 5]) {
+    assert.match(permissionProjections[index], /origin\/board/);
+    assert.match(permissionProjections[index], /Repository creation permission is irrelevant/i);
   }
   const expectedRobots = "User-agent: *\nAllow: /\nSitemap: https://docs.getsuperbee.com/sitemap.xml\n";
   assert.equal(portalRobots, expectedRobots);

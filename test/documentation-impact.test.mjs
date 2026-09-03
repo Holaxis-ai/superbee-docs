@@ -71,3 +71,47 @@ test("operational guide sources and events select their reader pages", async () 
   assert.equal(pages.has("guides/share-and-synchronize-git-bundle"), true);
   assert.equal(pages.has("guides/choose-privacy-and-bundle-boundaries"), true);
 });
+
+test("permission-aware sharing owners select every coupled reader journey", async () => {
+  const bothPages = [
+    "get-started/first-durable-workspace",
+    "guides/share-and-synchronize-git-bundle",
+  ];
+  const sourceExpectations = new Map([
+    ["README.md", bothPages],
+    ["packages/cli/SKILL.md", bothPages],
+    ["packages/cli/src/commands/sync/establish.ts", bothPages],
+    ["packages/cli/src/commands/sync/orchestrate.ts", bothPages],
+    ["packages/cli/src/skill-render.ts", bothPages],
+    ["packages/cli/src/sync-outcomes.ts", bothPages],
+    ["packages/cli/test/skill-distribution.test.ts", bothPages],
+    ["packages/cli/test/sync-establish.test.ts", bothPages],
+    ["packages/cli/test/sync-outcomes.test.ts", bothPages],
+    ["packages/board-git/src/errors.ts", ["guides/share-and-synchronize-git-bundle"]],
+    ["packages/board-git/test/channel.test.ts", ["guides/share-and-synchronize-git-bundle"]],
+    ["packages/board-git/test/git-porcelain.test.ts", ["guides/share-and-synchronize-git-bundle"]],
+    ["packages/cli/src/commands/sync/establish-committed.ts", ["guides/share-and-synchronize-git-bundle"]],
+    ["packages/cli/src/commands/sync/converge.ts", ["guides/share-and-synchronize-git-bundle"]],
+    ["packages/cli/src/ui/sharing.ts", ["guides/share-and-synchronize-git-bundle"]],
+    ["packages/cli/test/board-git-errors.test.ts", ["guides/share-and-synchronize-git-bundle"]],
+    ["packages/cli/test/fixtures/sync-outcomes/fixtures.json", ["guides/share-and-synchronize-git-bundle"]],
+    ["packages/cli/test/sync-establish-committed.test.ts", ["guides/share-and-synchronize-git-bundle"]],
+    ["packages/cli/test/sync-intree.test.ts", ["guides/share-and-synchronize-git-bundle"]],
+    ["packages/cli/test/sync.test.ts", ["guides/share-and-synchronize-git-bundle"]],
+    ["packages/cli/test/ui-sharing.test.ts", ["guides/share-and-synchronize-git-bundle"]],
+    ["packages/ui/src/views/Launcher.test.tsx", ["guides/share-and-synchronize-git-bundle"]],
+    ["packages/ui-server/test/config.test.ts", ["guides/share-and-synchronize-git-bundle"]],
+  ]);
+
+  for (const [source, expectedPages] of sourceExpectations) {
+    const result = JSON.parse((await run(process.execPath, [script, "--changed", source])).stdout);
+    const pages = new Set(result.affected.flatMap((row) => row.pages));
+    for (const page of expectedPages) assert.equal(pages.has(page), true, `${source} -> ${page}`);
+  }
+
+  for (const event of ["bundle-sharing-permissions", "repository-before-board", "shared-board-establishment"]) {
+    const result = JSON.parse((await run(process.execPath, [script, "--event", event])).stdout);
+    const pages = new Set(result.affected.flatMap((row) => row.pages));
+    for (const page of bothPages) assert.equal(pages.has(page), true, `${event} -> ${page}`);
+  }
+});
