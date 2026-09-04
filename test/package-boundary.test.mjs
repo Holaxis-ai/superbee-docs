@@ -186,7 +186,8 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.match(sharingPage, /Keep the three systems separate/);
   assert.match(sharingPage, /Repository-creation permission is irrelevant/);
   assert.match(sharingPage, /Please keep.*as an outside collaborator/s);
-  assert.match(sharingPage, /https:\/\/docs\.github\.com\/en\/organizations\/managing-organization-settings\/restricting-repository-creation-in-your-organization/);
+  assert.match(sharingPage, /GitHub: restricting repository creation in an organization/);
+  assert.doesNotMatch(sharingPage, /https:\/\/docs\.github\.com\/en\/organizations\/managing-organization-settings\/restricting-repository-creation-in-your-organization/);
   assert.match(firstWorkspacePage, /publishes <code>board<\/code> into an existing remote repository/);
   assert.match(firstWorkspacePage, /leaves both facts unknown/);
   assert.match(handoffPage, /Ask an agent to prepare the handoff/);
@@ -242,6 +243,9 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
     assert.match(permissionProjections[index], /outside collaborator/);
     assert.match(permissionProjections[index], /repository-specific Write/);
     assert.match(permissionProjections[index], /rules applying to `?board`?/);
+  }
+  for (const index of [0, 2]) {
+    assert.match(permissionProjections[index], /https:\/\/docs\.github\.com\/en\/organizations\/managing-organization-settings\/restricting-repository-creation-in-your-organization/);
   }
   for (const index of [1, 3, 5]) {
     assert.match(permissionProjections[index], /origin\/board/);
