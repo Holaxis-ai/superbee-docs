@@ -225,6 +225,7 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   }
   const sharingSource = await readFile(".superbee/guides/share-and-synchronize-git-bundle.md");
   const firstWorkspaceSource = await readFile(".superbee/get-started/first-durable-workspace.md");
+  const repositoryCreationPolicyEvidence = "[GitHub: restricting repository creation in an organization](https://docs.github.com/en/organizations/managing-organization-settings/restricting-repository-creation-in-your-organization)";
   const sharingDigest = sha256(sharingSource).slice("sha256:".length);
   const firstWorkspaceDigest = sha256(firstWorkspaceSource).slice("sha256:".length);
   const permissionProjections = await Promise.all([
@@ -244,8 +245,8 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
     assert.match(permissionProjections[index], /repository-specific Write/);
     assert.match(permissionProjections[index], /rules applying to `?board`?/);
   }
-  for (const index of [0, 2]) {
-    assert.match(permissionProjections[index], /https:\/\/docs\.github\.com\/en\/organizations\/managing-organization-settings\/restricting-repository-creation-in-your-organization/);
+  for (const projection of [sharingSource.toString("utf8"), permissionProjections[0], permissionProjections[2]]) {
+    assert.equal(projection.includes(repositoryCreationPolicyEvidence), true);
   }
   for (const index of [1, 3, 5]) {
     assert.match(permissionProjections[index], /origin\/board/);
