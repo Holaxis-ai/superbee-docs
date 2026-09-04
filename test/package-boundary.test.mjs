@@ -236,21 +236,30 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
     Promise.resolve(searchById.get("guides/share-and-synchronize-git-bundle")?.body ?? ""),
     Promise.resolve(searchById.get("get-started/first-durable-workspace")?.body ?? ""),
   ]);
-  for (const projection of permissionProjections) {
+  const fullPermissionProjections = [
+    sharingSource.toString("utf8"),
+    firstWorkspaceSource.toString("utf8"),
+    ...permissionProjections.slice(0, 4),
+  ];
+  for (const projection of fullPermissionProjections) {
     assert.match(projection, /existing remote repository/);
     assert.match(projection, /(?:unknown|unresolved)/);
   }
-  for (const index of [0, 2, 4]) {
-    assert.match(permissionProjections[index], /outside collaborator/);
-    assert.match(permissionProjections[index], /repository-specific Write/);
-    assert.match(permissionProjections[index], /rules applying to `?board`?/);
-  }
   for (const projection of [sharingSource.toString("utf8"), permissionProjections[0], permissionProjections[2]]) {
+    assert.match(projection, /outside collaborator/);
+    assert.match(projection, /repository-specific Write/);
+    assert.match(projection, /rules applying to `?board`?/);
     assert.equal(projection.includes(repositoryCreationPolicyEvidence), true);
   }
-  for (const index of [1, 3, 5]) {
-    assert.match(permissionProjections[index], /origin\/board/);
-    assert.match(permissionProjections[index], /Repository creation permission is irrelevant/i);
+  for (const projection of [firstWorkspaceSource.toString("utf8"), permissionProjections[1], permissionProjections[3]]) {
+    assert.match(projection, /origin\/board/);
+    assert.match(projection, /Repository\s+creation permission is irrelevant/i);
+  }
+  for (const [searchBody, discoveryPhrase] of [
+    [permissionProjections[4], /dedicated board establish, join, and sync workflow/],
+    [permissionProjections[5], /Create a local Superbee workspace inside a project/],
+  ]) {
+    assert.match(searchBody, discoveryPhrase);
   }
   const expectedRobots = "User-agent: *\nAllow: /\nSitemap: https://docs.getsuperbee.com/sitemap.xml\n";
   assert.equal(portalRobots, expectedRobots);
