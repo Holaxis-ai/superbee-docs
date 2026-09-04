@@ -21,6 +21,7 @@ superbee_updated_by: openai/codex
 - `packages/board-git/test/channel.test.ts`
 - `packages/board-git/test/git-porcelain.test.ts`
 - `packages/cli/src/autopull.ts`
+- `packages/cli/src/command-spec.ts`
 - `packages/cli/src/cursor.ts`
 - `packages/cli/SKILL.md`
 - `packages/cli/src/commands/home.ts`
@@ -39,6 +40,7 @@ superbee_updated_by: openai/codex
 - `packages/cli/src/sync-outcomes.ts`
 - `packages/cli/src/ui/sharing.ts`
 - `packages/cli/test/board-git-errors.test.ts`
+- `packages/cli/test/command-spec.test.ts`
 - `packages/cli/test/fixtures/sync-outcomes/**`
 - `packages/cli/test/skill-distribution.test.ts`
 - `packages/cli/test/sync-establish.test.ts`
@@ -47,6 +49,7 @@ superbee_updated_by: openai/codex
 - `packages/cli/test/sync-outcomes.test.ts`
 - `packages/cli/test/sync.test.ts`
 - `packages/cli/test/ui-sharing.test.ts`
+- `packages/ui/src/views/Launcher.tsx`
 - `packages/ui/src/views/Launcher.test.tsx`
 - `packages/ui-server/test/config.test.ts`
 
