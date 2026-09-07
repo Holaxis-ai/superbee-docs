@@ -16,6 +16,41 @@ is verified against the package identity in the current release evidence, source
 `38e4bd1779a14c2518a7f3930ab2d9e26a76f889`, and the tagged synchronization and SessionStart tests
 linked below. The stable package requires Node.js 20 or newer.
 
+GitHub role and policy guidance on this page is version-neutral. It links to GitHub's current
+documentation because provider permissions can change independently of a Superbee release.
+
+# Keep the three systems separate
+
+| System | What it owns | What it does not do or prove |
+| --- | --- | --- |
+| Superbee | The local bundle and the dedicated `board` establish, join, and sync workflow | It does not create a GitHub repository, grant GitHub access, or change organization policy. |
+| Local Git | The local repository, commits, branches, worktrees, and `origin` URL | Adding `origin` records a URL. It does not create the remote repository or prove that the current identity can reach it. |
+| GitHub | The remote repository, authenticated identity, repository roles, organization repository-creation policy, rulesets, and protected branches | Repository Write does not create a missing organization repository or guarantee that policy permits `board`. |
+
+Think of `board` as a dedicated shelf inside an existing remote repository. `superbee sync
+--establish` creates and pushes that shelf. It does not create the repository that contains it. A
+plain `superbee sync` joins or updates an existing shelf.
+
+# Route by repository and board state
+
+Ask whether the intended remote repository exists before asking who may create it. Then determine
+whether `origin/board` exists. Keep an unsuccessful or denied probe distinct from an authoritative
+answer that a repository or branch is absent.
+
+| Observed state | Safe next action | Narrow authority needed |
+| --- | --- | --- |
+| No local Git repository | Enter or initialize the intended local project repository, or keep using the bundle locally. GitHub has not been checked. | Local filesystem and Git access |
+| Local Git, but no `origin` | Connect the exact existing repository. If an authorized GitHub view confirms that the repository is absent, create it outside Superbee or ask an authorized owner or member to create it, then configure `origin`. | Local Git configuration, plus namespace creation authority only when absence is confirmed |
+| `origin` is configured, but a remote probe fails or is denied | Keep the repository and board states unknown. Verify the URL, network, active HTTPS or SSH identity, visibility, and repository Read access before any establishment attempt. | Enough connectivity and repository visibility or Read access to obtain a reliable answer |
+| Repository exists and `board` is confirmed absent | With explicit publication approval, run `superbee sync --establish`. Repository-creation permission is irrelevant because the repository already exists. | Repository-specific push capability, normally Write, plus policy permission to create `board` |
+| `origin/board` exists | Join with `superbee sync --pull-only`, or use full `superbee sync` when publishing local board changes is authorized. | Read to join; repository-specific push capability and applicable update policy to publish |
+
+A Git transport response such as "Repository not found," an HTTP denial, an SSH denial, a timeout,
+or an unreachable host does not distinguish a missing repository from an existing private
+repository that the current identity cannot see. Those results leave the repository and `board`
+unknown. Do not create a replacement repository or run establishment until an authorized source or
+successful remote read resolves the state.
+
 # Before you join
 
 Start in the cloned project repository. Confirm that `origin` names the same repository where a
@@ -25,9 +60,9 @@ teammate shared the bundle:
 git remote -v
 ```
 
-You also need Git access to that remote. Keep any existing non-empty `.superbee/` or
-`.agentstate-lite/` directory in place until you know what it contains. Superbee refuses to replace
-an unrelated directory during provisioning.
+You also need repository Read access to inspect or join that remote. Keep any existing non-empty
+`.superbee/` or `.agentstate-lite/` directory in place until you know what it contains. Superbee
+refuses to replace an unrelated directory during provisioning.
 
 Avoid `superbee init` when you expect a shared bundle. Initialization creates a new local bundle.
 The join command discovers the existing shared channel and materializes the intended checkout.
@@ -81,9 +116,64 @@ available evidence cannot identify one safe channel. Resolve the reported Git or
 then retry. Treat an unknown state as unresolved sharing evidence.
 
 Establishment is the publication boundary. Run `superbee sync --establish` only after the bundle
-owner has decided to share a local bundle through this repository's `origin`. The command creates
-and pushes the dedicated `board` branch. A plain `superbee sync` never establishes a previously
+owner has decided to share a local bundle through this repository's `origin`, a successful remote
+read has confirmed that the repository exists and `board` does not, and the publisher has the
+repository-specific push and branch-policy authority described below. The command creates and
+pushes the dedicated `board` branch. A plain `superbee sync` never establishes a previously
 local-only bundle.
+
+# Use the narrowest GitHub authority
+
+GitHub's repository roles are separate from organization repository-creation policy. Read is the
+ordinary join posture. Write is the ordinary direct-push posture, but rulesets or protected-branch
+settings may still restrict creating or updating a matching `board` branch. Organization-wide
+membership or all-repository access is not required when a grant on the one intended repository is
+sufficient. An all-repository Write grant remains repository access; it is not permission to create
+a missing organization repository.
+
+## Personal or organization owner
+
+A personal repository owner can create a missing repository in that personal account. GitHub says
+organization owners can always create organization repositories, while the organization's settings
+can restrict creation by members and GitHub Apps. After the repository exists, grant only the role
+needed for `board` and check applicable branch rules.
+
+```text
+Please confirm whether `<owner>/<repo>` exists. If an authorized owner view confirms it is absent,
+please create it with `<visibility>`. If it exists, grant `<identity>` Read to join the existing
+board, or repository-specific Write to create or update `board`. Please also confirm that rules
+applying to `board` allow the requested operation. Superbee will not create the repository or change
+its access policy.
+```
+
+## Organization member
+
+Membership alone does not prove permission to create a repository or access an existing one. If an
+authorized view confirms that the repository is absent, check the organization's repository
+creation policy. If member creation is disabled, ask an owner or another authorized member to create
+the repository and grant narrow access. For an existing repository, ignore creation policy and use
+the repository role and branch rules for the requested `board` operation.
+
+```text
+Please confirm whether `<org>/<repo>` already exists. If it is confirmed absent, please have an
+actor allowed by the organization's creation policy create it. If it exists, grant `<identity>`
+Read to join or repository-specific Write to create or update `board`, subject to the rules for that
+branch. No organization-wide access is requested.
+```
+
+## Outside collaborator
+
+An outside collaborator is not an organization member and receives access to selected
+repositories. Keep that status when it meets the need. Ask for Read on the one repository to join,
+or Write on that repository to establish or update `board`, subject to branch rules. Write access
+for an outside collaborator does not authorize creation of a missing organization repository.
+
+```text
+Please keep `<identity>` as an outside collaborator and grant `<Read | Write>` only on
+`<org>/<repo>`. For Write, please confirm that rules applying to `board` permit `<creation |
+updates>`. If the repository is confirmed absent, an authorized organization actor must create it
+first; Superbee will not do that.
+```
 
 # Share changes on a dedicated board
 
@@ -108,6 +198,38 @@ reports `sync: already up to date`.
 For an in-tree bundle, use normal Git review, commit, pull, and push commands. `superbee sync
 --pull-only` refreshes the comparison and reports bundle changes in the upstream branch while
 leaving the working tree unchanged. Run `git pull` when you want Git to deliver those commits.
+
+# Recover from a denied remote operation
+
+Start with what remains safe locally, then name the failed operation. Do not turn a broad Git
+failure into a precise claim about repository existence, identity, role, or policy.
+
+- If first publication is denied, the local bundle remains available and nothing was published.
+  GitHub may have rejected creation of `origin/board` because of the selected identity,
+  repository-specific Write access, a branch rule, or a server-side hook. The existing repository
+  means repository-creation authority is irrelevant.
+- If an update is denied after a local board commit, the receipt identifies work committed locally
+  and not pushed. Keep that commit, correct the access, policy, or connectivity condition, and rerun
+  full `superbee sync`.
+- If the repository cannot be read, keep the repository and board states unknown. Verify the exact
+  `origin` URL, network, active HTTPS or SSH identity, repository visibility, and Read access.
+- If Git reports a generic remote rejection, ask an administrator to inspect applicable remote
+  policy, branch rules, and server-side hooks. The message alone does not prove that a GitHub
+  ruleset is the cause.
+
+Use a repository-specific handoff and retry only after a condition changes:
+
+```text
+Repository: `<owner>/<repo>`
+Requested operation: `<read existing board | create board | update board>`
+Identity: `<GitHub identity or unknown>`
+Observed result: `<error class; no credential material>`
+Please confirm the narrow repository role and any rules or protection applying to `board`.
+```
+
+Rerun `superbee sync --pull-only`, `superbee sync --establish`, or full `superbee sync` according to
+the same repository and board state matrix. Do not discard local work, create a same-named
+repository, broaden organization access, or change policy as an automatic recovery.
 
 # Recover from a document conflict
 
@@ -196,6 +318,12 @@ For local document persistence before sharing, see
 # Evidence
 
 - [Current stable release evidence](../sources/current-release.md)
+- [GitHub: creating a new repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository)
+- [GitHub: restricting repository creation in an organization](https://docs.github.com/en/organizations/managing-organization-settings/restricting-repository-creation-in-your-organization)
+- [GitHub: repository roles for an organization](https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization)
+- [GitHub: adding outside collaborators to an organization repository](https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-outside-collaborators/adding-outside-collaborators-to-repositories-in-your-organization)
+- [GitHub: about rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)
+- [GitHub: about protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)
 - [Tagged sync command implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/sync/orchestrate.ts)
 - [Tagged channel classification](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/board-git/src/channel.ts)
 - [Tagged SessionStart implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/session-start.ts)

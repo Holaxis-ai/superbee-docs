@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -14,6 +14,72 @@ async function run(args) {
   });
   return JSON.parse(stdout);
 }
+
+test("permission-aware sharing guidance routes each reader state without broadening authority", async () => {
+  const [sharingGuide, firstWorkspace] = await Promise.all([
+    readFile(".superbee/guides/share-and-synchronize-git-bundle.md", "utf8"),
+    readFile(".superbee/get-started/first-durable-workspace.md", "utf8"),
+  ]);
+
+  const decisions = [
+    {
+      state: "no local Git",
+      route: /No local Git repository[\s\S]*GitHub has not been checked/,
+      forbidden: /No local Git repository[^\n]*GitHub denied/,
+    },
+    {
+      state: "no origin",
+      route: /Local Git, but no `origin`[\s\S]*create it outside Superbee or ask an authorized owner or member/,
+      forbidden: /Adding `origin` creates the remote repository/,
+    },
+    {
+      state: "unknown remote",
+      route: /remote probe fails or is denied[\s\S]*repository and board states unknown/,
+      forbidden: /remote probe fails or is denied[^\n]*(?:repository is absent|run `superbee sync --establish`)/,
+    },
+    {
+      state: "existing repository without board",
+      route: /Repository exists and `board` is confirmed absent[\s\S]*Repository-creation permission is irrelevant/,
+      forbidden: /Repository exists and `board` is confirmed absent[^\n]*organization-wide/,
+    },
+    {
+      state: "existing board",
+      route: /`origin\/board` exists[\s\S]*Join with `superbee sync --pull-only`/,
+      forbidden: /`origin\/board` exists[^\n]*`sync --establish`/,
+    },
+    {
+      state: "outside collaborator",
+      route: /keep `<identity>` as an outside collaborator and grant `<Read \| Write>` only on/,
+      forbidden: /outside collaborator[^\n]*(?:become|promote)[^\n]*member/i,
+    },
+    {
+      state: "denied publication",
+      route: /If first publication is denied, the local bundle remains available and nothing was published/,
+      forbidden: /first publication is denied[^\n]*create a same-named repository/,
+    },
+  ];
+
+  for (const decision of decisions) {
+    assert.match(sharingGuide, decision.route, decision.state);
+    assert.doesNotMatch(sharingGuide, decision.forbidden, decision.state);
+  }
+
+  assert.match(firstWorkspace, /publishes `board` into an existing remote repository/);
+  assert.match(firstWorkspace, /denial, timeout, SSH failure, or[\s\S]*leaves both facts unknown/);
+  assert.match(firstWorkspace, /If `origin\/board` exists, join with `superbee sync --pull-only`/);
+  assert.match(firstWorkspace, /Share and synchronize a Git-backed bundle/);
+  for (const url of [
+    "https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository",
+    "https://docs.github.com/en/organizations/managing-organization-settings/restricting-repository-creation-in-your-organization",
+    "https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization",
+    "https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-outside-collaborators/adding-outside-collaborators-to-repositories-in-your-organization",
+    "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets",
+    "https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches",
+  ]) assert.equal(sharingGuide.includes(url), true, url);
+  for (const source of [sharingGuide, firstWorkspace]) {
+    assert.doesNotMatch(source, /details\.sharing|remote_repository|remote_board/);
+  }
+});
 
 test("the documented Context Note journey leaves a discoverable and conforming handoff", async () => {
   const root = await mkdtemp(path.join(tmpdir(), "superbee-docs-context-journey-"));

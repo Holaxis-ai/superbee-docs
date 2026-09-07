@@ -102,8 +102,29 @@ tool can inspect the file even without Superbee.
 # Do not share it accidentally
 
 This tutorial stops with a local workspace. `superbee sync --establish` is a separate explicit act
-that publishes a shared board through the repository's remote. Do not run it until the user has
-chosen the participants, privacy boundary, and repository.
+that publishes `board` into an existing remote repository. It does not create the GitHub repository.
+Do not run it until the user has chosen the participants, privacy boundary, and exact repository.
+
+Before handing off to sharing:
+
+1. Confirm that the project is in the intended local Git repository. If it is not, keep using the
+   bundle locally or complete the local Git setup. GitHub has not been checked yet.
+2. Inspect `git remote -v`. If `origin` is missing, connect the exact existing remote repository. If
+   an authorized GitHub view confirms that the repository is absent, a personal owner,
+   organization owner, or member allowed by organization policy must create it outside Superbee
+   first. An outside collaborator does not gain organization repository-creation authority from
+   repository access.
+3. Verify the repository and `origin/board` separately. A denial, timeout, SSH failure, or
+   "Repository not found" response leaves both facts unknown. Do not create a replacement or try
+   establishment while the remote state is unresolved.
+4. If `origin/board` exists, join with `superbee sync --pull-only`. If the repository exists and
+   `board` is confirmed absent, establishment needs explicit publication approval,
+   repository-specific push capability, and policy that permits creating `board`. Repository
+   creation permission is irrelevant for that existing repository.
+
+Continue with [Share and synchronize a Git-backed bundle](../guides/share-and-synchronize-git-bundle.md)
+for the complete state matrix, least-privilege owner, member, and outside-collaborator handoffs, and
+denied-operation recovery.
 
 # If creation is refused
 
