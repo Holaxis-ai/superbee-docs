@@ -17,6 +17,10 @@ test("consumer uses only public published package surfaces and nested versioned 
     readFile("scripts/documentation-outputs.mjs", "utf8"),
   ]);
   assert.equal(consumer.workspaces, undefined);
+  // The production hostname is owned by this account after the zone migration.
+  assert.equal(wrangler.account_id, "454536c8fb003eaa679b986bd11dfe49");
+  assert.equal(wrangler.name, "superbee-docs");
+  assert.deepEqual(wrangler.routes, [{ pattern: "docs.getsuperbee.com", custom_domain: true }]);
   assert.deepEqual(consumer.dependencies, {
     "@superbee/docs-mkdocs": "0.2.2",
     "@superbee/docs-projection": "0.2.3",
