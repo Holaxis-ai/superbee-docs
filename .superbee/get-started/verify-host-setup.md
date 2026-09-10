@@ -175,15 +175,15 @@ host is complete.
 # Evidence
 
 This page is grounded in [the stable release evidence](../sources/current-release.md), the tagged
-[`setup` planner](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/setup-plan.ts)
+[`setup` planner](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/src/setup-plan.ts)
 and
-[`setup` agreement tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/setup-plan.test.ts),
+[`setup` agreement tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/test/setup-plan.test.ts),
 the tagged
-[`skill` command](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/skill.ts),
-[`hook` command](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/hook.ts),
+[`skill` command](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/src/commands/skill.ts),
+[`hook` command](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/src/commands/hook.ts),
 and
-[`MCP registration`](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/mcp-registration.ts).
+[`MCP registration`](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/src/mcp-registration.ts).
 The live tool and panel checks follow the tagged
-[`MCP Apps server`](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/mcp-app/src/server.ts)
+[`MCP Apps server`](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/mcp-app/src/server.ts)
 and
-[`MCP Apps contract tests`](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/mcp-app/test/server.test.ts).
+[`MCP Apps contract tests`](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/mcp-app/test/server.test.ts).

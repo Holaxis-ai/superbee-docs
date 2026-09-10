@@ -161,14 +161,11 @@ approval, and revocation model.
 
 # Evidence
 
-The managed local lifecycle is defined by the [stable UI implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/src/commands/ui.ts)
-and [managed-authority tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/test/ui-managed-authority.test.ts).
-
-The browser procedure is grounded in the tagged
-[`doc open` implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/ui.ts)
-and its
-[Tagged integration tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/ui.test.ts).
+The browser procedure and managed local lifecycle are defined by the
+[stable UI implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/src/commands/ui.ts),
+[managed-authority tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/test/ui-managed-authority.test.ts),
+and [UI integration tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/test/ui.test.ts).
 MCP behavior is grounded in the tagged
-[`show_document` and `show_view` server](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/mcp-app/src/server.ts)
+[`show_document` and `show_view` server](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/mcp-app/src/server.ts)
 and
-[Tagged server tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/mcp-app/test/server.test.ts).
+[Tagged server tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/mcp-app/test/server.test.ts).
