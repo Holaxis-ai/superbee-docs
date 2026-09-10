@@ -2,7 +2,7 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "superbee-docs",
   "main": "./scripts/cloudflare-worker.mjs",
-  "account_id": "33f5fc8b856c08fe05cbb6c277e625f2",
+  "account_id": "454536c8fb003eaa679b986bd11dfe49",
   "compatibility_date": "2026-08-28",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
