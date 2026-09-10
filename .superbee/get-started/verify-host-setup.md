@@ -4,7 +4,7 @@ title: Verify host setup
 description: >-
   Confirm what setup changed and test the CLI, Skill, hook, MCP, and MCP Apps
   surfaces in a restarted host.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: release-docs-review
 ---
 # Outcome
 
@@ -24,7 +24,7 @@ default for setup.
 | Surface | Command | Change |
 | --- | --- | --- |
 | CLI | `npm install -g superbee` | Installs the released `superbee` package and a durable global executable. |
-| Agent Skill | `superbee skill install --scope user` | Copies the package's `SKILL.md`, references, and ownership manifest into the configured Claude Code and Codex Skill folders. One invocation processes both supported Skill hosts. |
+| Agent Skill | `superbee skill install --scope user` | Copies the package's `SKILL.md`, references, and ownership manifest into the configured Skill folders for Claude Code, Codex, and OpenCode. OpenCode uses Claude-compatible discovery. |
 | SessionStart hook | `superbee hook install --scope user` | Adds the managed `session-start` launch to Claude Code and Codex, enables Codex hooks, and writes the managed OpenCode plugin. One invocation processes all three supported hook hosts. |
 | MCP | `superbee mcp install --host <host>` | Adds one user-level `superbee` MCP registration to the selected host. The launch uses the durable Node and package paths and carries no bundle directory. |
 
@@ -62,13 +62,13 @@ prefix or runtime mismatch.
 
 # 2. Verify the Agent Skill
 
-This step applies to Codex and Claude Code:
+This step applies to Codex, Claude Code, and OpenCode:
 
 ```sh
 superbee skill status --scope user --json
 ```
 
-Inspect the selected host at `skill.hosts.codex` or `skill.hosts.claude_code`. Its
+Inspect the selected host at `skill.hosts.codex`, `skill.hosts.claude_code`, or `skill.hosts.opencode`. Its
 `canonical.state` should be `installed`, and its compatibility state should be `current`. A
 `stale` state means the managed files do not match the running CLI. Run the exact Skill install
 command returned by setup and restart the host.

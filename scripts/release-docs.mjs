@@ -280,22 +280,31 @@ function documentBytes(options, id) {
 
 function documentProjection(options, id) {
   const metadata = JSON.parse(runSuperbee(options, ["doc", "read", id, "--json"]).stdout.toString("utf8"));
-  for (const field of ["id", "head_version", "body", "body_truncated", "body_chars", "help"]) delete metadata[field];
+  for (const field of ["id", "head_version", "body", "body_preview", "body_truncated", "body_chars", "help", "timestamp"]) delete metadata[field];
+  if (metadata.generated && typeof metadata.generated === "object") {
+    delete metadata.generated.at;
+  }
   const body = runSuperbee(options, ["doc", "read", id, "--body-out", "-"]).stdout;
   return { metadata, body };
+}
+
+function sameProjection(left, right) {
+  return JSON.stringify(left.metadata) === JSON.stringify(right.metadata) && left.body.equals(right.body);
 }
 
 async function promote(options, scratch, id, bytes, { immutable }) {
   const version = documentVersion(options, id);
   if (version !== null) {
     const current = documentBytes(options, id);
-    if (current.equals(bytes)) return { id, changed: false };
+    if (current.equals(bytes) || sameProjection(documentProjection(options, id), bytes.projection)) return { id, changed: false };
     if (immutable) throw new Error(`refusing to replace immutable release document ${id}`);
   }
   const source = resolve(scratch, `${basename(id)}.md`);
   await writeFile(source, bytes);
   const args = ["promote", source, "--doc-key", `${id}.md`, "--json"];
-  if (version !== null) args.push("--expected-version", version);
+  // Mutable release projections own their complete generated body, including evidence links.
+  // Immutable records have already been rejected above if their existing bytes differ.
+  if (version !== null) args.push("--expected-version", version, "--replace-links");
   runSuperbee(options, args);
   return { id, changed: true };
 }
@@ -311,7 +320,9 @@ async function normalizeDocument(options, scratch, id, bytes) {
   await writeFile(source, bytes);
   const normalizedOptions = { ...options, root: normalizationRoot };
   runSuperbee(normalizedOptions, ["promote", source, "--doc-key", `${id}.md`, "--json"]);
-  return documentBytes(normalizedOptions, id);
+  const normalized = documentBytes(normalizedOptions, id);
+  normalized.projection = documentProjection(normalizedOptions, id);
+  return normalized;
 }
 
 function updateKindField(options, id, field, values) {
@@ -456,7 +467,7 @@ async function check(options) {
   for (const [current, immutable] of pairs) {
     const currentProjection = documentProjection(options, current);
     const immutableProjection = documentProjection(options, immutable);
-    if (JSON.stringify(currentProjection.metadata) !== JSON.stringify(immutableProjection.metadata) || !currentProjection.body.equals(immutableProjection.body)) {
+    if (!sameProjection(currentProjection, immutableProjection)) {
       throw new Error(`${current} must be semantically identical to ${immutable}`);
     }
   }
@@ -477,7 +488,7 @@ async function check(options) {
   try {
     const { current, releases } = await releaseRows(options);
     const expectedArchive = await normalizeDocument(options, scratch, "normalized/release-index", Buffer.from(releaseArchiveDocument(current, releases)));
-    if (!documentBytes(options, "releases/release-notes").equals(expectedArchive)) {
+    if (!sameProjection(documentProjection(options, "releases/release-notes"), expectedArchive.projection)) {
       throw new Error("releases/release-notes does not match immutable release history");
     }
   } finally {

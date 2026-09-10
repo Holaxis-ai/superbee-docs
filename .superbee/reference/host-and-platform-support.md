@@ -4,7 +4,7 @@ title: Host and platform support
 description: >-
   Verified operating-system and AI-host integration support for the current
   stable Superbee release.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: release-docs-review
 ---
 # Scope
 
@@ -34,7 +34,7 @@ Treat behavior present only on `main` as unreleased until the stable package evi
 | Codex | macOS, Linux, and Windows | Required | Required | Recommended | `codex` |
 | Claude Code | macOS, Linux, and Windows | Required | Required | Recommended | `claude-code` |
 | Claude Desktop | macOS and Windows | Not available | Required | Not available | `claude-desktop` |
-| OpenCode | macOS, Linux, and Windows | Not available | Required | Recommended | `opencode` |
+| OpenCode | macOS, Linux, and Windows | Required | Required | Recommended | `opencode` |
 
 Inspect one host explicitly:
 
@@ -47,6 +47,10 @@ operate in a supported terminal environment, but that does not establish persist
 hook integration for an unlisted host.
 
 # What each integration contributes
+
+OpenCode discovers the installed Superbee Skill through its Claude-compatible discovery path.
+Rerun setup after upgrading so it can propose the required Skill installation or refresh.
+This behavior is covered by the [stable setup implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/src/setup-plan.ts).
 
 | Integration | Contribution |
 | --- | --- |

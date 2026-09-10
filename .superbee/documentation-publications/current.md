@@ -9,13 +9,16 @@ supporting_documents:
   - plans/docs-coverage
   - releases/0.1.3
   - releases/0.1.4
+  - releases/0.1.6
   - sources/current-release
   - sources/superbee-codebase-main
   - sources/superbee-core
   - sources/superbee-portal
   - sources/superbee-release-0.1.3
   - sources/superbee-release-0.1.4
+  - sources/superbee-release-0.1.6
 operational_types: Documentation Trigger
+superbee_updated_by: release-docs-automation
 ---
 # Purpose
 

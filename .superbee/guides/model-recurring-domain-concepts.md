@@ -4,7 +4,7 @@ title: Model recurring domain concepts
 description: >-
   Turn a proven recurring concept into a bundle-owned Kind and validated
   instances.
-superbee_updated_by: openai/codex
+superbee_updated_by: release-docs-review
 ---
 # Outcome
 
@@ -26,7 +26,7 @@ document with its declared type as soon as the convention is installed.
 
 # Ask an agent to plan the model
 
-In Codex or Claude Code with the Superbee Skill installed, you can direct this work by outcome
+In Codex, Claude Code, or OpenCode with the Superbee Skill installed, you can direct this work by outcome
 instead of first learning every command. See [Install and set up
 Superbee](../get-started/install-and-setup.md) for the installation path. For example:
 
@@ -59,6 +59,20 @@ Reuse established vocabulary. Record any existing `Experiment` documents because
 check them too.
 
 # 2. Define the smallest stable Kind
+
+For an existing ungoverned type, first inspect a read-only proposal:
+
+```sh
+superbee kind draft "Experiment"
+```
+
+The proposal measures warnings against existing instances and prints a command with an apply
+token. After the owner accepts the proposed definition, run that exact command. If instances or
+the schema change before application, `STALE_HEAD` requires a fresh draft. To record an explicit
+decision to keep the type ungoverned, use `superbee kind dismiss "Experiment" --reason "Keep exploratory records flexible"`.
+Drafting again can reopen that decision. See the [stable Kind implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/src/commands/kind-draft.ts).
+
+Use the recipe procedure below when you already have a reviewed definition to package and reuse.
 
 Create a temporary recipe directory outside the bundle with this manifest at
 `experiment-recipe/recipe.md`:

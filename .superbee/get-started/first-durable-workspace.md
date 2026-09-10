@@ -4,7 +4,7 @@ title: Create your first durable workspace
 description: >-
   Create a local bundle, preserve one decision, verify it, and open it for a
   human.
-superbee_updated_by: openai/codex
+superbee_updated_by: release-docs-review
 ---
 # Outcome
 
@@ -83,9 +83,10 @@ Now display the document to a human:
 superbee doc open decisions/keep-local
 ```
 
-`doc open` verifies the ID, starts Superbee's existing local UI, and opens the document through
-the shared bounded Markdown renderer. The server stays in the foreground; stop it with Control-C
-when you are done. In an MCP Apps host, the agent may instead invoke Superbee's document-display tool
+`doc open` verifies the ID, starts or reuses a managed local UI, and opens the document through
+the shared bounded Markdown renderer. The command returns while the reader remains available.
+Use `superbee ui --status` to inspect it and `superbee ui --stop` with the same bundle and actor
+to stop it when finished. In an MCP Apps host, the agent may instead invoke Superbee's document-display tool
 so the same content appears inside the conversation.
 
 # What now persists
