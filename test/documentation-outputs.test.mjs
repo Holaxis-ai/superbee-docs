@@ -24,11 +24,11 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     const { result, artifact, projectionManifest, mkdocsManifest } = composed;
     const selected = projectionManifest.selectedDocuments;
 
-    assert.equal(result.selectedDocuments, 52);
+    assert.equal(result.selectedDocuments, 54);
     assert.equal(result.navigatedDocuments, 40);
-    assert.equal(result.supportingDocuments, 12);
+    assert.equal(result.supportingDocuments, 14);
     assert.deepEqual(projectionManifest.selectedDocuments, selected);
-    assert.equal(projectionManifest.supportingDocuments.length, 12);
+    assert.equal(projectionManifest.supportingDocuments.length, 14);
     for (const id of [
       "get-started/verify-host-setup",
       "guides/choose-privacy-and-bundle-boundaries",
@@ -54,10 +54,12 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
       "releases/release-notes",
       "releases/0.1.3",
       "releases/0.1.4",
+      "releases/0.1.6",
+      "sources/superbee-release-0.1.6",
     ]) {
       assert.equal(projectionManifest.selectedDocuments.includes(id), true, id);
     }
-    assert.equal(mkdocsManifest.documents.length, 52);
+    assert.equal(mkdocsManifest.documents.length, 54);
     const startHere = projectionManifest.documents.find((document) => document.id === "learn/start-here");
     assert.ok(startHere?.freshness?.updatedAt);
     assert.match(startHere.freshness.updatedAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
@@ -203,11 +205,15 @@ test("the publication path rejects a release label that disagrees with its captu
     await cp("diagrams", path.join(root, "diagrams"), { recursive: true });
     await writeFile(path.join(root, "portal.config.json"), await readFile("portal.config.json"));
     const system = path.join(root, ".superbee", "documentation-systems", "main.md");
-    await writeFile(system, (await readFile(system, "utf8")).replace("version_label: v0.1.4", "version_label: v9.9.9"));
+    const original = await readFile(system, "utf8");
+    assert.match(original, /^version_label: v0\.1\.6$/m, "the fixture must target the actual stable label");
+    const tampered = original.replace(/^version_label: v0\.1\.6$/m, "version_label: v9.9.9");
+    assert.notEqual(tampered, original, "the disagreement probe must change its fixture");
+    await writeFile(system, tampered);
 
     await assert.rejects(
       composeDocumentationOutputs({ root, mkdocsOutput: path.join(root, "mkdocs") }),
-      /versionLabel must equal v0\.1\.4 from releases\/current/,
+      /versionLabel must equal v0\.1\.6 from releases\/current/,
     );
   } finally {
     await rm(root, { recursive: true, force: true });
