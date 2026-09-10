@@ -71,6 +71,12 @@ jobs:
         run: node scripts/deployment-assets.mjs
       - name: Prove the restored activation unit can stage offline
         run: npm run cloudflare:check && npm run cloudflare:reconciliation:check
+      - name: Preflight production account, access, and robots policy
+        id: preflight
+        continue-on-error: true
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node scripts/deployment-preflight.mjs --receipt deployment-preflight-receipt.json
       - name: Re-resolve the desired production commit
         id: desired
         shell: bash
@@ -78,6 +84,7 @@ jobs:
           git fetch --no-tags origin main
           echo "commit=$(git rev-parse origin/main)" >> "$GITHUB_OUTPUT"
       - name: Reconcile the exact artifact with Cloudflare
+        if: steps.preflight.outcome == 'success'
         id: reconciliation
         continue-on-error: true
         env:
@@ -105,6 +112,7 @@ jobs:
         with:
           name: superbee-docs-production-${{ github.sha }}-${{ github.run_attempt }}
           path: |
+            deployment-preflight-receipt.json
             cloudflare-reconciliation-receipt.json
             production-verification-receipt.json
           if-no-files-found: error
@@ -112,8 +120,10 @@ jobs:
       - name: Require verified reconciliation and Docs behavior
         if: always()
         env:
+          PREFLIGHT_OUTCOME: ${{ steps.preflight.outcome }}
           RECONCILIATION_OUTCOME: ${{ steps.reconciliation.outcome }}
           VERIFICATION_OUTCOME: ${{ steps.verification.outcome }}
         run: |
+          test "$PREFLIGHT_OUTCOME" = success
           test "$RECONCILIATION_OUTCOME" = success
           test "$VERIFICATION_OUTCOME" = success

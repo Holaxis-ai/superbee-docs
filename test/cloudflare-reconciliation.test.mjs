@@ -188,7 +188,9 @@ test("the workflow separates build from credentials and serializes durable recon
   assert.match(workflow, /RECONCILIATION_MODE: \$\{\{ github\.event_name == 'schedule' && 'probe' \|\| 'deploy' \}\}/u);
   assert.match(workflow, /if: always\(\)[\s\S]+cloudflare-reconciliation-receipt\.json[\s\S]+production-verification-receipt\.json/u);
   assert.match(workflow, /git fetch --no-tags origin main[\s\S]+--observed-commit/u);
-  assert.equal((workflow.match(/CLOUDFLARE_API_TOKEN:/gu) ?? []).length, 1);
+  assert.equal((workflow.match(/CLOUDFLARE_API_TOKEN:/gu) ?? []).length, 2);
+  assert.match(workflow, /if: steps\.preflight\.outcome == 'success'/u);
+  assert.match(workflow, /test "\$PREFLIGHT_OUTCOME" = success/u);
   const buildJob = workflow.slice(workflow.indexOf("  build:"), workflow.indexOf("  reconcile:"));
   assert.doesNotMatch(buildJob, /CLOUDFLARE/u);
   assert.match(buildJob, /NODE_AUTH_TOKEN: \$\{\{ secrets\.NPM_READ_TOKEN \}\}/u);

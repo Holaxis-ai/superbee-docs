@@ -78,7 +78,7 @@ npm run check
 `npm ci` installs the exact Portal and Superbee packages recorded by the lockfile. The source sync
 keeps an exact Superbee checkout only for source-grounded architecture checks. The Portal build
 captures one source snapshot and compiles the same explicit
-52-document selection (40 navigated and 12 supporting), brand asset, relationships, and eight
+documentation selection, brand asset, relationships, and eight
 admitted diagrams into one projection consumed by both Portal and MkDocs. The
 `@superbee/docs-mkdocs` package
 owns the pinned uv command sequence: `mkdocs:sync` installs the exact locked Python environment
@@ -100,34 +100,62 @@ Navigation and maintained pages use the stable `releases/current` and `sources/c
 bundle identities. The reader-facing `releases/release-notes` page lists the current release and
 immutable prior releases, while migration guidance stays beside it in navigation.
 
-The daily release-freshness workflow compares the documented release with the public npm `latest`
-package, GitHub release, and exact Git tag. Run the same deterministic probe locally at any time:
+The daily release-freshness workflow captures a resumable review packet from public npm `latest`,
+the GitHub release, and its exact Git tag. Run the same conductor locally:
 
 ```bash
-npm run docs:release:status
+npm run docs:release:prepare
 ```
 
-When it reports `update_required`, the output carries the exact package, integrity, source commit,
-publication date, release URL, and generated GitHub notes. It also names the reader-facing fields
-that still require agent judgment and the documentation-impact events to query. A verified release
-then updates the stable identities, creates immutable versioned records, reconciles the release
-archive and selection, and updates the exact site version with one idempotent command:
+The default state directory is `.tmp/release-conductor`. Supply `--state .tmp/<name>` for a fresh
+authority check or a different release. Repeating preparation with the same state reuses its frozen
+facts and preserves edits. A captured `current` result is historical; use a new state directory to
+check whether another release has appeared. `npm run docs:release:status` remains a fresh, read-only
+authority probe.
+
+For `update_required`, preparation verifies the tarball's SHA-512 integrity, installs it in an
+isolated prefix with lifecycle scripts disabled, and checks its embedded package/source identity.
+It diffs the prior stable commit against the released tag, independently of the checkout's newer
+`main`, and combines source-path and release-event impacts. An optional `--source <checkout>` uses
+an existing public Superbee checkout without changing it; otherwise the conductor clones into its
+private state directory. The architecture source pin stays independent.
+
+The saved `packet.json` contains evidence and affected pages. `release.json` contains only the
+accepted release-manifest fields, with explicit placeholders for authored content. `review.json`
+requires a named reviewer and an `updated` or reasoned `no-change` disposition for every affected
+page. GitHub notes remain evidence, not automatically accepted reader prose. Download the nightly
+workflow's review artifact into `.tmp/release-conductor` on a checkout containing the packet's
+commit and matching conductor tools, then continue without repeating discovery:
 
 ```bash
-cp examples/release-input.example.json /tmp/superbee-release.json
-# Fill the handoff with facts and verification from the completed release.
-npm run docs:release -- --manifest /tmp/superbee-release.json
-npm run docs:release:check
+# Review evidence, fill .tmp/release-conductor/release.json and review.json,
+# and update the affected reader pages through Superbee.
+npm run docs:release:apply
+npm run docs:release:verify
 ```
 
-The JSON file is ephemeral release-process input, not another persisted documentation authority.
-The command writes release documents through Superbee, refuses to alter existing version history,
-and updates the bundle-native Documentation System and Publication records when needed. It
-converges to a no-op when retried and never invents the summary, changes, user action,
-compatibility, recovery, supported platforms, or verification performed. Review those fields
-against the release and query the returned impact events before opening the documentation pull
-request. The repository check rejects a package version pinned in ordinary pages; exact versions
-remain available in release, evidence, and migration records.
+Apply pins the package and lockfile, checks their integrity and embedded identity, invokes the
+existing Superbee release writer, and rebuilds the CLI reference. It journals each step before
+execution. After a failure, inspect `failure.json` and the pending step in `receipt.json`, fix the
+cause, and retry the same command. The release writer protects immutable history. Once apply starts,
+the reviewed manifest is frozen; changing it requires a new packet. A leftover `.lock` blocks other
+writers: confirm the previous process has stopped before removing that single lock directory.
+Apply and check also hold `.tmp/.release-apply.lock` so distinct packets cannot mutate one repository
+concurrently. Inspect its owner before removing a stale repository lock.
+
+Verify performs the dependency/bootstrap sequence and full repository check. It reuses a successful
+receipt only for the same commit, working-tree bytes, Node version, installed dependencies, source
+checkout, and built outputs. Changed or missing inputs invalidate reuse; externally symlinked
+dependency directories disable reuse. Runtime parity is tested
+at the primitive level: evidence capture, review admission, interrupted apply, and receipt reuse.
+CI and the production verifier still run independently. State is ignored, private transport rather
+than a second documentation authority; do not commit it. The conductor never merges, publishes,
+changes host policy, installs host integrations, or deploys.
+
+The lower-level `npm run docs:release -- --manifest <file>` remains available for a reviewed handoff.
+It creates immutable versioned records and reconciles the stable release, archive, and publication
+selection through Superbee. Release-sensitive integration tests derive selection counts and the
+current version from fixture records, so adding a release does not require editing test numbers.
 
 ## Deployment
 
@@ -180,7 +208,12 @@ completed `dist` artifact. The reconciliation job downloads those exact bytes, a
 package-owned Cloudflare layer without rebuilding the site, and re-resolves `origin/main`
 immediately before activation. A changed desired commit fails closed.
 
-Only the reconciliation step receives `CLOUDFLARE_API_TOKEN`. It calls the package's public
+The preflight and reconciliation steps receive `CLOUDFLARE_API_TOKEN`. Before activation,
+`npm run deployment:preflight` checks account-scoped custom-domain/Worker ownership, deployment
+read access, and live robots bytes against the built artifact. It emits sanitized reason codes and
+blocks activation on missing access, account/domain mismatch, incomplete API evidence, or robots
+drift. This is a read-only probe and does not prove write permission. The workflow saves its receipt
+even on failure. The reconciliation step calls the package's public
 reconciler through `scripts/reconcile-cloudflare.mjs` with an immutable source, site, and toolchain
 provenance tuple. The reconciler inspects provider generation, stages and digests the complete
 activation unit, activates with strict generation protection, then externally verifies the live
