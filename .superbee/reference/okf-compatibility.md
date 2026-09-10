@@ -4,7 +4,7 @@ title: OKF compatibility
 description: >-
   Open Knowledge Format editions, document semantics, compatibility limits, and
   migration behavior in the current stable Superbee release.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: openai/codex
 ---
 # Scope
 
@@ -80,10 +80,18 @@ rules are Superbee conventions layered on the portable document.
 | Field family | OKF v0.2 meaning | Stable Superbee behavior |
 | --- | --- | --- |
 | `sources` | Materials from which the concept derives. | Preserved as frontmatter, including unknown nested keys and date-only values. Superbee does not compute a credibility score. |
-| `generated` | Actor and meaningful-change time for the current content. | Optional. A mutation preserves `by`; a meaningful content or provenance change advances `at`. A verification-only change does not advance it. |
+| `generated` | Actor and meaningful-change time for the current content. | Seeded on ordinary v0.2 creates without a usable clock, including ungoverned types. A mutation preserves `by`; a meaningful content or provenance change advances `at`. A verification-only change does not advance it. |
 | `verified` | One or more independent verification events. | Preserved across a mutation when the candidate omits it. Stable Superbee does not currently expose an OKF trust-tier projection. |
 | `status` | `draft`, `stable`, or `deprecated`; absence means `stable` in OKF. | Preserved as the standard lifecycle field. Superbee does not insert `stable` when the field is absent. |
 | `stale_after` | Absolute instant on or after which the concept is stale. | Preserved. `superbee status` includes it in the freshness sweep. |
+
+On an ordinary v0.2 document create with no usable `timestamp` or `generated.at`, Superbee seeds
+`generated.by: process:superbee` and the current `generated.at` when no `generated` mapping was
+supplied. A supplied mapping keeps its valid `by` and receives `at` if missing. This applies to
+`doc write`, `new`, and document promotion, including types with no Kind. A Kind requiring
+`timestamp` receives that required clock instead. Recipe definition installation and Kind
+draft/dismiss operations opt out of automatic seeding so their definition bytes remain comparable. Existing
+documents are not backfilled merely by reading them, and v0.1 clock behavior is unchanged.
 
 When `generated` is newly supplied through the governed mutation path, `generated.by` must use
 `human:<id>`, `process:<id>`, or `<producer>/<version>`. On document creation, a supplied
@@ -172,12 +180,19 @@ Bounded presentation channels have separate limits:
 These presentation limits do not shorten the stored document. A rendered view that reports
 `bounded: true` is incomplete and should not be used as a full-fidelity export.
 
+A truncated document receipt uses `body_preview` and `body_truncated` to identify its incomplete
+body. Replacement writes reject recognized truncated previews. Read the complete body with
+`superbee doc read <id> --body-out <file>` before editing and passing it to `doc update --body-file`.
+The `--accept-truncated-body` override deliberately accepts the shortened replacement; it is not
+the normal recovery from a preview refusal.
+
 # v0.1 compatibility and migration
 
 OKF v0.2 supersedes the v0.1 `timestamp` clock with `generated.at` and the body `# Citations` list
 with `sources`. Both v0.2 families are optional, so imported v0.1 content remains readable.
 Superbee's v0.1 write policy supplies a top-level `timestamp` when it is missing. The v0.2 policy
-does not invent `timestamp`, `sources`, or `verified`.
+does not invent `sources` or `verified`. It seeds `generated` for ordinary new documents as
+described above; a Kind that requires the legacy `timestamp` still receives that clock.
 
 The largest field collision is workflow progress. OKF v0.2 owns top-level `status` for the
 `draft | stable | deprecated` lifecycle. Superbee exposes the logical field name
@@ -221,14 +236,18 @@ use a v0.1 bundle when the audit is incomplete.
 
 # Evidence
 
+- [Stable creation-clock policy and definition opt-out](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/core/src/document-mutation.ts)
+- [Creation-clock regression tests](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/core/test/document-mutation.test.ts)
+- [Kind draft and dismiss definition writes](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/src/commands/kind-draft.ts)
+- [Stable preview replacement guards](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/src/body-replace-guards.ts)
 - [Official OKF v0.2 specification at `4bc03b7`](https://github.com/GoogleCloudPlatform/knowledge-catalog/blob/4bc03b7560caa862cdeebccbeb2bced68940c9f0/okf/SPEC.md)
-- [Stable bundle engine](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/src/bundle.ts)
-- [Stable frontmatter parser](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/src/frontmatter.ts)
-- [Stable v0.2 mutation policy](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/src/document-write-policy.ts)
-- [Stable concept identity and reserved-file rules](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/src/paths.ts)
-- [Stable link resolver](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/src/links.ts)
-- [v0.2 read compatibility tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/test/okf-v0-2-read-compat.test.ts)
-- [v0.2 write contract tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/test/okf-v0-2-write-contract.test.ts)
-- [Workflow progress compatibility tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/test/progress-status.test.ts)
-- [Stable status implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/status.ts)
-- [Stable document-read implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/doc/read.ts)
+- [Stable bundle engine](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/core/src/bundle.ts)
+- [Stable frontmatter parser](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/core/src/frontmatter.ts)
+- [Stable v0.2 mutation policy](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/core/src/document-write-policy.ts)
+- [Stable concept identity and reserved-file rules](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/core/src/paths.ts)
+- [Stable link resolver](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/core/src/links.ts)
+- [v0.2 read compatibility tests](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/core/test/okf-v0-2-read-compat.test.ts)
+- [v0.2 write contract tests](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/core/test/okf-v0-2-write-contract.test.ts)
+- [Workflow progress compatibility tests](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/core/test/progress-status.test.ts)
+- [Stable status implementation](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/src/commands/status.ts)
+- [Stable document-read implementation](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/src/commands/doc/read.ts)
