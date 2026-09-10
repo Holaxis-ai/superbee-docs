@@ -9,6 +9,7 @@ import { pathToFileURL } from "node:url";
 import puppeteer from "puppeteer";
 
 import { composeDocumentationOutputs } from "../scripts/documentation-outputs.mjs";
+import { releaseFixture } from "./release-fixture.mjs";
 
 const json = async (file) => JSON.parse(await readFile(file, "utf8"));
 const sha256 = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
@@ -22,13 +23,14 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
       json("diagrams/publications.json"),
     ]);
     const { result, artifact, projectionManifest, mkdocsManifest } = composed;
-    const selected = projectionManifest.selectedDocuments;
+    const expected = await releaseFixture();
+    const selected = expected.selected;
 
-    assert.equal(result.selectedDocuments, 54);
-    assert.equal(result.navigatedDocuments, 40);
-    assert.equal(result.supportingDocuments, 14);
-    assert.deepEqual(projectionManifest.selectedDocuments, selected);
-    assert.equal(projectionManifest.supportingDocuments.length, 14);
+    assert.equal(result.selectedDocuments, expected.selected.length);
+    assert.equal(result.navigatedDocuments, expected.navigated.length);
+    assert.equal(result.supportingDocuments, expected.supporting.length);
+    assert.deepEqual([...projectionManifest.selectedDocuments].sort(), expected.selected);
+    assert.deepEqual([...projectionManifest.supportingDocuments].sort(), expected.supporting);
     for (const id of [
       "get-started/verify-host-setup",
       "guides/choose-privacy-and-bundle-boundaries",
@@ -54,12 +56,11 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
       "releases/release-notes",
       "releases/0.1.3",
       "releases/0.1.4",
-      "releases/0.1.6",
-      "sources/superbee-release-0.1.6",
+      ...expected.archive,
     ]) {
       assert.equal(projectionManifest.selectedDocuments.includes(id), true, id);
     }
-    assert.equal(mkdocsManifest.documents.length, 54);
+    assert.deepEqual(mkdocsManifest.documents.map((document) => document.id).sort(), expected.selected);
     const startHere = projectionManifest.documents.find((document) => document.id === "learn/start-here");
     assert.ok(startHere?.freshness?.updatedAt);
     assert.match(startHere.freshness.updatedAt, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
@@ -205,15 +206,18 @@ test("the publication path rejects a release label that disagrees with its captu
     await cp("diagrams", path.join(root, "diagrams"), { recursive: true });
     await writeFile(path.join(root, "portal.config.json"), await readFile("portal.config.json"));
     const system = path.join(root, ".superbee", "documentation-systems", "main.md");
+    const { version } = await releaseFixture(root);
     const original = await readFile(system, "utf8");
-    assert.match(original, /^version_label: v0\.1\.6$/m, "the fixture must target the actual stable label");
-    const tampered = original.replace(/^version_label: v0\.1\.6$/m, "version_label: v9.9.9");
+    const label = original.match(/^version_label: (.+)$/m);
+    assert.equal(label?.[1], `v${version}`, "the fixture must target the actual stable label");
+    const wrongVersion = version === "9.9.9" ? "8.8.8" : "9.9.9";
+    const tampered = original.replace(label[0], `version_label: v${wrongVersion}`);
     assert.notEqual(tampered, original, "the disagreement probe must change its fixture");
     await writeFile(system, tampered);
 
     await assert.rejects(
       composeDocumentationOutputs({ root, mkdocsOutput: path.join(root, "mkdocs") }),
-      /versionLabel must equal v0\.1\.6 from releases\/current/,
+      (error) => error.message.includes(`versionLabel must equal v${version} from releases/current`),
     );
   } finally {
     await rm(root, { recursive: true, force: true });

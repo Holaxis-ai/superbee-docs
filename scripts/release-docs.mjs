@@ -73,7 +73,7 @@ function requireStringArray(input, field) {
   return value.map((item) => item.trim());
 }
 
-function validateInput(raw) {
+export function validateInput(raw) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("release manifest must be a JSON object");
   const unknown = Object.keys(raw).filter((field) => !knownInputFields.has(field));
   if (unknown.length) throw new Error(`unknown release manifest field(s): ${unknown.join(", ")}`);
@@ -110,7 +110,7 @@ function validateInput(raw) {
   for (const [field, expected] of Object.entries(canonicalUrls)) {
     if (input[field] !== expected) throw new Error(`manifest ${field} must equal ${expected}`);
   }
-  const authored = [input.summary, input.action, input.compatibility, input.recovery, ...input.changes, ...input.verification];
+  const authored = [input.summary, input.action, input.compatibility, input.recovery, ...input.changes, ...input.verification, ...input.supportedPlatforms];
   if (authored.some((value) => /\bTODO\b|REPLACE_WITH|<[^>]+>/i.test(value))) {
     throw new Error("release manifest still contains an authored-content placeholder");
   }
@@ -513,6 +513,7 @@ async function check(options) {
   console.log(`release_docs: valid\ncurrent_version: ${version}\nstable_documents: ${pairs.length * 2}\nvolatile_version_references: 0`);
 }
 
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
 const command = process.argv[2];
 try {
   if (!command || !new Set(["update", "archive", "check"]).has(command)) throw new Error("expected update, archive, or check");
@@ -525,4 +526,5 @@ try {
   console.error(error instanceof Error ? error.message : String(error));
   console.error("\n" + usage());
   process.exitCode = 1;
+}
 }

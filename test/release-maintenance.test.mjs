@@ -17,10 +17,10 @@ test("release freshness installs locked dependencies with registry credentials b
   const steps = workflow.split(/\n      - /u).slice(1);
   const setup = steps.findIndex((step) => step.startsWith("uses: actions/setup-node@"));
   const install = steps.findIndex((step) => /^run: npm ci\n/u.test(step));
-  const compare = steps.findIndex((step) => step.includes("node scripts/release-maintenance.mjs"));
-  const impact = steps.findIndex((step) => step.includes("node scripts/documentation-impact.mjs"));
-  assert.ok(setup >= 0 && install > setup && compare > install && impact > install,
-    "both package-backed entrypoints require an earlier locked dependency installation");
+  const prepare = steps.findIndex((step) => step.includes("node scripts/release-conductor.mjs prepare"));
+  assert.ok(setup >= 0 && install > setup && prepare > install,
+    "the package-backed conductor requires an earlier locked dependency installation");
+  assert.match(workflow, /if: always\(\)[\s\S]+include-hidden-files: true/u);
   assert.match(steps[setup], /registry-url: "https:\/\/registry\.npmjs\.org"/u);
   assert.match(steps[install], /NODE_AUTH_TOKEN: \$\{\{ secrets\.NPM_READ_TOKEN \}\}/u);
   assert.doesNotMatch(steps[install], /\n\s+if:/u, "dependency installation must also run when documentation is current");
