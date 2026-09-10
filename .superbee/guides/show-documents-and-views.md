@@ -4,7 +4,7 @@ title: Show documents and Views to a human
 description: >-
   Display authoritative Markdown and safely launch interactive Views through the
   local browser or an MCP Apps host.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: release-docs-review
 ---
 # Outcome
 
@@ -39,11 +39,19 @@ superbee doc read <id>
 superbee doc open <id>
 ```
 
-`doc open` verifies the exact document, starts Superbee's loopback-only local UI, opens the document
-route in the default browser, and stays in the foreground. Keep that terminal running while the
-page is open. Press Ctrl-C when the review is finished.
+For a local bundle, `doc open` verifies the document, starts or reuses a managed loopback-only UI
+for the selected bundle and actor, opens the document in the default browser, and returns. The
+reader remains available after the launching command exits. Inspect and stop it explicitly:
 
-The command prints a local URL before waiting. If the browser does not open automatically, copy that
+```sh
+superbee ui --status
+superbee ui --stop
+```
+
+Use the same bundle and actor as the original launch when stopping it. If you passed `--actor`
+or `--dir` to `doc open`, pass those values to `ui --stop` too.
+
+The command prints a local URL. If the browser does not open automatically, copy that
 URL into a browser on the same computer. The URL contains a live session credential, so keep it
 private. The credential expires when the local UI process stops.
 
@@ -52,6 +60,9 @@ To browse the complete selected bundle, run:
 ```sh
 superbee ui --open
 ```
+
+`ui --open` and remote `doc open --remote <url>` remain foreground commands. Keep their terminal
+running during use and press Ctrl-C when finished.
 
 The bundle UI includes rendered documents, cross-links, backlinks, activity, sharing state, and
 registered Views. Inspect the available Views from the terminal with:
@@ -135,7 +146,7 @@ launchers also recheck the admitted bytes and access before use.
 | Symptom | Recovery |
 | --- | --- |
 | `doc open` reports a missing or malformed document | Run `superbee list` and `superbee doc read <id>`. Correct the ID or document frontmatter before opening it. |
-| A browser does not open | Use the printed local URL while the command remains running. Check that a system browser opener is installed. |
+| A browser does not open | Use the printed local URL while the UI is available. Check that a system browser opener is installed. |
 | The wrong bundle appears | Run `superbee bundle locate`. Retry with the intended explicit `--dir <path>`. |
 | Superbee tools are absent in the AI host | Rerun host-scoped `superbee setup`, apply its one proposed command with approval, restart when requested, and verify again. |
 | The MCP workspace is absent | Run `superbee catalog list`, then explicitly register the intended local bundle with `superbee catalog add <label> --dir <path>`. Retry `list_workspaces`. |
@@ -150,11 +161,11 @@ approval, and revocation model.
 
 # Evidence
 
-The browser procedure is grounded in the tagged
-[`doc open` implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/ui.ts)
-and its
-[Tagged integration tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/ui.test.ts).
+The browser procedure and managed local lifecycle are defined by the
+[stable UI implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/src/commands/ui.ts),
+[managed-authority tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/test/ui-managed-authority.test.ts),
+and [UI integration tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/test/ui.test.ts).
 MCP behavior is grounded in the tagged
-[`show_document` and `show_view` server](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/mcp-app/src/server.ts)
+[`show_document` and `show_view` server](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/mcp-app/src/server.ts)
 and
-[Tagged server tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/mcp-app/test/server.test.ts).
+[Tagged server tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/mcp-app/test/server.test.ts).

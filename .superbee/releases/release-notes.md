@@ -5,6 +5,9 @@ description: >-
   What changed in each stable Superbee release, what users need to do, and where
   to find verified evidence and recovery guidance.
 superbee_updated_by: release-docs-automation
+generated:
+  by: 'process:superbee'
+  at: '2026-09-10T13:06:05.315Z'
 ---
 # Release notes
 
@@ -14,13 +17,19 @@ the exact package and source evidence used to verify it.
 
 # Current stable release
 
+## Superbee 0.1.6
+
+Superbee adds reviewable Kind proposals, OpenCode Skill discovery, and managed local document viewing, with fixes for document replacement, synchronization, and Windows filesystem recovery. Published 2026-09-10.
+
+[Read the current 0.1.6 release notes](current.md).
+
+# Previous stable releases
+
 ## Superbee 0.1.4
 
 Superbee 0.1.4 brings additive recipe evolution, a read-only publication facade, and native Windows support to the stable channel. Published 2026-08-31.
 
-[Read the current 0.1.4 release notes](current.md).
-
-# Previous stable releases
+[Read the 0.1.4 release notes](0.1.4.md).
 
 ## Superbee 0.1.3
 

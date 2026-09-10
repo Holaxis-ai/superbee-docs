@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import http from "node:http";
 import os from "node:os";
 import path from "node:path";
@@ -11,6 +11,20 @@ const version = "1.2.4";
 const integrity = "sha512-YWJjZA==";
 const tagSha = "1111111111111111111111111111111111111111";
 const sourceCommit = "2222222222222222222222222222222222222222";
+
+test("release freshness installs locked dependencies with registry credentials before importing release tooling", async () => {
+  const workflow = await readFile(new URL("../.github/workflows/release-documentation-freshness.yml", import.meta.url), "utf8");
+  const steps = workflow.split(/\n      - /u).slice(1);
+  const setup = steps.findIndex((step) => step.startsWith("uses: actions/setup-node@"));
+  const install = steps.findIndex((step) => /^run: npm ci\n/u.test(step));
+  const compare = steps.findIndex((step) => step.includes("node scripts/release-maintenance.mjs"));
+  const impact = steps.findIndex((step) => step.includes("node scripts/documentation-impact.mjs"));
+  assert.ok(setup >= 0 && install > setup && compare > install && impact > install,
+    "both package-backed entrypoints require an earlier locked dependency installation");
+  assert.match(steps[setup], /registry-url: "https:\/\/registry\.npmjs\.org"/u);
+  assert.match(steps[install], /NODE_AUTH_TOKEN: \$\{\{ secrets\.NPM_READ_TOKEN \}\}/u);
+  assert.doesNotMatch(steps[install], /\n\s+if:/u, "dependency installation must also run when documentation is current");
+});
 
 async function fixture(documentedVersion, evidenceIntegrity = integrity, evidenceSourceCommit = sourceCommit) {
   const root = await mkdtemp(path.join(os.tmpdir(), "superbee-release-status-"));

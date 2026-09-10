@@ -4,7 +4,7 @@ title: Share and synchronize a Git-backed bundle
 description: >-
   Join, refresh, share, and recover a Git-backed Superbee bundle without
   crossing its publication boundary.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: openai/codex
 ---
 # Outcome
 
@@ -13,7 +13,7 @@ local changes, and use the correct sharing path for the bundle's Git mode.
 
 This guide is for macOS, Linux, and Windows users of [the current stable release](../releases/current.md). It
 is verified against the package identity in the current release evidence, source commit
-`38e4bd1779a14c2518a7f3930ab2d9e26a76f889`, and the tagged synchronization and SessionStart tests
+`f1d6619026f0532f676c9cc22e31793a186b7cf6`, and the synchronization and SessionStart tests
 linked below. The stable package requires Node.js 20 or newer.
 
 GitHub role and policy guidance on this page is version-neutral. It links to GitHub's current
@@ -109,7 +109,7 @@ Superbee derives one of three Git channel modes from the repository and remote e
 | --- | --- | --- | --- |
 | `local-only` | A local bundle with no proven shared Git channel | No incoming channel exists | Changes stay on this machine until an authorized owner explicitly runs `superbee sync --establish`. |
 | `in-tree` | `.superbee/` or `.agentstate-lite/` is committed on the current code branch, with no dedicated board branch | `superbee sync --pull-only` fetches and reports bundle changes from the branch's configured upstream; normal `git pull` delivers them | Normal repository commit and push carry bundle and code changes together. Full `superbee sync` refuses. |
-| `branch` | The bundle is a linked worktree on the dedicated `board` branch | `superbee sync --pull-only` fast-forwards the local board | Full `superbee sync` commits pending bundle changes, reconciles incoming board history, and pushes a conflict-free result. |
+| `branch` | The bundle is a linked worktree or a standalone clone whose tracked OKF root is on the dedicated `board` branch | `superbee sync --pull-only` fast-forwards the local board | Full `superbee sync` commits pending bundle changes, reconciles incoming board history, and pushes a conflict-free result. |
 
 Channel detection can return an indeterminate result when the remote is inaccessible or when the
 available evidence cannot identify one safe channel. Resolve the reported Git or remote condition,
@@ -236,19 +236,28 @@ repository, broaden organization access, or change policy as an automatic recove
 A full dedicated-board sync can find one document changed on both sides. Superbee keeps the
 teammate's fetched version in the board checkout, saves your complete bytes to the export path in
 the receipt, and creates a body-only export when the document can be parsed and round-tripped. The
-run exits with code 5 and skips its push.
+run exits with code 5 and skips its push. A claim-only conflict retains the full export but omits
+the body-merge route from the receipt.
 
-Resolve each document deliberately:
+First inspect ownership. When a Kind declares claim coordinates and the owner differs, Superbee
+omits those coordinates from the fields suggested for reapplication. A `claim_lost` receipt names
+the recorded owner and the `origin/board` commit that arbitrated the claim when that evidence is
+available. Keep that ownership decision; do not restore your previous owner or claim fields as
+conflict recovery. If ownership is the only substantive difference, no body merge is needed.
+See [Assigned work lifecycle](assigned-work-lifecycle.md) before attempting a new claim.
 
-1. View the teammate version retained as of the last fetch:
+For remaining content differences, resolve each document deliberately:
+
+1. Export the complete incoming body retained as of the last fetch:
 
    ```sh
-   superbee sync --show-incoming <id>
+   superbee sync --show-incoming <id> --body-out <incoming-body-file>
    ```
 
 2. Compare it with the complete local export named in the conflict receipt. Create a merged body
-   file that preserves the intended content from both versions. Review any frontmatter keys named
-   as different in the receipt and include the intended field updates explicitly.
+   file that preserves the intended content from both versions. The default model-facing read can
+   be truncated; do not use that preview as the full replacement body. Review the non-claim
+   frontmatter keys named as different in the receipt and include intended field updates explicitly.
 
 3. Apply the merged body to the retained document:
 
@@ -257,8 +266,9 @@ Resolve each document deliberately:
    ```
 
    If the conflict receipt reports frontmatter differences, apply the intended `--title`, `--type`,
-   or Kind-declared field flags in the same update. Use a complete read, edit, and promote loop when
-   the intended frontmatter cannot be expressed by those patch flags.
+   or non-claim Kind-declared field flags in the same update. Use a complete read, edit, and promote
+   loop when the intended frontmatter cannot be expressed by those patch flags, while preserving
+   the retained ownership coordinates.
 
 4. Inspect the document, then share the resolved version:
 
@@ -317,6 +327,8 @@ For local document persistence before sharing, see
 
 # Evidence
 
+- [Stable ownership-aware convergence](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/src/commands/sync/converge.ts)
+- [Stable incoming byte channels](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/src/commands/sync/show-incoming.ts)
 - [Current stable release evidence](../sources/current-release.md)
 - [GitHub: creating a new repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository)
 - [GitHub: restricting repository creation in an organization](https://docs.github.com/en/organizations/managing-organization-settings/restricting-repository-creation-in-your-organization)
@@ -324,15 +336,15 @@ For local document persistence before sharing, see
 - [GitHub: adding outside collaborators to an organization repository](https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-outside-collaborators/adding-outside-collaborators-to-repositories-in-your-organization)
 - [GitHub: about rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)
 - [GitHub: about protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)
-- [Tagged sync command implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/sync/orchestrate.ts)
-- [Tagged channel classification](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/board-git/src/channel.ts)
-- [Tagged SessionStart implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/session-start.ts)
-- [Tagged opportunistic refresh implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/board-git/src/autopull.ts)
-- [Join, provisioning, and full-sync tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/sync.test.ts)
-- [Conflict recovery acceptance tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/sync-conflict.test.ts)
-- [In-tree mode tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/sync-intree.test.ts)
-- [SessionStart awareness and failure tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/session-start.test.ts)
-- [Opportunistic refresh tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/autopull.test.ts)
+- [Tagged sync command implementation](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/src/commands/sync/orchestrate.ts)
+- [Tagged channel classification](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/board-git/src/channel.ts)
+- [Tagged SessionStart implementation](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/src/commands/session-start.ts)
+- [Tagged opportunistic refresh implementation](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/board-git/src/autopull.ts)
+- [Join, provisioning, and full-sync tests](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/test/sync.test.ts)
+- [Conflict recovery acceptance tests](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/test/sync-conflict.test.ts)
+- [In-tree mode tests](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/test/sync-intree.test.ts)
+- [SessionStart awareness and failure tests](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/test/session-start.test.ts)
+- [Opportunistic refresh tests](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/test/autopull.test.ts)
 
 # Journey check
 
@@ -342,3 +354,7 @@ publish nothing. A later attributed change from the first clone should appear in
 awareness after a pull. A deliberate same-document conflict should preserve the teammate version,
 export the local version, and clear only after the documented inspect, merge, update, and sync
 sequence.
+
+Repeat with competing claims on a Kind that declares ownership coordinates. Confirm that the lost
+claim is reported with upstream provenance when available, the complete local export survives,
+and recovery does not suggest restoring the losing ownership fields.

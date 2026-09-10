@@ -76,11 +76,24 @@ test("release update is idempotent, advances stable identities, and preserves im
     assert.deepEqual(firstPublication.supporting_documents,
       ["releases/1.2.3", "sources/superbee-release-1.2.3"]);
     assert.match(await readFile(path.join(root, ".superbee", "releases", "release-notes.md"), "utf8"), /# Current stable release[\s\S]+Superbee 1\.2\.3/);
+    const firstIds = ["releases/1.2.3", "releases/current", "releases/release-notes",
+      "sources/superbee-release-1.2.3", "sources/current-release"];
+    const firstBytes = await Promise.all(firstIds.map((id) => readFile(path.join(root, ".superbee", `${id}.md`))));
     const repeat = JSON.parse((await invoke(root, "update", ["--manifest", firstManifest])).stdout);
     assert.deepEqual(repeat.changed, []);
     assert.equal(repeat.documentationSystemChanged, false);
     assert.equal(repeat.selectionChanged, false);
+    assert.deepEqual(await Promise.all(firstIds.map((id) => readFile(path.join(root, ".superbee", `${id}.md`)))), firstBytes,
+      "an idempotent retry preserves the original document bytes, including generation clocks");
     await invoke(root, "check");
+    const immutableSourcePath = path.join(root, ".superbee", "sources", "superbee-release-1.2.3.md");
+    const immutableSourceBytes = await readFile(immutableSourcePath, "utf8");
+    const changedProducer = immutableSourceBytes.replace(/(\n  by:)[^\n]+/u, "$1 process:unrelated-producer");
+    assert.notEqual(changedProducer, immutableSourceBytes, "the release source records its producer");
+    await writeFile(immutableSourcePath, changedProducer);
+    await assert.rejects(invoke(root, "update", ["--manifest", firstManifest]), /refusing to replace immutable release document/,
+      "producer identity remains part of immutable release identity even when clock differences are ignored");
+    await writeFile(immutableSourcePath, immutableSourceBytes);
     await writeFile(firstManifest, JSON.stringify({ ...input("1.2.3"), summary: "A changed account of an already published release." }));
     await assert.rejects(invoke(root, "update", ["--manifest", firstManifest]), /refusing to replace immutable release document/);
 
@@ -118,8 +131,19 @@ test("release update is idempotent, advances stable identities, and preserves im
     assert.match(archive, /# Current stable release[\s\S]+Superbee 1\.2\.4/);
     assert.match(archive, /# Previous stable releases[\s\S]+Superbee 1\.2\.3/);
     assert.deepEqual(await readFile(path.join(root, ".superbee", "releases", "1.2.3.md")), oldRelease);
-    assert.deepEqual(await readFile(path.join(root, ".superbee", "releases", "current.md")), await readFile(path.join(root, ".superbee", "releases", "1.2.4.md")));
-    assert.deepEqual(await readFile(path.join(root, ".superbee", "sources", "current-release.md")), await readFile(path.join(root, ".superbee", "sources", "superbee-release-1.2.4.md")));
+    assert.equal(await readFile(immutableSourcePath, "utf8"), immutableSourceBytes);
+    for (const [current, immutable] of [["releases/current", "releases/1.2.4"], ["sources/current-release", "sources/superbee-release-1.2.4"]]) {
+      const currentDoc = JSON.parse((await sb(root, ["doc", "read", current])).stdout);
+      const immutableDoc = JSON.parse((await sb(root, ["doc", "read", immutable])).stdout);
+      for (const field of ["type", "title", "description", "version", "channel", "published_at", "resource"]) {
+        assert.deepEqual(currentDoc[field], immutableDoc[field], `${current} preserves ${field}`);
+      }
+      assert.equal(currentDoc.generated.by, immutableDoc.generated.by);
+      assert.ok(Number.isFinite(Date.parse(currentDoc.generated.at)));
+      assert.ok(Number.isFinite(Date.parse(immutableDoc.generated.at)));
+      assert.equal((await sb(root, ["doc", "read", current, "--body-out", "-"])).stdout,
+        (await sb(root, ["doc", "read", immutable, "--body-out", "-"])).stdout);
+    }
     await invoke(root, "check");
 
     await writeFile(path.join(root, ".superbee", "releases", "current.md"), oldRelease);

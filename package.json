@@ -47,7 +47,7 @@
     "@superbee/portal-docs": "0.2.2",
     "@superbee/portal-webmcp": "0.2.2",
     "@superbee/recipe-studio": "0.1.1",
-    "superbee": "0.1.4"
+    "superbee": "0.1.6"
   },
   "devDependencies": {
     "wrangler": "4.127.1"

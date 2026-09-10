@@ -26,7 +26,7 @@ test("consumer uses only public published package surfaces and nested versioned 
     "@superbee/portal-docs": "0.2.2",
     "@superbee/portal-webmcp": "0.2.2",
     "@superbee/recipe-studio": "0.1.1",
-    superbee: "0.1.4",
+    superbee: "0.1.6",
   });
   assert.equal(consumer.scripts["tools:bootstrap"], undefined);
   assert.equal(
@@ -193,9 +193,11 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.match(handoffPage, /Ask an agent to prepare the handoff/);
   assert.match(releaseNotesPage, /Current stable release/);
   assert.match(releaseNotesPage, /Previous stable releases/);
+  assert.match(releaseNotesPage, /Superbee 0\.1\.6/);
   assert.match(releaseNotesPage, /Superbee 0\.1\.4/);
   assert.match(releaseNotesPage, /Superbee 0\.1\.3/);
   assert.match(currentReleasePage, /What changed/);
+  assert.match(currentReleasePage, /Superbee 0\.1\.6/);
   assert.match(currentReleasePage, /What you need to do/);
   assert.match(currentReleasePage, /Compatibility/);
   assert.match(currentReleasePage, /Recovery/);

@@ -4,7 +4,7 @@ title: Documentation coverage and delivery
 description: >-
   Ordered page coverage, representative slice, and readiness gates for the
   public documentation.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: release-docs-review
 ---
 # Purpose
 
@@ -44,6 +44,15 @@ workflow before broad generation.
 | P0 | Document mutation lifecycle | Explanation | Contributor and integrator | current | Pinned Superbee source; verified read/update/history sequence; registered diagram |
 
 # Audited gap completion slice
+
+The stable release refresh reviewed the public npm, GitHub release, and tag evidence linked from
+[the current release](../releases/current.md). Release-event impact queries cover installation,
+host verification, modeling, presentation, bundle selection, synchronization, and compatibility.
+The refresh updates OpenCode Skill requirements, local managed document-reader procedures,
+reviewable Kind proposals, and the generated CLI inventory. Existing install, bundle-selection,
+and migration procedures retain their stated scope; the architecture source pin is independently
+maintained. Installed CLI identity and help checks establish the package behavior used here.
+Live host restart and native Windows journeys remain bounded by their linked release evidence.
 
 The whole-code and documentation audit added this coupled reader and maintainer set. Each page is
 current only with its stable-release or pinned-source evidence, operational trigger, and repository

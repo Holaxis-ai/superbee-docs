@@ -4,7 +4,7 @@ title: CLI commands
 description: >-
   Generated current command inventory plus stable invocation and output
   conventions.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: cli-reference-generator
 ---
 # Scope
 
@@ -33,7 +33,7 @@ The text between the markers is owned by `npm run cli-reference:build`. Do not e
 
 <!-- BEGIN GENERATED CLI INVENTORY -->
 
-Generated from the current stable package's executable help. 34 command entries are present.
+Generated from the current stable package's executable help. 36 command entries are present.
 
 | Group | Command signature |
 | --- | --- |
@@ -58,14 +58,16 @@ Generated from the current stable package's executable help. 34 command entries 
 | Kinds | `new "<Kind>" <id> --<field> <value> [...] [--body <markdown> \| --body-file <path>] [--link "<type>=<target-id>" ...] [--no-prefix] [--actor <n>] [--dir <path>] [--remote <url>]` |
 | Kinds | `kinds [--dir <path>] [--remote <url>]` |
 | Kinds | `kind field "<Kind>" (add <name> [--required] [--values <a,b,c>] \| remove <name>) [--dir <path>] [--remote <url>]` |
+| Kinds | `kind draft "<Type>" [--apply <plan-token>] [--actor <name>] [--dir <path>] [--remote <url>]` |
+| Kinds | `kind dismiss "<Type>" [--reason <text>] [--actor <name>] [--dir <path>] [--remote <url>]` |
 | Kinds | `recipes [--dir <path>] [--remote <url>]` |
 | Kinds | `recipe add <name-or-path> [--dir <path>] [--remote <url>]` |
 | Kinds | `recipe evolve <name-or-path> [--apply <plan-token>] [--actor <name>] [--dir <path>] [--remote <url>]` |
 | Remote | `serve [--dir <path>] [--host <h>] [--port <p>]` |
-| Remote | `ui [--dir <path> \| --remote <url>] [--port <p>] [--open]` |
+| Remote | `ui [--dir <path> \| --remote <url>] [--port <p>] [--open] \| ui --status [--dir <path>] [--limit <n>] \| ui --stop [--dir <path>] [--actor <name>]` |
 | Remote | `mcp [install\|status\|uninstall \| --dir <path>]` |
 | Remote | `view list [--limit <n>] [--dir <path> \| --remote <url>]` |
-| Remote | `sync [--establish [--yes] \| --pull-only \| --show-incoming <id> [--out <file>]] [--dir <path>] [--limit <n>]` |
+| Remote | `sync [--establish [--yes] \| --pull-only \| --show-incoming <id> [--out <file> \| --body-out <file>]] [--dir <path>] [--limit <n>]` |
 | Session | `version [--check] [--tag latest\|next] [--json]` |
 | Session | `session-start [--dir <path>] [--no-update-check]` |
 | Session | `hook install\|status\|uninstall [--scope project\|user]` |

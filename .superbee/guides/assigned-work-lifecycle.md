@@ -4,7 +4,7 @@ title: Assigned work lifecycle
 description: >-
   Safely claim shared Task work, attach durable evidence, and close it with
   guarded updates.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: release-docs-review
 ---
 # Goal
 
@@ -37,10 +37,12 @@ bounded Task. If the Task is already assigned, coordinate with that assignee or 
 
 # 2. Claim the exact version you inspected
 
-Read the current version token, then use it as a compare-and-swap precondition:
+Capture a version token before inspecting eligibility, then read the complete Task. Confirm that
+its assignee is empty and its workflow state permits a claim before running the guarded update:
 
 ```sh
 TASK_VERSION="$(superbee doc read tasks/example --field head_version)"
+superbee doc read tasks/example --out -
 superbee doc update tasks/example \
   --assignee openai/codex/root \
   --progress_status in_progress \
@@ -48,9 +50,15 @@ superbee doc update tasks/example \
   --actor openai/codex/root
 ```
 
-A successful receipt means this worker owns the claimed version. A `STALE_HEAD` error exits with
-code 5 and means the Task changed after inspection. Read it again and decide whether it is still
-eligible. Never retry an old claim token automatically.
+A successful receipt records the local claim. For a shared board, it remains provisional until
+the authorized synchronizing worker confirms convergence. A `STALE_HEAD` error exits with code 5:
+stop this claim and select other work or coordinate with the owner. Do not obtain a fresh token
+and replay the assignment. If synchronization reports `claim_lost`, respect the recorded owner
+and arbiter; do not reapply your assignee or workflow fields.
+
+The stable CLI uses `--expected-version` for this operation. Core field preconditions are a
+separate API capability; they are not additional documented CLI flags. Bundle conventions declare
+the claim coordinates used by synchronization to recognize ownership conflicts.
 
 # 3. Work from the durable brief
 
@@ -80,8 +88,8 @@ Export the complete body, add a concise delivery section in an editor, and updat
 that was current when editing began:
 
 ```sh
-superbee doc read tasks/example --body-out task-body.md
 TASK_VERSION="$(superbee doc read tasks/example --field head_version)"
+superbee doc read tasks/example --body-out task-body.md
 superbee doc update tasks/example \
   --body-file task-body.md \
   --expected-version "$TASK_VERSION" \
@@ -90,6 +98,9 @@ superbee doc update tasks/example \
 
 Include the result, evidence locations, verification performed, and any remaining limitation. The
 body update must preserve existing outbound links unless their removal is deliberate and reviewed.
+Edit the exported complete body before running the update. A `body_preview` from ordinary read
+output can be truncated and is not an editing source. If replacement is refused as truncated,
+export the full body again and merge the intended changes; do not bypass the guard to save a preview.
 
 # 5. Close only after acceptance is satisfied
 
@@ -97,6 +108,7 @@ Read the latest Task, confirm every criterion, and close that version:
 
 ```sh
 TASK_VERSION="$(superbee doc read tasks/example --field head_version)"
+superbee doc read tasks/example --out -
 superbee doc update tasks/example \
   --progress_status done \
   --expected-version "$TASK_VERSION" \
@@ -111,7 +123,8 @@ usually evidence of delivery in progress, not proof that a live-site criterion i
 
 | Symptom | Response |
 | --- | --- |
-| `STALE_HEAD` while claiming | Re-read the Task. If another worker claimed it, stop or coordinate. |
+| `STALE_HEAD` while claiming | Stop this claim. Select other work or coordinate; never refresh the token just to replay an assignment. |
+| `claim_lost` during synchronization | Respect the owner recorded by the arbiter. Do not reapply claim fields. |
 | `STALE_HEAD` while recording evidence | Re-read, merge both valid updates, and write against the fresh version. |
 | Unknown `assignee` or `progress_status` field | Inspect `superbee kinds`; use only fields declared by this bundle's Task convention. |
 | Work needs a different scope | Update the Task or create and relate a follow-up before continuing. |
@@ -120,7 +133,9 @@ usually evidence of delivery in progress, not proof that a live-site criterion i
 # Evidence and next actions
 
 The guarded mutation behavior is defined by the tagged
-[`doc update` implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/doc.ts)
-and core versioned writes. Query behavior is covered by
+[`doc update` implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/src/commands/doc/update.ts),
+[safe claim policy](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/CLAUDE.md),
+and [claim conflict handling](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/src/commands/sync/claim-conflict.ts).
+Query behavior is covered by
 [Query, links, and backlinks](query-links-and-backlinks.md). Produced files are covered by
 [Artifacts and byte channels](artifacts-and-byte-channels.md).
