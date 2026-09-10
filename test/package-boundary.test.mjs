@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 import { RENDERER_IDENTITY } from "@superbee/docs-tooling";
+import { releaseFixture } from "./release-fixture.mjs";
 
 const json = async (file) => JSON.parse(await readFile(file, "utf8"));
 const sha256 = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
@@ -17,6 +18,7 @@ test("consumer uses only public published package surfaces and nested versioned 
     readFile("scripts/documentation-outputs.mjs", "utf8"),
   ]);
   assert.equal(consumer.workspaces, undefined);
+  const release = await releaseFixture();
   // The production hostname is owned by this account after the zone migration.
   assert.equal(wrangler.account_id, "454536c8fb003eaa679b986bd11dfe49");
   assert.equal(wrangler.name, "superbee-docs");
@@ -30,7 +32,7 @@ test("consumer uses only public published package surfaces and nested versioned 
     "@superbee/portal-docs": "0.2.2",
     "@superbee/portal-webmcp": "0.2.2",
     "@superbee/recipe-studio": "0.1.1",
-    superbee: "0.1.6",
+    superbee: release.version,
   });
   assert.equal(consumer.scripts["tools:bootstrap"], undefined);
   assert.equal(
@@ -197,11 +199,14 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.match(handoffPage, /Ask an agent to prepare the handoff/);
   assert.match(releaseNotesPage, /Current stable release/);
   assert.match(releaseNotesPage, /Previous stable releases/);
-  assert.match(releaseNotesPage, /Superbee 0\.1\.6/);
+  const release = await releaseFixture();
+  for (const version of release.versions) {
+    assert.ok(releaseNotesPage.includes(`Superbee ${version}`), `archive includes ${version}`);
+  }
   assert.match(releaseNotesPage, /Superbee 0\.1\.4/);
   assert.match(releaseNotesPage, /Superbee 0\.1\.3/);
   assert.match(currentReleasePage, /What changed/);
-  assert.match(currentReleasePage, /Superbee 0\.1\.6/);
+  assert.ok(currentReleasePage.includes(`Superbee ${release.version}`));
   assert.match(currentReleasePage, /What you need to do/);
   assert.match(currentReleasePage, /Compatibility/);
   assert.match(currentReleasePage, /Recovery/);
