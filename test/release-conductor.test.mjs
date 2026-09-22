@@ -183,6 +183,28 @@ test("source diff uses the released tag rather than a newer checkout and rejects
   await assert.rejects(sourceDiff(f.root, f.state, f.root, status, realRun), /public Superbee/);
 });
 
+test("source diff compares a release cut from a branch the next release never merged", async (t) => {
+  const f = await fixture(t);
+  const git = (...args) => realRun("git", ["-c", "user.name=Test", "-c", "user.email=test@example.invalid", ...args], f.root);
+  await git("remote", "add", "origin", "https://github.com/Holaxis-ai/superbee.git");
+  const fork = (await git("rev-parse", "HEAD")).trim();
+  await git("checkout", "-qb", "release-line");
+  await writeFile(path.join(f.root, "release-only.txt"), "prepared on the release branch");
+  await git("add", ".");
+  await git("commit", "-qm", "prepare the documented release");
+  const base = (await git("rev-parse", "HEAD")).trim();
+  await git("checkout", "-q", fork);
+  await writeFile(path.join(f.root, "next.txt"), "next release");
+  await git("add", ".");
+  await git("commit", "-qm", "next release");
+  const head = (await git("rev-parse", "HEAD")).trim();
+  await git("tag", facts.sourceTag);
+  await assert.rejects(git("merge-base", "--is-ancestor", base, head));
+  const status = { sourceDiff: { base, head }, verifiedFacts: facts };
+  assert.deepEqual(await sourceDiff(f.root, f.state, f.root, status, realRun), ["next.txt", "release-only.txt"]);
+  await assert.rejects(sourceDiff(f.root, f.state, f.root, { ...status, sourceDiff: { base: "d".repeat(40), head } }, realRun), /cat-file/);
+});
+
 test("conductor drives the real release writer and CLI generator, preserving prior history on replay", async (t) => {
   const f = await fixture(t);
   await cp(".superbee", path.join(f.root, ".superbee"), { recursive: true });
