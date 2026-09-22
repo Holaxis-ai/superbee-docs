@@ -162,8 +162,11 @@ export async function sourceDiff(root, state, supplied, status, run) {
   if (![base, head].every((sha) => /^[a-f0-9]{40}$/.test(sha))) fail("source diff requires exact commits");
   const tag = (await run("git", ["rev-parse", `${status.verifiedFacts.sourceTag}^{commit}`], source)).trim();
   if (tag !== head) fail("source checkout tag differs from verified release");
-  await run("git", ["merge-base", "--is-ancestor", base, head], source);
-  return (await run("git", ["diff", "--name-only", "--no-renames", "-z", `${base}..${head}`, "--"], source)).split("\0").filter(Boolean).sort();
+  // Compare the two released trees directly. A stable release may be cut from a release branch whose
+  // own commits never reach the next release's line, so ancestry is not required; any base-only
+  // change that the new release lacks is a real difference and stays in the impact set.
+  await run("git", ["cat-file", "-e", `${base}^{commit}`], source);
+  return (await run("git", ["diff", "--name-only", "--no-renames", "-z", base, head, "--"], source)).split("\0").filter(Boolean).sort();
 }
 
 export async function conduct(mode, options, dependencies = {}) {
