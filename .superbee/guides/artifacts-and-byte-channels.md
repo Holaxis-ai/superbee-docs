@@ -4,7 +4,10 @@ title: Artifacts and byte channels
 description: >-
   Route canonical documents and opaque bytes correctly, preserve output purity,
   and recover versioned object operations.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: anthropic/claude
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:26:45.513Z'
 ---
 # Goal
 
@@ -39,7 +42,7 @@ record with `entry`, `entry_version`, and active workflow state.
 superbee artifact create report.html \
   --title "Quarterly evidence report" \
   --description "Reviewed claims and linked evidence." \
-  --actor openai/codex/root
+  --actor openai/codex
 ```
 
 To replace a prior deliverable while preserving lineage:
@@ -48,7 +51,7 @@ To replace a prior deliverable while preserving lineage:
 superbee artifact create revised-report.html \
   --title "Quarterly evidence report, revised" \
   --supersedes artifacts/quarterly-evidence-report \
-  --actor openai/codex/root
+  --actor openai/codex
 ```
 
 Inspect the returned document ID and blob key. If the record write fails after the blob succeeds,

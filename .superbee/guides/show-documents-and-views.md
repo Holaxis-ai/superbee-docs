@@ -4,7 +4,10 @@ title: Show documents and Views to a human
 description: >-
   Display authoritative Markdown and safely launch interactive Views through the
   local browser or an MCP Apps host.
-superbee_updated_by: release-docs-review
+superbee_updated_by: anthropic/claude
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:26:47.742Z'
 ---
 # Outcome
 
@@ -49,7 +52,8 @@ superbee ui --stop
 ```
 
 Use the same bundle and actor as the original launch when stopping it. If you passed `--actor`
-or `--dir` to `doc open`, pass those values to `ui --stop` too.
+or `--dir` to `doc open`, pass those values to `ui --stop` too. `ui --status` rows include the
+recorded process ID.
 
 The command prints a local URL. If the browser does not open automatically, copy that
 URL into a browser on the same computer. The URL contains a live session credential, so keep it
@@ -147,6 +151,7 @@ launchers also recheck the admitted bytes and access before use.
 | --- | --- |
 | `doc open` reports a missing or malformed document | Run `superbee list` and `superbee doc read <id>`. Correct the ID or document frontmatter before opening it. |
 | A browser does not open | Use the printed local URL while the UI is available. Check that a system browser opener is installed. |
+| `doc open` or `ui --stop` reports that the managed reader cannot be proven live | The recorded listener does not answer, for example because the process is suspended. Use the process ID from `ui --status` to inspect it. Then run `superbee ui --stop --abandon` with the same `--dir` and `--actor`. It releases only that record, never signals the process, and refuses a reader that answers as live. A listener that proves it belongs to something else is replaced automatically. |
 | The wrong bundle appears | Run `superbee bundle locate`. Retry with the intended explicit `--dir <path>`. |
 | Superbee tools are absent in the AI host | Rerun host-scoped `superbee setup`, apply its one proposed command with approval, restart when requested, and verify again. |
 | The MCP workspace is absent | Run `superbee catalog list`, then explicitly register the intended local bundle with `superbee catalog add <label> --dir <path>`. Retry `list_workspaces`. |
@@ -162,8 +167,9 @@ approval, and revocation model.
 # Evidence
 
 The browser procedure and managed local lifecycle are defined by the
-[stable UI implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/src/commands/ui.ts),
-[managed-authority tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/test/ui-managed-authority.test.ts),
+[stable UI implementation](https://github.com/Holaxis-ai/superbee/blob/v0.2.1/packages/cli/src/commands/ui.ts),
+[managed-authority implementation](https://github.com/Holaxis-ai/superbee/blob/v0.2.1/packages/cli/src/ui/managed-authority.ts),
+[managed-authority tests](https://github.com/Holaxis-ai/superbee/blob/v0.2.1/packages/cli/test/ui-managed-authority.test.ts),
 and [UI integration tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/cli/test/ui.test.ts).
 MCP behavior is grounded in the tagged
 [`show_document` and `show_view` server](https://github.com/Holaxis-ai/superbee/blob/v0.1.6/packages/mcp-app/src/server.ts)

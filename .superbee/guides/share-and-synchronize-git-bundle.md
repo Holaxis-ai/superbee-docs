@@ -4,7 +4,10 @@ title: Share and synchronize a Git-backed bundle
 description: >-
   Join, refresh, share, and recover a Git-backed Superbee bundle without
   crossing its publication boundary.
-superbee_updated_by: openai/codex
+superbee_updated_by: anthropic/claude
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:33:28.927Z'
 ---
 # Outcome
 
@@ -13,7 +16,7 @@ local changes, and use the correct sharing path for the bundle's Git mode.
 
 This guide is for macOS, Linux, and Windows users of [the current stable release](../releases/current.md). It
 is verified against the package identity in the current release evidence, source commit
-`f1d6619026f0532f676c9cc22e31793a186b7cf6`, and the synchronization and SessionStart tests
+`ff8f9c8681c94204cac23e8ab7bb2981bb256a12`, and the synchronization and SessionStart tests
 linked below. The stable package requires Node.js 20 or newer.
 
 GitHub role and policy guidance on this page is version-neutral. It links to GitHub's current
@@ -100,6 +103,25 @@ superbee status
 Stop if `home` names an unexpected workspace. A remote failure with no fetched board evidence
 leaves the shared-board state unknown. Retry `sync --pull-only` when the remote is reachable. Keep
 the existing directory and avoid establishment while the state is unknown.
+
+## Join from a fresh clone with a committed binding
+
+Some projects commit a `.superbee.json` binding such as `{ "bundle": ".superbee" }`. A fresh clone
+then has the binding but not the bundle directory, so `superbee home` reports that the binding did
+not resolve to a bundle. When `origin/board` exists, run plain sync from the project root:
+
+```sh
+superbee sync
+```
+
+Sync provisions the existing shared board at the bound `.superbee` path, and later syncs use that
+checkout. The receipt reports `provisioned: <path>`. Do not run `superbee init` to repair the
+missing directory, even if `home` suggests recreating the bound bundle; that creates a separate
+bundle that does not share the board's history. This provisioning applies only when the binding
+names the conventional `.superbee` directory directly beside the binding file. Bindings to other
+paths or through symlinks keep their previous routing, and an existing legacy `.agentstate-lite`
+checkout stays where it is. For a missing `.agentstate-lite` binding target, update the binding as
+the error's recovery text describes before syncing.
 
 # Match the command to the channel
 
@@ -217,6 +239,9 @@ failure into a precise claim about repository existence, identity, role, or poli
   policy, branch rules, and server-side hooks. The message alone does not prove that a GitHub
   ruleset is the cause.
 
+Establishment and board-update failures also carry structured sharing details for scripts and
+agents. See [CLI errors and exit codes](../reference/cli-errors-and-exit-codes.md) for the fields.
+
 Use a repository-specific handoff and retry only after a condition changes:
 
 ```text
@@ -327,24 +352,27 @@ For local document persistence before sharing, see
 
 # Evidence
 
-- [Stable ownership-aware convergence](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/src/commands/sync/converge.ts)
-- [Stable incoming byte channels](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/src/commands/sync/show-incoming.ts)
+- [Stable ownership-aware convergence](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/cli/src/commands/sync/converge.ts)
+- [Stable incoming byte channels](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/cli/src/commands/sync/show-incoming.ts)
 - [Current stable release evidence](../sources/current-release.md)
+- [Sharing outcome contract](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/cli/src/sync-outcomes.ts)
+- [Permission-aware establishment tests](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/cli/test/sync-establish.test.ts)
+- [Fresh-clone bound board routing tests](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/cli/test/bound-owner-routing.test.ts)
 - [GitHub: creating a new repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/creating-a-new-repository)
 - [GitHub: restricting repository creation in an organization](https://docs.github.com/en/organizations/managing-organization-settings/restricting-repository-creation-in-your-organization)
 - [GitHub: repository roles for an organization](https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-repository-roles/repository-roles-for-an-organization)
 - [GitHub: adding outside collaborators to an organization repository](https://docs.github.com/en/organizations/managing-user-access-to-your-organizations-repositories/managing-outside-collaborators/adding-outside-collaborators-to-repositories-in-your-organization)
 - [GitHub: about rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets/about-rulesets)
 - [GitHub: about protected branches](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches/about-protected-branches)
-- [Tagged sync command implementation](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/src/commands/sync/orchestrate.ts)
-- [Tagged channel classification](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/board-git/src/channel.ts)
-- [Tagged SessionStart implementation](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/src/commands/session-start.ts)
-- [Tagged opportunistic refresh implementation](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/board-git/src/autopull.ts)
-- [Join, provisioning, and full-sync tests](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/test/sync.test.ts)
-- [Conflict recovery acceptance tests](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/test/sync-conflict.test.ts)
-- [In-tree mode tests](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/test/sync-intree.test.ts)
-- [SessionStart awareness and failure tests](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/test/session-start.test.ts)
-- [Opportunistic refresh tests](https://github.com/Holaxis-ai/superbee/blob/f1d6619026f0532f676c9cc22e31793a186b7cf6/packages/cli/test/autopull.test.ts)
+- [Tagged sync command implementation](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/cli/src/commands/sync/orchestrate.ts)
+- [Tagged channel classification](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/board-git/src/channel.ts)
+- [Tagged SessionStart implementation](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/cli/src/commands/session-start.ts)
+- [Tagged opportunistic refresh implementation](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/board-git/src/autopull.ts)
+- [Join, provisioning, and full-sync tests](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/cli/test/sync.test.ts)
+- [Conflict recovery acceptance tests](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/cli/test/sync-conflict.test.ts)
+- [In-tree mode tests](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/cli/test/sync-intree.test.ts)
+- [SessionStart awareness and failure tests](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/cli/test/session-start.test.ts)
+- [Opportunistic refresh tests](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/cli/test/autopull.test.ts)
 
 # Journey check
 

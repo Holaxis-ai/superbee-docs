@@ -4,7 +4,10 @@ title: Create your first durable workspace
 description: >-
   Create a local bundle, preserve one decision, verify it, and open it for a
   human.
-superbee_updated_by: release-docs-review
+superbee_updated_by: anthropic/claude
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:26:45.195Z'
 ---
 # Outcome
 
@@ -57,8 +60,11 @@ superbee doc write decisions/keep-local \
   --body "Do not publish or synchronize this bundle without an explicit decision."
 ```
 
-Superbee attributes writes when the agent supplies its actor identity. Repeating an identical write
-returns a no-op and creates no duplicate.
+Superbee attributes writes when the agent supplies its actor identity with `--actor` or
+`SUPERBEE_ACTOR`. This OKF v0.2 workspace accepts `human:<id>`, `process:<id>`, or
+`<producer>/<version>`, such as `anthropic/claude`. Other spellings are refused before anything is
+written, and the error suggests a corrected one. Repeating an identical write returns a no-op and
+creates no duplicate.
 
 # 3. Verify the saved result
 

@@ -2,7 +2,10 @@
 type: Reference
 title: CLI errors and exit codes
 description: 'Stable CLI failure codes, exit statuses, output channels, and retry guidance.'
-superbee_updated_by: openai/codex/root
+superbee_updated_by: anthropic/claude
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:33:40.489Z'
 ---
 # Scope
 
@@ -30,6 +33,29 @@ error:
 ```
 
 Treat `code` and documented details as the machine interface. Message wording is for humans.
+
+Some failures carry details that let an agent correct itself without parsing the message:
+
+| Failure | Code | Details |
+| --- | --- | --- |
+| A non-conforming actor on an OKF v0.2 bundle | `USAGE` | `details.actor` holds the rejected value; `help` gives a corrected `--actor` or `SUPERBEE_ACTOR` value. |
+| A refused `doc field` source or set action | `USAGE` | `details.reason` (for example `ambiguous-source`, `source-not-found`, or `unsupported-set-field`), `details.field`, and, when relevant, the selector, a recommended selector, candidate sources, or supported fields. |
+| A failed sharing preflight, board creation, or board update | Unchanged sync error code | `details.sharing` reports the operation, repository and board state, required authority, and whether local work was preserved or committed. |
+
+The `details.sharing` fields are:
+
+| Field | Values |
+| --- | --- |
+| `operation` | `establish-preflight`, `create-board`, or `update-board` |
+| `remote_repository`, `remote_board` | `unknown`, `exists-confirmed`, or `absent-confirmed` |
+| `repository_creation` | `external-if-absent` or `irrelevant` |
+| `required_authority` | When known: `repository-read-or-visibility`, `repository-write-and-board-create-policy`, or `repository-write-and-board-update-policy` |
+| `local_work` | `preserved` or `committed` |
+| `possible_causes` | When present, a best-effort list such as `url`, `network`, `authentication`, `visibility`, `repository-read`, `repository-write`, or `branch-policy`, marked with `cause_certainty: best-effort` |
+
+Read these fields instead of parsing message text. See
+[Share and synchronize a Git-backed bundle](../guides/share-and-synchronize-git-bundle.md) for the
+reader procedure.
 
 # Exit statuses
 
@@ -92,3 +118,7 @@ The taxonomy and exit mapping are defined in tagged
 [`errors.ts`](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/errors.ts)
 and channel routing in
 [`output.ts`](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/output.ts).
+Actor and field-action classification is in
+[`errors.ts` at v0.2.1](https://github.com/Holaxis-ai/superbee/blob/v0.2.1/packages/cli/src/errors.ts),
+and sharing details are defined in
+[`sync-outcomes.ts` at v0.2.1](https://github.com/Holaxis-ai/superbee/blob/v0.2.1/packages/cli/src/sync-outcomes.ts).

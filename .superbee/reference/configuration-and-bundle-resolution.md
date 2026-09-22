@@ -1,10 +1,13 @@
 ---
 type: Reference
 title: Configuration and bundle resolution
-superbee_updated_by: openai/codex
+superbee_updated_by: anthropic/claude
 description: >-
   Exact local, project-bound, remote, catalog, and MCP bundle selection
   precedence and recovery.
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:26:49.029Z'
 ---
 # Scope
 
@@ -196,7 +199,7 @@ these files. A project bundle must remain outside every guarded private-state ro
 | --- | --- | --- |
 | `--remote and --dir are mutually exclusive` | The invocation named a remote and a local target. | Choose one target and rerun the command. |
 | `no OKF bundle found` | No binding or discoverable indexed bundle exists above the current directory. | Confirm the intended ownership boundary. Create a confirmed greenfield bundle or join the existing shared bundle. |
-| `no local bundle directory` | An explicit or bound path is unavailable. | Restore or correct the intended path. Use `--dir` with a verified target while repairing a committed binding. |
+| `no local bundle directory` | An explicit or bound path is unavailable. | Restore or correct the intended path. Use `--dir` with a verified target while repairing a committed binding. In a fresh clone whose binding names the conventional `.superbee` directory and whose `origin/board` exists, run `superbee sync` to provision it. |
 | `conflicting project bindings` | Both binding filenames exist at one directory level. | Keep the one reviewed project decision and move the other outside the project. |
 | `malformed project binding` | The selected binding is unreadable, invalid JSON, or has an invalid `bundle` value. | Fix or remove the named file, then rerun `bundle locate --json`. |
 | `project binding ... cannot use remote URL` | A binding contains URL intent. | Put a local path in the binding or pass the URL explicitly with `--remote`. |

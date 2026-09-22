@@ -4,7 +4,10 @@ title: Assigned work lifecycle
 description: >-
   Safely claim shared Task work, attach durable evidence, and close it with
   guarded updates.
-superbee_updated_by: release-docs-review
+superbee_updated_by: anthropic/claude
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:26:45.830Z'
 ---
 # Goal
 
@@ -13,7 +16,9 @@ Task without overwriting another worker's update. This how-to is for agents and 
 shared Superbee bundle that declares the `Task` Kind.
 
 The commands below are verified against [the current stable release](../sources/current-release.md).
-Use a stable actor name for the whole assignment, such as `openai/codex/root`.
+Use a stable actor name for the whole assignment, such as `openai/codex`. In an OKF v0.2 bundle
+the actor must be `human:<id>`, `process:<id>`, or `<producer>/<version>`; use `process:<role>` when
+separate sessions of one agent need distinct identities.
 
 # Prerequisites
 
@@ -44,10 +49,10 @@ its assignee is empty and its workflow state permits a claim before running the 
 TASK_VERSION="$(superbee doc read tasks/example --field head_version)"
 superbee doc read tasks/example --out -
 superbee doc update tasks/example \
-  --assignee openai/codex/root \
+  --assignee openai/codex \
   --progress_status in_progress \
   --expected-version "$TASK_VERSION" \
-  --actor openai/codex/root
+  --actor openai/codex
 ```
 
 A successful receipt records the local claim. For a shared board, it remains provisional until
@@ -75,7 +80,7 @@ the Task so another worker can resume without reconstructing the conversation:
 ```sh
 superbee link add tasks/example sources/example-evidence \
   --text evidence \
-  --actor openai/codex/root
+  --actor openai/codex
 ```
 
 For produced HTML, use `superbee artifact create`; for a source, design, decision, or context note,
@@ -93,7 +98,7 @@ superbee doc read tasks/example --body-out task-body.md
 superbee doc update tasks/example \
   --body-file task-body.md \
   --expected-version "$TASK_VERSION" \
-  --actor openai/codex/root
+  --actor openai/codex
 ```
 
 Include the result, evidence locations, verification performed, and any remaining limitation. The
@@ -112,7 +117,7 @@ superbee doc read tasks/example --out -
 superbee doc update tasks/example \
   --progress_status done \
   --expected-version "$TASK_VERSION" \
-  --actor openai/codex/root
+  --actor openai/codex
 superbee doc read tasks/example
 ```
 

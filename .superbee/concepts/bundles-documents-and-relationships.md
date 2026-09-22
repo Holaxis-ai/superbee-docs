@@ -4,7 +4,10 @@ title: 'Bundles, documents, and relationships'
 description: >-
   How Superbee's portable bundle, document, convention, recipe, link, version,
   and presentation layers fit together.
-superbee_updated_by: openai/codex
+superbee_updated_by: anthropic/claude
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:26:44.867Z'
 ---
 # Question answered
 
@@ -109,6 +112,11 @@ callers that supply `--expected-version` fail on a stale head and preserve newer
 Writes may carry an actor identity, and history-keeping backends expose the attributed chain through
 `doc history`. A plain local filesystem reports its current content version; Git can preserve the
 broader file history.
+
+In an OKF v0.2 bundle, the actor must use an OKF spelling such as `human:<id>` or `openai/codex`.
+Independent confirmation is separate from editing: `superbee doc verify` records a verification
+event and the derived trust tier without changing the content. See
+[OKF compatibility](../reference/okf-compatibility.md).
 
 # Views and artifacts serve humans
 

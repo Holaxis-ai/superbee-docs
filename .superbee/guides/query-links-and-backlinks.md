@@ -4,7 +4,10 @@ title: 'Query, links, and backlinks'
 description: >-
   Find documents, traverse derived relationships, and regenerate portable
   navigation safely.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: anthropic/claude
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:26:47.101Z'
 ---
 # Goal
 
@@ -50,7 +53,7 @@ explicitly when body content matters.
 ```sh
 superbee link add claims/retention findings/interview-12 \
   --text evidence \
-  --actor openai/codex/root
+  --actor openai/codex
 ```
 
 The link is stored in the source document's Markdown and is idempotent for the same source, target,
@@ -104,7 +107,7 @@ superbee index generate --check
 Generate when the check reports ordinary drift:
 
 ```sh
-superbee index generate --actor openai/codex/root
+superbee index generate --actor openai/codex
 ```
 
 Superbee updates only files carrying its exact generated ownership marker. An unmarked or malformed
@@ -112,7 +115,7 @@ target blocks the whole preflight. Use `--force` only after reviewing a curated 
 to let the generator replace it:
 
 ```sh
-superbee index generate --force --actor openai/codex/root
+superbee index generate --force --actor openai/codex
 ```
 
 The command is local-only and does not sync. It plans all targets first, writes deepest indexes

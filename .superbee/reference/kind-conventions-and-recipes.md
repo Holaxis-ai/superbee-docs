@@ -1,10 +1,13 @@
 ---
 type: Reference
 title: Kind conventions and recipe formats
-superbee_updated_by: openai/codex
+superbee_updated_by: anthropic/claude
 description: >-
   Exact Convention schemas, recipe formats, validation modes, installation, and
   safe evolution.
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:30:24.230Z'
 ---
 # Scope
 
@@ -82,6 +85,13 @@ use the logical `progress_status` input when the Kind declares the physical coor
 `progress_status` declaration creates an ordinary field and disables this compatibility alias. See
 [OKF compatibility](okf-compatibility.md) for the lifecycle-field boundary.
 
+In an OKF v0.2 bundle, top-level `status` is the OKF lifecycle field and accepts only `draft`,
+`stable`, or `deprecated`. A Convention that declares other values for `status` produces an
+`OKF_WORKFLOW_STATUS_COLLISION` warning in `superbee kinds` and `superbee status`, and creating an
+instance with one of those workflow values is refused. Move the declaration and its instances to
+`superbee_progress_status`, including `required`, `optional`, `descriptions`, `values`,
+`value_descriptions`, and `terminal`, then keep using the logical `--progress_status` input.
+
 The Markdown body is guidance for people and agents. The frontmatter fields below drive product
 behavior.
 
@@ -114,7 +124,9 @@ under `fields.values`.
 Core filters `type`, `dir`, `remote`, `json`, `help`, `body`, and `body-file` from declared fields.
 The `new` command also consumes `link` and `no-prefix` as controls, so recipe authors should avoid
 those names for fields intended for `superbee new`. `actor` is a supported control-backed field:
-`--actor <name>` supplies mutation attribution and can satisfy a Kind that requires `actor`.
+`--actor <name>` supplies mutation attribution and can satisfy a Kind that requires `actor`. In an
+OKF v0.2 bundle the value must be an OKF actor such as `human:<id>`, `process:<id>`, or
+`openai/codex`.
 
 # Validation modes
 
@@ -126,7 +138,8 @@ level-one sections. The command determines whether findings warn or block.
 | Registry load | Skips malformed Convention documents and reports warnings. A malformed declaration does not invalidate the rest of the registry. |
 | `superbee new "<Kind>"` | Strict and create-only. Missing fields, unknown fields, invalid enum values, missing headings, or an existing ID reject the write. |
 | `superbee doc write` | Kind findings are warnings by default. `--strict` rejects before writing. An overwrite that would make an already-conforming governed document nonconforming is rejected. |
-| `superbee doc update` | A patch to a Kind-declared field is strict. A standard-field-only patch warns by default, and `--strict` makes those findings blocking. |
+| `superbee doc update` | A patch to a Kind-declared field is strict. A standard-field-only patch warns by default, and `--strict` makes those findings blocking. Each field flag accepts one value, and a patch that would replace a list is refused. |
+| `superbee doc field` | Explicit actions for one field: `set` for a supported single-value field, `add`, `remove`, and version-guarded `replace-all` for `tags` or `sources`, and `edit` for one source. Declared Kind fields remain strict. |
 | `superbee status` | Read-only whole-bundle lint. It reports registry warnings, instance findings, conformance debt, freshness, and declared relationship findings. |
 | `superbee recipe add` | Parses the recipe before opening the mutation loop. A `definitions-only` recipe rejects malformed or undeclared content before any write. |
 
@@ -270,10 +283,10 @@ superbee doc read experiments/onboarding-copy
 superbee status --limit 0
 ```
 
-The declared `path` produces `experiments/onboarding-copy`. Pass `--no-prefix` when the requested
-ID is already intentional. Repeating a non-enum field flag creates an array; enum fields accept one
-value. A malformed `--link` value is rejected before the document write. A later link failure is
-reported separately because the create may already have succeeded.
+The declared `path` produces `experiments/onboarding-copy`. Pass `--no-prefix` when the requested ID
+is already intentional. Repeating a non-enum field flag on `new` creates an array; enum fields
+accept one value. A malformed `--link` value is rejected before the document write. A later link
+failure is reported separately because the create may already have succeeded.
 
 # Recovery
 
@@ -298,6 +311,8 @@ The pinned sources and tests governing this reference are:
 - [Filesystem recipe admission](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/cli/src/recipe-source-filesystem.ts)
 - [Recipe application](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/cli/src/recipes.ts)
 - [Shared document mutation validation](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/core/src/document-mutation.ts)
+- [Workflow status collision diagnostic at v0.2.1](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/core/src/kinds.ts)
+- [Field action command at v0.2.1](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/cli/src/commands/doc/field.ts)
 - [Kind behavior tests](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/core/test/kinds.test.ts)
 - [Recipe behavior tests](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/cli/test/recipes.test.ts)
 
