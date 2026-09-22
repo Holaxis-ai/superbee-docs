@@ -4,7 +4,10 @@ title: View contract and access
 description: >-
   Exact registered and transient View schemas, access levels, admission,
   approval, saving, and recovery.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: anthropic/claude
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:26:49.993Z'
 ---
 # Scope and supported version
 
@@ -68,6 +71,11 @@ while launch preparation is running.
 View code never receives direct write authority. A field proposal contains exactly `kind`, `docId`,
 `field`, scalar `value`, and `expectedVersion`. Strings are limited to 4 KiB, field names to 128
 bytes, and the enclosing action message to 8 KiB.
+
+The confirmed write shares core field-assignment validation with `superbee doc field set`. The
+committing actor comes from the local UI's `--actor` value, then `SUPERBEE_ACTOR`. In an OKF v0.2
+bundle that actor must be an OKF actor spelling, such as `human:<id>`; see [OKF
+compatibility](okf-compatibility.md).
 
 # Discovery and launch surfaces
 

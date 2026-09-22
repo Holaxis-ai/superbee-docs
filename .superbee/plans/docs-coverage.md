@@ -4,7 +4,10 @@ title: Documentation coverage and delivery
 description: >-
   Ordered page coverage, representative slice, and readiness gates for the
   public documentation.
-superbee_updated_by: release-docs-review
+superbee_updated_by: anthropic/claude
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:26:48.064Z'
 ---
 # Purpose
 
@@ -48,11 +51,14 @@ workflow before broad generation.
 The stable release refresh reviewed the public npm, GitHub release, and tag evidence linked from
 [the current release](../releases/current.md). Release-event impact queries cover installation,
 host verification, modeling, presentation, bundle selection, synchronization, and compatibility.
-The refresh updates OpenCode Skill requirements, local managed document-reader procedures,
-reviewable Kind proposals, and the generated CLI inventory. Existing install, bundle-selection,
-and migration procedures retain their stated scope; the architecture source pin is independently
-maintained. Installed CLI identity and help checks establish the package behavior used here.
-Live host restart and native Windows journeys remain bounded by their linked release evidence.
+The refresh documents OKF v0.2 actor spelling, standard-field and timestamp validation, document
+verification and trust tiers, explicit frontmatter field actions, permission-aware sharing details,
+fresh-clone board provisioning, and managed reader abandonment. Guides whose examples used an actor
+spelling that the current release refuses were corrected. Pages whose verified behavior did not
+change retain their stated scope; the architecture source pin is independently maintained.
+Installed CLI identity, help comparison, and disposable journey probes establish the package
+behavior used here. Live host restart, remote GitHub sharing failures, and native Windows journeys
+remain bounded by their linked release evidence.
 
 The whole-code and documentation audit added this coupled reader and maintainer set. Each page is
 current only with its stable-release or pinned-source evidence, operational trigger, and repository

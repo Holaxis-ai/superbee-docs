@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: release-docs-automation
 generated:
   by: 'process:superbee'
-  at: '2026-09-10T13:06:05.315Z'
+  at: '2026-09-22T22:27:26.112Z'
 ---
 # Release notes
 
@@ -17,13 +17,19 @@ the exact package and source evidence used to verify it.
 
 # Current stable release
 
+## Superbee 0.2.1
+
+Superbee 0.2.1 enforces OKF v0.2 authoring rules on v0.2 bundles, adds document verification with trust tiers and explicit frontmatter field actions, and clarifies first-time sharing and managed reader recovery. Published 2026-09-14.
+
+[Read the current 0.2.1 release notes](current.md).
+
+# Previous stable releases
+
 ## Superbee 0.1.6
 
 Superbee adds reviewable Kind proposals, OpenCode Skill discovery, and managed local document viewing, with fixes for document replacement, synchronization, and Windows filesystem recovery. Published 2026-09-10.
 
-[Read the current 0.1.6 release notes](current.md).
-
-# Previous stable releases
+[Read the 0.1.6 release notes](0.1.6.md).
 
 ## Superbee 0.1.4
 

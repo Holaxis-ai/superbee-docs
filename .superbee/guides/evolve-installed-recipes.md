@@ -4,7 +4,10 @@ title: Evolve installed recipes
 description: >-
   Plan and apply an additive installed-recipe upgrade with state-bound safety
   and explicit recovery.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: anthropic/claude
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:26:46.466Z'
 ---
 # Goal
 
@@ -61,7 +64,7 @@ Run the apply command returned by the plan. Its shape is:
 ```sh
 superbee recipe evolve context-notes \
   --apply PLAN_TOKEN \
-  --actor openai/codex/root
+  --actor openai/codex
 ```
 
 Apply recomputes the complete preflight, binds the token to the current recipe source and target

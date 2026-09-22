@@ -2,7 +2,10 @@
 type: Guide
 title: Create a bundle View
 description: Author one safe responsive View for the local UI and MCP Apps hosts.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: anthropic/claude
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:26:46.146Z'
 ---
 # Goal
 
@@ -83,10 +86,11 @@ superbee ui --open
 ```
 
 Confirm the View appears in the expected access group, loads with no external network dependency,
-and remains usable at narrow and wide sizes. For a proposal View, start the UI with an actor:
+and remains usable at narrow and wide sizes. For a proposal View, start the UI with the human
+actor who will confirm changes. In an OKF v0.2 bundle a confirmed write needs an OKF actor spelling:
 
 ```sh
-superbee ui --open --actor openai/codex/root
+superbee ui --open --actor human:<your-id>
 ```
 
 Exercise one proposal and confirm the trusted shell shows before and after values, rejects a stale

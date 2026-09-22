@@ -130,7 +130,7 @@ async function main() {
       "doc", "update", documentId,
       "--body-file", bodyFile,
       "--expected-version", versionToken,
-      "--actor", "cli-reference-generator",
+      "--actor", "process:cli-reference-generator",
       "--dir", resolve(root, ".superbee"),
     ]);
   } finally {

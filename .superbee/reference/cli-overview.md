@@ -4,7 +4,10 @@ title: CLI overview
 description: >-
   Compact command ownership and output contract for the current stable Superbee
   release.
-superbee_updated_by: openai/codex
+superbee_updated_by: anthropic/claude
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:26:48.706Z'
 ---
 # Scope
 
@@ -39,7 +42,7 @@ Catalog labels are resolved explicitly and never act as ambient project selectio
 | Area | Commands | Use |
 | --- | --- | --- |
 | Bundle | `bundle locate`, `catalog`, `init`, `index generate`, `status` | Resolve, create, inspect, catalog, and validate a bundle. |
-| Documents and links | `doc write`, `doc update`, `doc read`, `doc open`, `doc history`, `doc delete`, `list`, `link` | Create, patch, inspect, display, query, relate, and remove concepts. |
+| Documents and links | `doc write`, `doc update`, `doc field`, `doc verify`, `doc read`, `doc open`, `doc history`, `doc delete`, `list`, `link` | Create, patch, edit one frontmatter field, record verification, inspect, display, query, relate, and remove concepts. |
 | Artifacts | `artifact create`, `promote`, `pull`, `blobs`, `delete` | Move byte-preserving outputs across the model boundary and store produced HTML. |
 | Kinds and recipes | `new`, `kinds`, `kind field`, `recipes`, `recipe add` | Inspect or evolve bundle-owned structure and create validated instances. |
 | Remote and human presentation | `serve`, `ui`, `mcp`, `view list`, `sync` | Serve or present a bundle, integrate MCP Apps, inspect Views, and exchange a Git-backed board. |
@@ -89,6 +92,19 @@ superbee new "<Kind>" <id> --help
 Use generic `doc write` for one-off domain concepts. Use `new` when the bundle already declares a
 Kind whose fields, headings, and relationships should be enforced.
 
+## Change one field or record verification
+
+```sh
+superbee doc field add <id> tags <tag>
+superbee doc field set <id> title "<title>"
+superbee doc verify <id> --actor human:<id>
+```
+
+`doc field` changes one frontmatter field without touching the rest of the document. `tags` and
+`sources` use `add`, `remove`, `edit`, and version-guarded `replace-all`; `doc update` no longer
+changes tags. `doc verify` appends an OKF v0.2 verification event and reports the derived trust
+tier. See [OKF compatibility](okf-compatibility.md).
+
 ## Present work to a human
 
 ```sh
@@ -107,8 +123,10 @@ superbee sync
 ```
 
 `init` is local. `sync --establish` is the separate explicit publication decision that creates a
-shared board through the repository remote. After establishment, ordinary `sync` commits bundle
-changes, receives teammates' changes, and pushes without touching code files.
+shared board through the repository remote. The remote repository must already exist; Superbee does
+not create it. If `origin/board` already exists, plain `sync` joins it. After establishment,
+ordinary `sync` commits bundle changes, receives teammates' changes, and pushes without touching
+code files.
 
 # Output contract
 
@@ -117,7 +135,9 @@ changes, receives teammates' changes, and pushes without touching code files.
 - Lists report counts and default to compact rows.
 - Large document bodies are truncated in model-facing output and name the byte-channel alternative.
 - Mutations are idempotent where repeating the same intent is safe.
-- `--actor` or `SUPERBEE_ACTOR` supplies advisory attribution; a per-command flag wins.
+- `--actor` or `SUPERBEE_ACTOR` supplies advisory attribution; a per-command flag wins. In an OKF
+  v0.2 bundle the actor must be `human:<id>`, `process:<id>`, or `<producer>/<version>`, and a
+  non-conforming actor is refused before any write.
 
 Raw bytes are never mixed with the structured receipt. Commands that reserve stdout for byte or
 protocol transport route diagnostics separately.

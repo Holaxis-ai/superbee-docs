@@ -4,7 +4,10 @@ title: CLI commands
 description: >-
   Generated current command inventory plus stable invocation and output
   conventions.
-superbee_updated_by: cli-reference-generator
+superbee_updated_by: 'process:cli-reference-generator'
+generated:
+  by: 'process:cli-reference-generator'
+  at: '2026-09-22T22:27:28.386Z'
 ---
 # Scope
 
@@ -33,7 +36,7 @@ The text between the markers is owned by `npm run cli-reference:build`. Do not e
 
 <!-- BEGIN GENERATED CLI INVENTORY -->
 
-Generated from the current stable package's executable help. 36 command entries are present.
+Generated from the current stable package's executable help. 38 command entries are present.
 
 | Group | Command signature |
 | --- | --- |
@@ -42,8 +45,10 @@ Generated from the current stable package's executable help. 36 command entries 
 | Bundle | `init [--dir <path>] [--okf-version <v>] [--recipe <name-or-path>] [--create-only]` |
 | Bundle | `index generate [--dir <path>] [--check] [--force] [--actor <name>]` |
 | Bundle | `status [--limit <n>] [--dir <path>] [--remote <url>]` |
-| Documents & links | `doc write <id> --type <t> [--title <t>] [--body <s> \| --body-file <p>] [--actor <n>] [--dir <path>] [--remote <url>]` |
-| Documents & links | `doc update <id> [--<field> <value> ...] [--title <t>] [--tag <t>] [--type <t>] [--body <s> \| --body-file <p>] [--expected-version <v>] [--actor <n>] [--dir <path>] [--remote <url>]` |
+| Documents & links | `doc write <id> --type <t> [--title <t>] [--stale-after <iso>] [--body <s> \| --body-file <p>] [--actor <n>] [--dir <path>] [--remote <url>]` |
+| Documents & links | `doc update <id> [--<field> <value> ...] [--title <t>] [--type <t>] [--stale-after <iso>] [--body <s> \| --body-file <p>] [--expected-version <v>] [--actor <n>] [--dir <path>] [--remote <url>]` |
+| Documents & links | `doc field <set\|add\|remove\|edit\|replace-all> <id> <field> [value] [--from-file <path>] [--id <source-id> \| --resource <resource>] [--expected-version <v>] [--actor <n>] [--strict] [--dir <path>] [--remote <url>]` |
+| Documents & links | `doc verify <id> --actor <n> [--at <iso-8601>] [--expected-version <v>] [--dir <path>] [--remote <url>]` |
 | Documents & links | `doc read <id> [--out (<path> \| -) \| --body-out (<path> \| -) \| --rendered-out (<path> \| -) \| --field <name>] [--dir <path>] [--remote <url>]` |
 | Documents & links | `doc open <id> [--dir <path> \| --remote <url>] [--port <n>] [--actor <name>]` |
 | Documents & links | `doc history <id> [--limit <n>] [--dir <path>] [--remote <url>]` |
@@ -55,7 +60,7 @@ Generated from the current stable package's executable help. 36 command entries 
 | Artifacts | `pull --doc-key <key> --out (<path> \| -) [--dir <path>] [--remote <url>]` |
 | Artifacts | `blobs [--prefix <p>] [--limit <n>] [--dir <path>] [--remote <url>]` |
 | Artifacts | `delete --doc-key <key> [--expected-version <v>] [--dir <path>] [--remote <url>]` |
-| Kinds | `new "<Kind>" <id> --<field> <value> [...] [--body <markdown> \| --body-file <path>] [--link "<type>=<target-id>" ...] [--no-prefix] [--actor <n>] [--dir <path>] [--remote <url>]` |
+| Kinds | `new "<Kind>" <id> --<field> <value> [...] [--stale-after <iso>] [--body <markdown> \| --body-file <path>] [--link "<type>=<target-id>" ...] [--no-prefix] [--actor <n>] [--dir <path>] [--remote <url>]` |
 | Kinds | `kinds [--dir <path>] [--remote <url>]` |
 | Kinds | `kind field "<Kind>" (add <name> [--required] [--values <a,b,c>] \| remove <name>) [--dir <path>] [--remote <url>]` |
 | Kinds | `kind draft "<Type>" [--apply <plan-token>] [--actor <name>] [--dir <path>] [--remote <url>]` |
@@ -64,7 +69,7 @@ Generated from the current stable package's executable help. 36 command entries 
 | Kinds | `recipe add <name-or-path> [--dir <path>] [--remote <url>]` |
 | Kinds | `recipe evolve <name-or-path> [--apply <plan-token>] [--actor <name>] [--dir <path>] [--remote <url>]` |
 | Remote | `serve [--dir <path>] [--host <h>] [--port <p>]` |
-| Remote | `ui [--dir <path> \| --remote <url>] [--port <p>] [--open] \| ui --status [--dir <path>] [--limit <n>] \| ui --stop [--dir <path>] [--actor <name>]` |
+| Remote | `ui [--dir <path> \| --remote <url>] [--port <p>] [--open] \| ui --status [--dir <path>] [--limit <n>] \| ui --stop [--dir <path>] [--actor <name>] [--abandon]` |
 | Remote | `mcp [install\|status\|uninstall \| --dir <path>]` |
 | Remote | `view list [--limit <n>] [--dir <path> \| --remote <url>]` |
 | Remote | `sync [--establish [--yes] \| --pull-only \| --show-incoming <id> [--out <file> \| --body-out <file>]] [--dir <path>] [--limit <n>]` |

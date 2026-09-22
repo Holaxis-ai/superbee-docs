@@ -4,7 +4,10 @@ title: Migrate or upgrade safely
 description: >-
   Upgrade Superbee or move from AgentState while preserving the intended
   workspace and verifying each compatibility step.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: anthropic/claude
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:26:46.784Z'
 ---
 # Outcome
 
@@ -130,6 +133,54 @@ current CLI keeps the v0.1 bundle usable and does not perform the multi-document
 Keep the existing `okf_version` while that finding is present. Editing `index.md` alone would leave
 the bundle internally inconsistent.
 
+# Check an OKF v0.2 bundle after upgrading
+
+The current stable release validates authored writes to OKF v0.2 bundles more strictly than earlier
+releases. Existing documents stay readable and unchanged values are preserved, but scripts and
+agent instructions may need small changes. v0.1 bundles are not affected.
+
+1. Check the actor that writes will use:
+
+   ```sh
+   superbee home
+   ```
+
+   On a v0.2 bundle, `home` shows the resolved actor and flags one that writes would refuse. Use
+   `human:<id>`, `process:<id>`, or `<producer>/<version>`, such as `openai/codex`. Update any
+   `--actor` value or `SUPERBEE_ACTOR` setting that uses another spelling, including
+   role-qualified paths such as `openai/codex/root`. The refusal message suggests a corrected
+   spelling.
+
+2. Replace tag edits made through `doc update`. `doc update --tag` is refused. Use explicit field
+   actions instead:
+
+   ```sh
+   superbee doc field add <id> tags <tag>
+   superbee doc field remove <id> tags <tag>
+   ```
+
+   `doc update` also accepts only one value per field flag and refuses a patch that would replace a
+   list. Use `doc field replace-all` with `--expected-version` for a complete `tags` or `sources`
+   list, or a complete pull, edit, and promote loop for another list field.
+
+3. Review new health findings:
+
+   ```sh
+   superbee status
+   ```
+
+   `invalid_stale_after` and `invalid_timestamps` name stored values without an explicit UTC
+   offset. Superbee leaves them unchanged. Choose the intended instant and repair each one, for
+   example with `superbee doc update <id> --stale-after 2026-10-01T00:00:00Z`.
+
+4. Look for an `OKF_WORKFLOW_STATUS_COLLISION` warning. It means a Kind declares workflow values in
+   the lifecycle `status` field, and new instances with those values are refused. Move that
+   workflow state to `superbee_progress_status` as described in
+   [Kind conventions and recipes](../reference/kind-conventions-and-recipes.md), then continue to
+   use `--progress_status`.
+
+See [OKF compatibility](../reference/okf-compatibility.md) for the complete v0.2 authoring rules.
+
 # Check legacy Views
 
 `superbee status` reports `legacy_naming` when a bundle still uses the retired `Page` type or
@@ -189,6 +240,8 @@ superbee doc open <document-id>
 - An `okf_upgrade` finding leaves the v0.1 bundle supported. Continue using the logical
   `progress_status` interface for workflows governed by a compatible Kind until a reviewed bundle
   migration is available.
+- A `USAGE` refusal that names an actor, a tag flag, or a timestamp wrote nothing. Apply the
+  correction in its message and help, then retry.
 - A `legacy_naming` finding affects View registration. Ordinary documents remain readable while
   the View records are repaired.
 
@@ -208,6 +261,8 @@ superbee doc open <document-id>
 - [OKF upgrade status tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/status.test.ts)
 - [Legacy View compatibility rules](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/core/src/page.ts)
 - [Source-only legacy View migration](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/scripts/migrate-legacy-view-names.mjs)
+- [OKF v0.2 actor guidance at v0.2.1](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/cli/src/actor-guidance.ts)
+- [OKF v0.2 standard-field validation at v0.2.1](https://github.com/Holaxis-ai/superbee/blob/ff8f9c8681c94204cac23e8ab7bb2981bb256a12/packages/core/src/okf-standard-fields.ts)
 - [Stable package contents and platform metadata](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/package.json)
 
 # Journey check

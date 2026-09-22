@@ -325,21 +325,43 @@ async function normalizeDocument(options, scratch, id, bytes) {
   return normalized;
 }
 
-function updateKindField(options, id, field, values) {
+// Replace one top-level block-list field in a document's frontmatter, leaving every other byte intact.
+export function replaceFrontmatterList(text, field, values) {
+  const match = /^---\r?\n([\s\S]*?)\r?\n---(\r?\n|$)/.exec(text);
+  if (!match) throw new Error(`document has no frontmatter to update: ${field}`);
+  const lines = match[1].split(/\r?\n/);
+  const replacement = [`${field}:`, ...values.map((value) => `  - ${yaml(value)}`)];
+  const start = lines.findIndex((line) => line === `${field}:` || line.startsWith(`${field}: `));
+  if (start === -1) lines.push(...replacement);
+  else {
+    let end = start + 1;
+    while (end < lines.length && /^(?:\s+|-\s)/.test(lines[end])) end++;
+    lines.splice(start, end - start, ...replacement);
+  }
+  return `---\n${lines.join("\n")}\n---${match[2]}${text.slice(match[0].length)}`;
+}
+
+async function updateKindField(options, scratch, id, field, values) {
   const current = documentProjection(options, id).metadata[field];
   if (JSON.stringify(current) === JSON.stringify(values)) return { changed: false };
   const version = documentVersion(options, id);
-  const list = Array.isArray(values) ? values : [values];
-  const args = ["doc", "update", id];
-  for (const value of list) args.push(`--${field}`, value);
-  args.push("--expected-version", version, "--actor", "release-docs-automation", "--strict", "--json");
+  if (Array.isArray(values)) {
+    // Superbee 0.2 refuses repeated field flags and implicit list replacement in doc update. Replace
+    // the complete document through the versioned promote loop the CLI prescribes for other lists.
+    const source = resolve(scratch, `${basename(id)}-${field}.md`);
+    await writeFile(source, replaceFrontmatterList(documentBytes(options, id).toString("utf8"), field, values));
+    runSuperbee(options, ["promote", source, "--doc-key", `${id}.md`, "--expected-version", version, "--strict", "--json"]);
+    return { changed: true };
+  }
+  const args = ["doc", "update", id, `--${field}`, values,
+    "--expected-version", version, "--actor", "process:release-docs-automation", "--strict", "--json"];
   const receipt = JSON.parse(runSuperbee(options, args).stdout.toString("utf8"));
   return { changed: receipt.changed === true };
 }
 
-async function updateDocumentationSystemVersionLabel(options, version) {
+async function updateDocumentationSystemVersionLabel(options, scratch, version) {
   const versionLabel = stableReleaseVersionLabel(version);
-  const result = updateKindField(options, "documentation-systems/main", "version_label", versionLabel);
+  const result = await updateKindField(options, scratch, "documentation-systems/main", "version_label", versionLabel);
   return { ...result, versionLabel };
 }
 
@@ -378,13 +400,13 @@ async function immutableReleaseSupport(options) {
   return [...releases, ...sources].sort();
 }
 
-async function updateDocumentationSelection(options) {
+async function updateDocumentationSelection(options, scratch) {
   const publication = documentProjection(options, "documentation-publications/current").metadata;
   const supportingDocuments = publication.supporting_documents ?? [];
   if (!Array.isArray(supportingDocuments)) throw new Error("documentation publication supporting_documents must be a list");
   const expected = [...new Set([...supportingDocuments, ...await immutableReleaseSupport(options)])].sort();
   if (JSON.stringify(supportingDocuments) === JSON.stringify(expected)) return { changed: false, supportingDocuments: expected };
-  const result = updateKindField(options, "documentation-publications/current", "supporting_documents", expected);
+  const result = await updateKindField(options, scratch, "documentation-publications/current", "supporting_documents", expected);
   return { ...result, supportingDocuments: expected };
 }
 
@@ -397,8 +419,8 @@ async function updateReleaseArchive(options, scratch) {
 async function reconcilePresentation(options, scratch) {
   const currentVersion = runSuperbee(options, ["doc", "read", "releases/current", "--field", "version"]).stdout.toString("utf8").trim();
   const archive = await updateReleaseArchive(options, scratch);
-  const system = await updateDocumentationSystemVersionLabel(options, currentVersion);
-  const selection = await updateDocumentationSelection(options);
+  const system = await updateDocumentationSystemVersionLabel(options, scratch, currentVersion);
+  const selection = await updateDocumentationSelection(options, scratch);
   return { currentVersion, archive, system, selection };
 }
 

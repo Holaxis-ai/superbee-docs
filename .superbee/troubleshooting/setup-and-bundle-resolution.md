@@ -4,7 +4,10 @@ title: Troubleshoot setup and bundle resolution
 description: >-
   Diagnose installation, host setup, workspace selection, and local bundle
   health from their owning command receipts.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: anthropic/claude
+generated:
+  by: anthropic/claude
+  at: '2026-09-22T22:26:50.312Z'
 ---
 # Outcome
 
@@ -150,6 +153,11 @@ superbee <command> --remote <url>
 
 Use `--dir <path>` to bypass a faulty binding temporarily while repairing the committed project
 configuration.
+
+In a fresh clone, a committed binding to `.superbee` can name a directory that does not exist yet.
+If the project shares a dedicated `board` branch, run `superbee sync` from the project root to
+provision it at the bound path instead of initializing a new bundle. See
+[Share and synchronize a Git-backed bundle](../guides/share-and-synchronize-git-bundle.md).
 
 # Setup is ready, yet the AI host has no Superbee tools
 
