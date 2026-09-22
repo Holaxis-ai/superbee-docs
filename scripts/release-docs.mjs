@@ -332,7 +332,7 @@ function updateKindField(options, id, field, values) {
   const list = Array.isArray(values) ? values : [values];
   const args = ["doc", "update", id];
   for (const value of list) args.push(`--${field}`, value);
-  args.push("--expected-version", version, "--actor", "release-docs-automation", "--strict", "--json");
+  args.push("--expected-version", version, "--actor", "process:release-docs-automation", "--strict", "--json");
   const receipt = JSON.parse(runSuperbee(options, args).stdout.toString("utf8"));
   return { changed: receipt.changed === true };
 }
