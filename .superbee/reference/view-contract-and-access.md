@@ -4,10 +4,10 @@ title: View contract and access
 description: >-
   Exact registered and transient View schemas, access levels, admission,
   approval, saving, and recovery.
-superbee_updated_by: anthropic/claude
+superbee_updated_by: 'process:release-docs-review'
 generated:
-  by: anthropic/claude
-  at: '2026-09-22T22:26:49.993Z'
+  by: 'process:release-docs-review'
+  at: '2026-09-30T18:45:59.324Z'
 ---
 # Scope and supported version
 
@@ -155,3 +155,29 @@ approve its current access when a launch becomes stale.
 - [Bounded read bridge](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/view-runtime/src/bridge.ts)
 - [MCP inputs and tool registration](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/mcp-app/src/server.ts)
 - [Current release evidence](../sources/current-release.md)
+
+# Prepared release changes
+
+The next local UI can confirm `document.set-field`, `document.set-body`, and `document.update`.
+The MCP App remains scalar-only; do not assume an action because another host supports it.
+Negotiate `hello.actionProtocol: "v1"`, `grant: "propose"`, and the advertised `actions` list.
+`host.kind` and presentation mode are not write grants.
+
+A body proposal replaces complete Markdown, up to 64 KiB UTF-8, and must preserve existing
+cross-links. An atomic update combines one to eight distinct declared scalar fields and a body
+under one expected-version mutation. Trusted human confirmation, Kind validation, current
+registration/authorization checks, and compare-and-swap still govern the result. A lost reply
+can mean `writeState: unknown`; stop new proposals until the host resolves that outcome.
+
+`hello.host` advertises capabilities and limits. The graph request returns OKF edition, documents,
+relationships, and counts, optionally bodies, with bounds of 1,000 documents, 10,000 relationships,
+and 2 MiB reply. Per-body limits still apply. OSS does not implement `graph.model`; model and
+definitions are omitted. Discover query capabilities and `frame.resize` rather than assuming them.
+The pinned [View protocol](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/docs/VIEW-PROTOCOL.md)
+owns message shapes, action and graph limits, host descriptors, and errors.
+
+The scalar-only statements in the stable sections above describe the current published release.
+They must be reconciled against the verified next package before the draft can merge.
+
+[Pending release evidence](../sources/next-release.md). These changes await stable publication;
+[current stable evidence](../sources/current-release.md) continues to describe the previous release.

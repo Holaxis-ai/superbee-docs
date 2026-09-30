@@ -4,10 +4,10 @@ title: CLI commands
 description: >-
   Generated current command inventory plus stable invocation and output
   conventions.
-superbee_updated_by: 'process:cli-reference-generator'
+superbee_updated_by: 'process:release-docs-review'
 generated:
-  by: 'process:cli-reference-generator'
-  at: '2026-09-22T22:27:28.386Z'
+  by: 'process:release-docs-review'
+  at: '2026-09-30T18:45:57.011Z'
 ---
 # Scope
 
@@ -111,3 +111,16 @@ The command graph comes from tagged
 [`command-spec.ts`](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/command-spec.ts)
 and the packed executable help. Descriptions and defaults can change between pre-1.0 releases.
 Always pair automated usage with the release evidence and the exact command's help.
+
+# Prepared release changes
+
+The generated inventory above belongs to the current published package. The prepared source adds
+hosted login/session commands, setup hosted, checkout/adopt/release, publication/export, generic
+operations, conflict decisions, deletion-hold recovery, and opt-in turn-end hook flags.
+[Hosted command ownership](hosted-cli-access.md) and the
+[checkout guide](../guides/work-in-hosted-checkout.md) describe those procedures. Once publication is
+verified, the existing conductor must pin the actual package and rebuild this inventory from its
+executable help. Do not edit the generated table by hand.
+
+[Pending release evidence](../sources/next-release.md). These changes await stable publication;
+[current stable evidence](../sources/current-release.md) continues to describe the previous release.

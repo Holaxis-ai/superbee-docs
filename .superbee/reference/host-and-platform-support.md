@@ -4,7 +4,10 @@ title: Host and platform support
 description: >-
   Verified operating-system and AI-host integration support for the current
   stable Superbee release.
-superbee_updated_by: release-docs-review
+superbee_updated_by: 'process:release-docs-review'
+generated:
+  by: 'process:release-docs-review'
+  at: '2026-09-30T18:45:56.140Z'
 ---
 # Scope
 
@@ -76,3 +79,22 @@ recovery.
 [Install and set up Superbee](../get-started/install-and-setup.md)
 
 [CLI overview](cli-overview.md)
+
+# Prepared release changes
+
+The next npm distribution supports macOS and Linux only. Windows entries in the current stable
+matrix above describe the previous release and must be removed when the stable evidence advances.
+Native Windows npm upgrades fail with `EBADPLATFORM`; forcing installation does not restore
+runtime support. WSL2 follows the Linux installation. The separate
+[experimental Windows source build](https://github.com/Holaxis-ai/superbee-windows-cli) is unsupported
+and is not a replacement package on npm. The core library's other storage backends are a separate
+integration contract and do not restore native Windows CLI distribution.
+
+The four AI host selectors stay `codex`, `claude-code`, `claude-desktop`, and `opencode` on supported
+CLI platforms. Hosted Superbee is a storage/account destination, not a fifth AI host selector.
+`setup hosted` signs in and chooses the default workspace. Optional turn-end sync is available for
+Claude Code and Codex after explicit `hook install --turn-end-sync`; Git boards also require
+`--git-boards`. Host registration readiness still requires the host restart and a fresh check.
+
+[Pending release evidence](../sources/next-release.md). These changes await stable publication;
+[current stable evidence](../sources/current-release.md) continues to describe the previous release.

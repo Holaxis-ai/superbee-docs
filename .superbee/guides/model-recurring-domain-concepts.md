@@ -4,7 +4,10 @@ title: Model recurring domain concepts
 description: >-
   Turn a proven recurring concept into a bundle-owned Kind and validated
   instances.
-superbee_updated_by: release-docs-review
+superbee_updated_by: 'process:release-docs-review'
+generated:
+  by: 'process:release-docs-review'
+  at: '2026-09-30T18:45:58.480Z'
 ---
 # Outcome
 
@@ -247,3 +250,16 @@ The released implementation and tests for this journey are:
 [preserve context between sessions](preserve-context-between-sessions.md)
 
 [CLI overview](../reference/cli-overview.md)
+
+# Prepared release changes
+
+When a bundle's reading sequence matters, add finite numeric `order` to its Kind Convention,
+then inspect `superbee kinds`. Declared positions come before undeclared Kinds; ties use Convention
+ID. This is a Convention display hint, not a field to add to each instance. Recipe reapplication
+preserves local placement. See [Kind conventions](../reference/kind-conventions-and-recipes.md).
+
+Design Kinds and validate instances locally before publishing a hosted bundle. This prepared CLI
+refuses definition changes in a hosted checkout; later source changes are not release evidence.
+
+[Pending release evidence](../sources/next-release.md). These changes await stable publication;
+[current stable evidence](../sources/current-release.md) continues to describe the previous release.

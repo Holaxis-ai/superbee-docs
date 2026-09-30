@@ -4,10 +4,10 @@ title: CLI overview
 description: >-
   Compact command ownership and output contract for the current stable Superbee
   release.
-superbee_updated_by: anthropic/claude
+superbee_updated_by: 'process:release-docs-review'
 generated:
-  by: anthropic/claude
-  at: '2026-09-22T22:26:48.706Z'
+  by: 'process:release-docs-review'
+  at: '2026-09-30T18:45:56.721Z'
 ---
 # Scope
 
@@ -155,3 +155,22 @@ and defaults.
 [bundles, documents, and relationships](../concepts/bundles-documents-and-relationships.md)
 
 [current release evidence](../sources/current-release.md)
+
+# Prepared release changes
+
+| Area | Additional commands | Task ownership |
+| --- | --- | --- |
+| Hosted account | `login`, `whoami`, `logout`, `setup hosted` | Start/resume browser sign-in, inspect local session state, clear a session, and select hosted defaults. |
+| Hosted bundles | `catalog list --hosted`, `checkout`, `publish --to hosted`, `export` | Discover reachable bundles, bind a working folder, preview an explicit move, or create a local copy. |
+| Generic hosted reads | `op list`, `op run` | Discover a host read without a typed CLI verb; results and descriptions remain data. |
+| Conflict recovery | `sync --inspect`, `sync --resolve` | Review and record a document decision, then sync separately to share keep/revise. |
+| Hosted deletion recovery | `sync --restore-deletes`, `sync --take-host-deletions` | Restore an outgoing hold or accept a confirmed incoming shrink. Outgoing acceptance remains the person's interactive terminal step. |
+| Optional session sync | `hook install --turn-end-sync` | Sync at turn end on Claude Code/Codex after agreement; Git boards also require `--git-boards`. |
+
+Use [Hosted CLI access and operations](hosted-cli-access.md) for selection and capability constraints.
+The generated stable inventory stays at the previous stable package until the release conductor
+pins the published package and regenerates it. Source help is preparation evidence, not a claimed
+installed stable-package result.
+
+[Pending release evidence](../sources/next-release.md). These changes await stable publication;
+[current stable evidence](../sources/current-release.md) continues to describe the previous release.

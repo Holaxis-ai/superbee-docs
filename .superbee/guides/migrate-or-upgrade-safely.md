@@ -4,10 +4,10 @@ title: Migrate or upgrade safely
 description: >-
   Upgrade Superbee or move from AgentState while preserving the intended
   workspace and verifying each compatibility step.
-superbee_updated_by: anthropic/claude
+superbee_updated_by: 'process:release-docs-review'
 generated:
-  by: anthropic/claude
-  at: '2026-09-22T22:26:46.784Z'
+  by: 'process:release-docs-review'
+  at: '2026-09-30T18:45:56.433Z'
 ---
 # Outcome
 
@@ -271,3 +271,24 @@ Test this page with one current Superbee installation and one disposable, Kind-g
 workspace. The reader should preserve the same bundle path, use logical `progress_status`
 successfully, and finish with a verified host setup. Test legacy private-state migration only in an
 isolated home directory that contains a supported legacy fixture.
+
+# Prepared release changes
+
+Review the native Windows platform withdrawal before an upgrade: the prepared npm package allows
+only darwin/linux, and a forced native Windows install refuses commands. Use WSL2 or evaluate the
+unsupported Windows source build; do not remove or migrate existing bundles as an installation
+repair. Preserve the previous executable identity and local work before changing environments.
+
+A hosted move is a separate decision from upgrading the CLI. Use
+[Publish, adopt, or export](move-bundle-between-local-and-hosted.md) for an explicit transfer;
+never treat `init`, a copied checkout marker, or a package reinstall as checkout migration.
+Definition changes remain unsupported in hosted checkouts in this release. Design and validate
+Kinds locally before publication.
+
+Library integrators upgrading the filesystem API must provide an explicit `FilesystemHostPolicy`
+for a non-POSIX host and retain the backend returned by `initBundle` as `{root, backend}`. Core
+has no npm OS restriction and its non-filesystem backends remain available. See the pinned
+[core migration contract](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/core/README.md).
+
+[Pending release evidence](../sources/next-release.md). These changes await stable publication;
+[current stable evidence](../sources/current-release.md) continues to describe the previous release.

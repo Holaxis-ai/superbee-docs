@@ -4,7 +4,10 @@ title: Choose privacy and bundle boundaries
 description: >-
   Choose one or several bundles, select the intended workspace explicitly, and
   keep publication within its approved disclosure boundary.
-superbee_updated_by: openai/codex
+superbee_updated_by: 'process:release-docs-review'
+generated:
+  by: 'process:release-docs-review'
+  at: '2026-09-30T18:46:01.045Z'
 ---
 # Outcome
 
@@ -218,3 +221,15 @@ implementation.
 [troubleshoot setup and bundle resolution](../troubleshooting/setup-and-bundle-resolution.md)
 
 [current stable release evidence](../sources/current-release.md)
+
+# Prepared release changes
+
+A hosted checkout folder is a working copy of a separately authoritative bundle. Private state
+binds its path to the confirmed host/workspace/bundle, while the marker is only descriptive.
+Publish requires the person's explicit move/sharing decision; the new bundle is reachable only
+by them until shared. Export does not change hosted ownership or access. Catalog discovery lists
+available choices without making them current project context. See
+[Hosted transfer and adoption](move-bundle-between-local-and-hosted.md).
+
+[Pending release evidence](../sources/next-release.md). These changes await stable publication;
+[current stable evidence](../sources/current-release.md) continues to describe the previous release.

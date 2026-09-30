@@ -2,10 +2,10 @@
 type: Guide
 title: Create a bundle View
 description: Author one safe responsive View for the local UI and MCP Apps hosts.
-superbee_updated_by: anthropic/claude
+superbee_updated_by: 'process:release-docs-review'
 generated:
-  by: anthropic/claude
-  at: '2026-09-22T22:26:46.146Z'
+  by: 'process:release-docs-review'
+  at: '2026-09-30T18:45:59.609Z'
 ---
 # Goal
 
@@ -133,3 +133,18 @@ The full message protocol travels with the tagged
 [View authoring reference](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/references/views/references/view-authoring-v0.md).
 See [View contract and access](../reference/view-contract-and-access.md) for lookup details and
 [View lifecycle and trust](../architecture/view-lifecycle-and-trust.md) for the system boundary.
+
+# Prepared release changes
+
+Negotiate the host descriptor's query, graph, and action capabilities before enabling controls.
+Graph is bounded and does not supply OSS model/definitions. Require explicit action protocol,
+propose grant, and supported action kind. The local UI adds confirmed complete-body replacement
+and atomic field/body update; MCP stays scalar-only. Design a scalar-only fallback when the same
+View must run in both hosts. Preserve cross-links during body replacement, handle stale versions,
+and lock proposals after an unknown outcome. See [View contract](../reference/view-contract-and-access.md).
+
+Hosted checkouts cannot save View artifacts through this CLI. Follow the app/interface instruction
+rather than using a generic operation or direct blob mutation to bypass the refusal.
+
+[Pending release evidence](../sources/next-release.md). These changes await stable publication;
+[current stable evidence](../sources/current-release.md) continues to describe the previous release.

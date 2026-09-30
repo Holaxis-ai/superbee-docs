@@ -14,6 +14,10 @@ documents:
   - reference/wire-protocol-and-reference-server
   - reference/publication-snapshot-api
   - reference/security-and-trust-boundaries
+  - reference/hosted-cli-access
+generated:
+  by: 'process:superbee'
+  at: '2026-09-30T18:48:15.122Z'
 ---
 # Purpose
 

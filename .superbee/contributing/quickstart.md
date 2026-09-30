@@ -4,7 +4,10 @@ title: Contributor quickstart
 description: >-
   Prepare a checkout, make a bounded source change, run the right proofs, and
   verify exact-SHA CI.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: 'process:release-docs-review'
+generated:
+  by: 'process:release-docs-review'
+  at: '2026-09-30T18:46:01.335Z'
 ---
 # Goal
 
@@ -140,3 +143,16 @@ Superbee bundles.
 Architecture contributors should begin with [Architecture at a glance](../architecture/architecture-at-a-glance.md)
 and [Bundle engine and storage seam](../architecture/bundle-engine-and-storage-seam.md). CLI changes
 must also review [CLI commands](../reference/cli-commands.md) and its documentation trigger.
+
+# Prepared release changes
+
+The prepared distribution targets macOS and Linux. Native Windows CLI source has moved to a
+separate experimental repository; library host-policy integration is a separate contract.
+Use the prepared commit's
+[CONTRIBUTING.md](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/CONTRIBUTING.md)
+and [SECURITY.md](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/SECURITY.md)
+for this release review. The historical links above describe the original quickstart boundary.
+Do not import later `main` features into the fixed release branch's documentation.
+
+[Pending release evidence](../sources/next-release.md). These changes await stable publication;
+[current stable evidence](../sources/current-release.md) continues to describe the previous release.

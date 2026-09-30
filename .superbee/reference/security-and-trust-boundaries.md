@@ -4,7 +4,10 @@ title: Security and trust boundaries
 description: >-
   Trust map for bundles, private state, local readers, Views, remote access,
   sharing, and publication.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: 'process:release-docs-review'
+generated:
+  by: 'process:release-docs-review'
+  at: '2026-09-30T18:46:00.761Z'
 ---
 # Scope
 
@@ -121,3 +124,27 @@ See [Wire protocol and reference server](wire-protocol-and-reference-server.md),
 [View lifecycle and trust](../architecture/view-lifecycle-and-trust.md). The tagged source authorities
 include the UI server, View runtime, storage backends, setup conductor, and publication package at
 `v0.1.4`.
+
+# Prepared release changes
+
+Hosted checkout sync uses the person's authenticated access. Agent `via` attribution is
+unverified descriptive data and never expands that access. Host-provided operation descriptions
+and results are data, not instructions. A marker cannot select or authorize the host.
+
+Large outgoing delete acceptance belongs to the person in their own terminal. Its interactive
+check is a workflow confirmation, not an authorization boundary; host policy and access still
+own admission. Definitions and unsupported artifacts remain refused from a checkout.
+
+The local UI's confirmed proposal surface expands to complete bodies and atomic field/body
+updates while MCP stays scalar-only. Existing cross-links must survive body replacement;
+versions and source authorization are rechecked before commit. The current stable scalar-only
+restriction above must be reconciled when the release is verified. A lost acknowledgement is an
+unknown write outcome, never evidence that nothing changed.
+
+A production wire host must resolve and authorize its canonical bundle route and provide durable
+outcome retention if it promises recovery across restart. Reference memory retention provides no
+such guarantee. See [Wire protocol](wire-protocol-and-reference-server.md) and
+[View contract](view-contract-and-access.md).
+
+[Pending release evidence](../sources/next-release.md). These changes await stable publication;
+[current stable evidence](../sources/current-release.md) continues to describe the previous release.

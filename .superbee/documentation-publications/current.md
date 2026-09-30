@@ -19,11 +19,12 @@ supporting_documents:
   - sources/superbee-release-0.1.4
   - sources/superbee-release-0.1.6
   - sources/superbee-release-0.2.1
+  - sources/next-release
 operational_types: Documentation Trigger
 superbee_updated_by: release-docs-automation
 generated:
   by: 'process:superbee'
-  at: '2026-09-22T22:27:27.538Z'
+  at: '2026-09-30T18:48:15.931Z'
 ---
 # Purpose
 

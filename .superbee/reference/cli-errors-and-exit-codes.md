@@ -2,10 +2,10 @@
 type: Reference
 title: CLI errors and exit codes
 description: 'Stable CLI failure codes, exit statuses, output channels, and retry guidance.'
-superbee_updated_by: anthropic/claude
+superbee_updated_by: 'process:release-docs-review'
 generated:
-  by: anthropic/claude
-  at: '2026-09-22T22:33:40.489Z'
+  by: 'process:release-docs-review'
+  at: '2026-09-30T18:45:57.882Z'
 ---
 # Scope
 
@@ -122,3 +122,24 @@ Actor and field-action classification is in
 [`errors.ts` at v0.2.1](https://github.com/Holaxis-ai/superbee/blob/v0.2.1/packages/cli/src/errors.ts),
 and sharing details are defined in
 [`sync-outcomes.ts` at v0.2.1](https://github.com/Holaxis-ai/superbee/blob/v0.2.1/packages/cli/src/sync-outcomes.ts).
+
+# Prepared release changes
+
+| Hosted condition | Machine receipt / code | Response |
+| --- | --- | --- |
+| Sign-in needed | `AUTH_REQUIRED`, exit 4; `details.sign_in_url`, `details.user_code`, `details.resume` | Relay exact link/code, wait for browser confirmation, repeat resume. |
+| Human acceptance unavailable | `FORBIDDEN`, exit 2; `needs_person_at_terminal` | Give the person the held-set acceptance command. Never simulate their terminal. |
+| Generic read belongs to folder | `USAGE`; `folder_answers` | Use the named typed verb to include unsent edits. |
+| Host operation not offered | `NOT_IMPLEMENTED` | Use advertised capabilities; local/Git bundles have no host operations. |
+| Conflicted host version | `not_inspected`, `stale_review`, `file_edited` | Inspect and decide take/keep/revise; do not blindly overwrite. |
+| Unbound/misidentified checkout | `unbound_copy`, `ambiguous_bundle`, `not_this_bundle`, `origin_unknown` | Confirm host/workspace and prove origin before adoption. |
+| Sync lock | `sync_busy` or `lock_orphaned` | Wait for busy locks. Only the orphaned receipt permits removal after confirming the process is gone. |
+| Host creation outcome uncertain | `TRANSIENT`; `write_outcome_unknown` | Repeat the same intent to finish or reconcile it. |
+| Export interrupted | `TRANSIENT`; `export_incomplete` | Retry the same destination. |
+
+A sync receipt can contain committed, conflict, held, refused, unknown, and paused rows. Exit 0
+requires all rows committed. Preserve partial outcomes; a failed command or missing acknowledgement
+does not mean no write happened. See [Hosted recovery](../troubleshooting/hosted-checkout.md).
+
+[Pending release evidence](../sources/next-release.md). These changes await stable publication;
+[current stable evidence](../sources/current-release.md) continues to describe the previous release.
