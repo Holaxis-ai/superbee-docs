@@ -12,7 +12,8 @@ export function preflightPackages(lock, manifest, replacement) {
 
 export async function dependencyPreflight(root, { run, replacement } = {}) {
   // Integrity is checked in the real consumer; fixture roots supply dependency JSON only.
-  await verifySnapshotIntegrity(fileURLToPath(new URL("./vendor/package-verification", import.meta.url)));
+  try { await verifySnapshotIntegrity(fileURLToPath(new URL("./vendor/package-verification", import.meta.url))); }
+  catch { throw new Error("Shared package verification snapshot admission failed; restore the reviewed generated files before changing dependencies."); }
   let lock, manifest;
   try {
     lock = JSON.parse(await readFile(path.join(root, "package-lock.json"), "utf8"));

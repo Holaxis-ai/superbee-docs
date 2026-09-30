@@ -21,7 +21,8 @@ export async function currentPackageFacts(root) {
 export async function packageJourneys({ bin, facts }) {
   // Outside the repository: init must never adopt the enclosing docs bundle. Closed child env
   // prevents real private state, credential, Node preload, and hosted environment inheritance.
-  await verifySnapshotIntegrity(path.join(scripts, "vendor/package-verification"));
+  try { await verifySnapshotIntegrity(path.join(scripts, "vendor/package-verification")); }
+  catch { throw new Error("Installed-package journeys failed; restore the reviewed generated package verification snapshot before retrying."); }
   const isolated = await createWorkspace();
   const workspace = isolated.root;
   const local = path.join(workspace, "local");
@@ -96,5 +97,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.ar
   try {
     const root = process.cwd();
     console.log(JSON.stringify(await packageJourneys({ bin: path.join(root, "node_modules/.bin/superbee"), facts: await currentPackageFacts(root) })));
-  } catch (error) { console.error(JSON.stringify({ status: "blocked", reason: error.message })); process.exitCode = 1; }
+  } catch { console.error(JSON.stringify({ status: "blocked", reason: "Installed-package journeys failed; restore current package/release evidence and generated tools, then inspect the isolated package contract locally." })); process.exitCode = 1; }
 }
