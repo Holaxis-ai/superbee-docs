@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
-import { mkdtemp, readFile, realpath, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+
+import { assertArtifact, assertIdentity, createWorkspace, isolatedEnvironment, runProcessSync } from "./vendor/package-verification/src/harness.mjs";
+import { verifySnapshotIntegrity } from "./vendor/package-verification/src/snapshot.mjs";
 
 const scripts = path.dirname(fileURLToPath(import.meta.url));
 
@@ -20,22 +21,22 @@ export async function currentPackageFacts(root) {
 export async function packageJourneys({ bin, facts }) {
   // Outside the repository: init must never adopt the enclosing docs bundle. Closed child env
   // prevents real private state, credential, Node preload, and hosted environment inheritance.
-  const workspace = await realpath(await mkdtemp(path.join(tmpdir(), "superbee-release-journey-")));
+  await verifySnapshotIntegrity(path.join(scripts, "vendor/package-verification"));
+  const isolated = await createWorkspace();
+  const workspace = isolated.root;
   const local = path.join(workspace, "local");
   const hosted = path.join(workspace, "checkout");
   let commands = 0;
-  const env = { PATH: process.env.PATH, HOME: workspace, TMPDIR: workspace, XDG_CONFIG_HOME: workspace,
-    XDG_STATE_HOME: workspace, LOCALAPPDATA: workspace, CI: "1", SUPERBEE_NO_AUTOPULL: "1",
-    SUPERBEE_NO_UPDATE_CHECK: "1", SUPERBEE_NO_TURN_SYNC: "1" };
+  const env = isolatedEnvironment({ home: workspace, values: { PATH: process.env.PATH, SUPERBEE_NO_AUTOPULL: "1",
+    SUPERBEE_NO_UPDATE_CHECK: "1", SUPERBEE_NO_TURN_SYNC: "1" } });
   function run(args, { expected = 0, fixture = false } = {}) {
-    const preload = path.join(scripts, "release-journey-fixtures", fixture ? "host-fixture.mjs" : "no-network.mjs");
-    const result = spawnSync(process.execPath, ["--import", preload, bin, ...args], {
+    const preload = fixture ? path.join(scripts, "release-journey-fixtures/host-fixture.mjs") : path.join(scripts, "vendor/package-verification/src/no-network.mjs");
+    const result = runProcessSync(process.execPath, ["--import", preload, bin, ...args], {
       env: { ...env, ...(fixture ? { SUPERBEE_HOST: "https://hosted.example", SUPERBEE_ACCESS_TOKEN: "fabricated-fixture-value" } : {}) },
-      cwd: workspace, encoding: "utf8", timeout: 30_000, maxBuffer: 2 * 1024 * 1024,
+      cwd: workspace, expected,
     });
     commands++;
     // Raw subprocess output and temporary paths never enter handoff receipts or CI diagnostics.
-    if (result.error || result.signal || result.status !== expected) throw new Error(`Package journey ${args.slice(0, 2).join(" ")} failed: expected exit ${expected}`);
     return result.stdout;
   }
   const json = (args, options) => JSON.parse(run([...args, "--json"], options));
@@ -47,13 +48,9 @@ export async function packageJourneys({ bin, facts }) {
   };
   try {
     const { identity } = json(["version"]);
-    assert.equal(identity.package?.name, "superbee");
-    assert.equal(identity.package?.version, facts.version);
-    assert.equal(identity.source?.commit, facts.sourceCommit);
-    assert.equal(identity.source?.dirty, false);
-    assert.equal(identity.artifact?.channel, "npm-package");
-    assert.match(identity.artifact?.sha256 ?? "", /^sha256:[a-f0-9]{64}$/);
-    if (facts.artifact) assert.equal(identity.artifact.sha256, facts.artifact.sha256);
+    assertIdentity(identity, { package: { name: "superbee", version: facts.version },
+      source: { commit: facts.sourceCommit, dirty: false }, artifact: { channel: "npm-package", ...(facts.artifact ? { sha256: facts.artifact.sha256 } : {}) } });
+    await assertArtifact(bin, identity.artifact?.sha256);
     json(["init", "--dir", local, "--create-only", "--recipe", "none"]);
     json(["doc", "write", "notes/one", "--type", "Note", "--title", "Original", "--body", "Full original body.", "--actor", "process:release-journey", "--dir", local]);
     const bodyFile = path.join(workspace, "body.md");
@@ -92,7 +89,7 @@ export async function packageJourneys({ bin, facts }) {
       limits: "No production credentials or calls; no live OAuth, hosted sync write, conflict/deletion/transfer or live AI-host acceptance." };
   } catch {
     throw new Error("Installed-package journeys failed; inspect the isolated fixture or package contract locally. Raw subprocess output and temporary state are not published.");
-  } finally { await rm(workspace, { recursive: true, force: true }); }
+  } finally { await isolated.close(); }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

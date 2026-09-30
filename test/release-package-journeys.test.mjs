@@ -55,7 +55,7 @@ test("an artifact identity mismatch also refuses before local bundle initializat
 });
 
 function closedProbe(preload, code) {
-  const result = spawnSync(process.execPath, ["--import", path.join(root, "scripts/release-journey-fixtures", preload), "--input-type=module", "-e", code], {
+  const result = spawnSync(process.execPath, ["--import", preload === "no-network.mjs" ? path.join(root, "scripts/vendor/package-verification/src/no-network.mjs") : path.join(root, "scripts/release-journey-fixtures", preload), "--input-type=module", "-e", code], {
     cwd: root, env: { PATH: process.env.PATH }, encoding: "utf8", timeout: 10_000,
   });
   assert.equal(result.status, 0, result.stderr);

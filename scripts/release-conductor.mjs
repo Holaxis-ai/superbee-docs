@@ -7,6 +7,7 @@ import { promisify } from "node:util";
 import { releaseDocumentationStatus } from "./release-maintenance.mjs";
 import { loadDocumentationTriggerRecords, queryDocumentationImpact } from "./documentation-impact.mjs";
 import { validateInput } from "./release-docs.mjs";
+import { SNAPSHOT_FILES, verifySnapshotIntegrity } from "./vendor/package-verification/src/snapshot.mjs";
 import { dependencyPreflight } from "./release-dependency-preflight.mjs";
 import { packageJourneys } from "./release-package-journeys.mjs";
 
@@ -38,9 +39,11 @@ async function command(bin, args, cwd) {
   }
 }
 async function toolDigest(root) {
+  try { await verifySnapshotIntegrity(path.join(root, "scripts/vendor/package-verification")); }
+  catch { fail("conductor tools changed or shared snapshot integrity failed; restore the generated snapshot and prepare a new state directory"); }
   const files = ["scripts/release-conductor.mjs", "scripts/release-maintenance.mjs", "scripts/release-docs.mjs",
     "scripts/cli-reference.mjs", "scripts/documentation-impact.mjs", "scripts/release-dependency-preflight.mjs",
-    "scripts/release-package-journeys.mjs", ... (await readdir(path.join(root, "scripts/release-journey-fixtures")))
+    "scripts/release-package-journeys.mjs", "scripts/check-package-verification.mjs", ...[...SNAPSHOT_FILES, "snapshot.json"].map((file) => `scripts/vendor/package-verification/${file}`), ... (await readdir(path.join(root, "scripts/release-journey-fixtures")))
       .sort().map((name) => `scripts/release-journey-fixtures/${name}`), ".github/workflows/check.yml"];
   const manifest = await json(path.join(root, "package.json"));
   return hash(JSON.stringify({ scripts: manifest.scripts, engines: manifest.engines,

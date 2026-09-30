@@ -1,0 +1,16 @@
+{
+  "schema": "superbee.package-verification-snapshot.v1",
+  "repository": "https://github.com/Holaxis-ai/superbee",
+  "commit": "e41394a26f66ec3f1b0555b021fbd62db6f75834",
+  "directory": "packages/package-verification",
+  "files": {
+    "package.json": "sha256:6391b5abeb549a81f16121078430f7748fa18f563b3621f44ff54203a2f2559b",
+    "README.md": "sha256:2986dd1dc2f0e0fe2b4120cf2f362347e9fb1c5f79fac02cb6ee00f6cd3d36fb",
+    "LICENSE": "sha256:cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "NOTICE": "sha256:04c9597bdcc89657a71e3c390b7721991acea1d5bec8fbd3d3e1e411ba3a0806",
+    "src/harness.mjs": "sha256:ca24c151000f401be01b60f915db595820627ecfea1d0685f0028752681d29f0",
+    "src/no-network.mjs": "sha256:15d59ce3852aa09a6fc42da9954fdcb77b4c95239fbb7af5a034773b2512acd7",
+    "src/preflight.mjs": "sha256:6571b665d9ca7ee98d4a4e8d49f99e62e55018548b5dab11e9b27dcad62a0d88",
+    "src/snapshot.mjs": "sha256:7bb037ebbfde0bd98c447e914cfd9c76abe8b0ba71c3617e1624123ce5864909"
+  }
+}

@@ -11,9 +11,10 @@ test("preflight bounds selection to direct packages and their locked scopes", ()
   const lock = { packages: { "node_modules/@superbee/a": entry("@superbee/a"), "node_modules/@superbee/transitive": entry("@superbee/transitive"),
     "node_modules/superbee": entry("superbee"), "node_modules/@unrelated/public": entry("@unrelated/public"), "node_modules/public-transitive": entry("public-transitive") } };
   assert.deepEqual(preflightPackages(lock, manifest).map((pkg) => pkg.name), ["@superbee/a", "@superbee/transitive", "superbee"]);
-  assert.throws(() => preflightPackages({ packages: {} }, manifest), /complete direct/);
-  assert.throws(() => preflightPackages({ packages: { "node_modules/superbee": { version: "1.2.3" } } }, manifest), /complete direct/);
-  assert.equal(preflightPackages({ packages: { "node_modules/superbee": { version: "1.2.3" } } }, { dependencies: { superbee: "1.2.3" } }).length, 1);
+  assert.throws(() => preflightPackages({ packages: {} }, manifest), /complete reviewed/);
+  assert.throws(() => preflightPackages({ packages: { "node_modules/superbee": { version: "1.2.3" } } }, manifest), /complete reviewed/);
+  assert.throws(() => preflightPackages({ packages: { "node_modules/superbee": { version: "1.2.3" } } }, { dependencies: { superbee: "1.2.3" } }), /complete reviewed/);
+  assert.equal(preflightPackages({ packages: { "node_modules/wrangler": { version: "1.2.3" } } }, { devDependencies: { wrangler: "1.2.3" } })[0].metadataOnly, true);
 });
 
 async function fixture(t) {

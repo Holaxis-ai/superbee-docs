@@ -68,6 +68,7 @@ legal identity is emitted here; those facts belong to the public marketing site,
 Node.js 22.12 or newer is required.
 
 ```bash
+node scripts/release-dependency-preflight.mjs
 npm ci
 npm run source:sync
 npm run portal:build
@@ -95,6 +96,20 @@ documents while docs-site/v3 remains active, because compilation intentionally f
 missing or drifted recipe.
 
 ## Release documentation
+
+The private build-only `packages/package-verification` workspace in the Superbee source repository
+owns shared subprocess isolation, cleanup, network denial, exact byte/identity comparison, and
+bounded dependency metadata reads. This repository imports its generated source snapshot from
+`scripts/vendor/package-verification`; product journeys, hosted fixtures, release authority,
+authored review, and immutable documentation evidence remain owned here. Portal and the OSS
+installed-package proof also consume the same primitives.
+
+`npm run package-verification:check` checks local snapshot bytes and inventory only. The normal CI
+gate separately checks out the canonical producer at the exact snapshot commit and invokes its
+checker against actual committed bytes before installation. A SHA label and matching digests alone
+are not source provenance. Refresh only through the producer's `export.mjs` with an exact clean
+checkout and the expected previous commit; never edit vendored files independently. The snapshot's
+README documents the command and limited preflight contract. No npm publication is required.
 
 Navigation and maintained pages use the stable `releases/current` and `sources/current-release`
 bundle identities. The reader-facing `releases/release-notes` page lists the current release and
@@ -162,6 +177,9 @@ existing dependencies are removed or docs are changed. Diagnostics contain packa
 recovery guidance, with no npm output, credentials, config changes, or workstation paths. npm may
 maintain its normal metadata cache; the installed tree and dependency manifests are untouched.
 Metadata access is a bounded check, not a promise that every transitive download will succeed.
+Registry lock entries require both URL and integrity; the reviewed version-only Wrangler row is
+an explicit metadata-only exception reported in the preflight result. Conflicting entries for one
+exact package version are refused.
 The admitted public release tarball, clean `npm ci`, and fresh required CI remain authoritative.
 
 Verify performs the dependency/bootstrap sequence and full repository check. It reuses a successful

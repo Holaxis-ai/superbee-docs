@@ -273,7 +273,7 @@ test("finalize requires authored review, binds machine verification, retries and
   const reused = await conduct("finalize", f.options, f.dependencies);
   assert.equal(reused.reused, true); assert.equal(reused.journeys.commands, 29);
   assert.equal(f.calls.filter((call) => call === "ci").length, 1);
-  await writeFile(path.join(f.root, "scripts/release-journey-fixtures/no-network.mjs"), "changed fixture guard");
+  await writeFile(path.join(f.root, "scripts/vendor/package-verification/src/no-network.mjs"), "changed fixture guard");
   await assert.rejects(conduct("finalize", f.options, f.dependencies), /conductor tools changed/);
 });
 

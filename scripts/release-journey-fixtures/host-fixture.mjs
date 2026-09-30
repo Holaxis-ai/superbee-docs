@@ -1,4 +1,4 @@
-import "./no-network.mjs";
+import "../vendor/package-verification/src/no-network.mjs";
 import { readFileSync } from "node:fs";
 
 // Public golden fixtures copied from source bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8.
