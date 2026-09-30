@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T19:59:54.614Z'
+  at: '2026-09-30T20:04:56.126Z'
 ---
 # Scope
 
@@ -36,7 +36,7 @@ The text between the markers is owned by `npm run cli-reference:build`. Do not e
 
 <!-- BEGIN GENERATED CLI INVENTORY -->
 
-Generated from the current stable package's executable help. 39 command entries are present.
+Generated from the current stable package's executable help. 46 command entries are present.
 
 | Group | Command signature |
 | --- | --- |
@@ -79,6 +79,13 @@ Generated from the current stable package's executable help. 39 command entries 
 | Session | `hook install\|status\|uninstall [--scope project\|user] [--turn-end-sync [--git-boards]]` |
 | Session | `skill install\|status\|uninstall [--scope project\|user]` |
 | Session | `setup [migrate-state\|harden-state\|quarantine-state] [--host codex\|claude-code\|claude-desktop\|opencode] [--scope project\|user] [--json] \| setup hosted [--url <hosted-url>] [--workspace <id>] [--json]` |
+| Hosted | `login [--host <url>] [--client-id <id>] [--wait [--timeout <s>] \| --loopback [--port <n>] [--timeout <s>]] [--json]` |
+| Hosted | `whoami [--host <url>] [--json]` |
+| Hosted | `logout [--host <url>] [--json]` |
+| Hosted | `checkout (<bundle-id> [--host <url>] [--dir <folder>] [--workspace <id>] \| --adopt <folder> [--host <url>] [--workspace <id>] \| --release <folder>) [--json]` |
+| Hosted | `export (<bundle-id> [--host <url>] [--workspace <id>] \| [--dir <checkout>]) (--to <folder> \| --in-place [--keep-unsent]) [--git] [--json]` |
+| Hosted | `publish --to hosted [--dir <bundle>] [--host <url>] [--workspace <id>] [--bundle-id <id>] [--name <name>] [--with-history] [--yes] [--json]` |
+| Hosted | `op (list \| run <operationId> [--input <json> \| --input-file <path>]) [--dir <path>] [--json]` |
 
 <!-- END GENERATED CLI INVENTORY -->
 
@@ -105,6 +112,7 @@ diagnostics to stderr. See [CLI errors and exit codes](cli-errors-and-exit-codes
 | Kinds | Inspect and evolve bundle-declared conventions and reusable recipes |
 | Remote | Serve the reference protocol, launch the UI, expose MCP Apps, list Views, and sync Git boards |
 | Session | Report build identity and install, inspect, or remove host integration |
+| Hosted | Sign in, inspect sessions, select a checkout, publish/export, and discover admitted operations |
 
 # Stability and evidence
 
