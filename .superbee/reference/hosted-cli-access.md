@@ -6,7 +6,7 @@ description: >-
   boundaries.
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:45:55.540Z'
+  at: '2026-09-30T18:55:16.111Z'
 superbee_updated_by: 'process:release-docs-review'
 ---
 # Release applicability
@@ -50,8 +50,10 @@ superbee op run <operationId> --input-file <path> --dir <checkout> --json
 
 The host supplies IDs, titles, descriptions, and required or optional inputs. Use only a returned
 operation ID and its declared inputs. The input must be one JSON object no larger than 64 KiB. `bundleId` is filled from the bound checkout and must be
-omitted. This prepared command surface is read-only; it does not authorize generic writes or
-Kind-definition edits. The host may support fewer reads or no operation routes.
+omitted. This guide uses hosted reads. An operation's `read_only` value is a host-provided hint; the host
+allowlist owns admission. The generic CLI forwards admitted IDs without granting additional
+write authority. Do not use it to bypass checkout or definition refusals. The host may offer
+fewer operations or no operation routes.
 
 `documents.read.v1` and `documents.query.v1` are refused through op in a checkout because direct
 host reads would bypass unsent local edits. Use `doc read`, `list`, and `query` on the folder.

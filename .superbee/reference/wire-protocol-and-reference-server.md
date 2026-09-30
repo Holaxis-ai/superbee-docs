@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:46:00.469Z'
+  at: '2026-09-30T18:55:16.390Z'
 ---
 # Scope
 
@@ -138,7 +138,9 @@ digest yields `SNAPSHOT_DIGEST_MISMATCH`, which is not repaired by assuming a re
 
 Document PUT and DELETE may carry `Idempotency-Key` (1 to 128 printable non-space ASCII
 characters) and use retained outcome lookup after a lost response. Identity is bundle/key scoped;
-reserved and blob writes do not gain this contract. The reference memory outcome store is bounded
+reserved and blob writes do not gain this contract. An identified DELETE also requires a
+well-formed content-version `If-Match`; an idempotency key does not make an unconditional delete
+valid. The reference memory outcome store is bounded
 and not restart durable. Production hosts own authentication, admission, trusted attribution,
 persistence, and retention. The Worker-safe router requires canonical bundle IDs and a trusted
 context resolver; the Node reference serve adapter still offers no authentication.

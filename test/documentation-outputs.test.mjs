@@ -81,7 +81,7 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     const operational = (await readdir(".superbee/maintenance/documentation-triggers"))
       .filter((file) => file.endsWith(".md"))
       .map((file) => `maintenance/documentation-triggers/${file.slice(0, -3)}`);
-    assert.equal(operational.length, 38);
+    assert.equal(operational.length, 39);
     for (const id of operational) {
       assert.equal(projectionManifest.selectedDocuments.includes(id), false, id);
       assert.ok(artifact.files.has(`bundle/${id}.md`), id);
