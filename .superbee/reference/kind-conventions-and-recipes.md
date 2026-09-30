@@ -1,13 +1,13 @@
 ---
 type: Reference
 title: Kind conventions and recipe formats
-superbee_updated_by: anthropic/claude
+superbee_updated_by: 'process:release-docs-review'
 description: >-
   Exact Convention schemas, recipe formats, validation modes, installation, and
   safe evolution.
 generated:
-  by: anthropic/claude
-  at: '2026-09-22T22:30:24.230Z'
+  by: 'process:release-docs-review'
+  at: '2026-09-30T19:53:21.634Z'
 ---
 # Scope
 
@@ -325,3 +325,25 @@ The pinned sources and tests governing this reference are:
 [CLI overview](cli-overview.md)
 
 [current release](../releases/current.md)
+
+# Release contracts
+
+A Convention may declare finite numeric `order` as a reading-order hint. It belongs to the
+Convention, not its instances:
+
+```yaml
+order: 10
+```
+
+Declared values sort first ascending, ties by Convention ID; undeclared Kinds follow by ID. When
+no Kind declares order, `kinds` preserves its historical governs ordering. Invalid order values
+warn and register without an order. Recipe reapplication preserves bundle-authored placement
+without treating it as recipe drift. The field is named `order`, not `reading_order`.
+
+Hosted checkout definitions remain immutable in this release. Kind fields, recipes,
+Convention files, and generic operations cannot be used to change that model in place. Design and
+validate locally before explicit publication. See the pinned
+[order tests](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/core/test/kinds.test.ts)
+and [recipe preservation test](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/cli/test/recipes.test.ts).
+
+[Release source review](../sources/next-release.md).

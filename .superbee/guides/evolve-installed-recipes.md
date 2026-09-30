@@ -4,10 +4,10 @@ title: Evolve installed recipes
 description: >-
   Plan and apply an additive installed-recipe upgrade with state-bound safety
   and explicit recovery.
-superbee_updated_by: anthropic/claude
+superbee_updated_by: 'process:release-docs-review'
 generated:
-  by: anthropic/claude
-  at: '2026-09-22T22:26:46.466Z'
+  by: 'process:release-docs-review'
+  at: '2026-09-30T19:54:20.593Z'
 ---
 # Goal
 
@@ -112,3 +112,12 @@ The planner and apply state machine are implemented in the tagged
 and exercised by its integration tests. See
 [Kind conventions and recipes](../reference/kind-conventions-and-recipes.md) for the static recipe
 model and [Migrate or upgrade safely](migrate-or-upgrade-safely.md) for package-level recovery.
+
+# Release contracts
+
+A bundle-authored Convention `order` controls reading placement and is preserved when its recipe
+is reapplied. It does not create schema drift requiring evolution. Validate the live Convention
+and instances after substantive model changes. A hosted checkout cannot evolve definitions in this
+release; finish and validate the local/Git model before publication.
+
+[Release source review](../sources/next-release.md).

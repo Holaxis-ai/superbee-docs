@@ -1,13 +1,13 @@
 ---
 type: Reference
 title: Configuration and bundle resolution
-superbee_updated_by: anthropic/claude
+superbee_updated_by: 'process:release-docs-review'
 description: >-
   Exact local, project-bound, remote, catalog, and MCP bundle selection
   precedence and recovery.
 generated:
-  by: anthropic/claude
-  at: '2026-09-22T22:26:49.029Z'
+  by: 'process:release-docs-review'
+  at: '2026-09-30T19:53:23.146Z'
 ---
 # Scope
 
@@ -245,3 +245,22 @@ and
 [share and synchronize a Git-backed bundle](../guides/share-and-synchronize-git-bundle.md)
 
 [CLI overview](cli-overview.md)
+
+# Release contracts
+
+A hosted checkout is selected through its local folder with normal discovery or `--dir`.
+Private state binds that canonical folder path to host, workspace, and bundle. A read-only
+`.superbee/checkout.json` marker describes origin but never activates hosted routing.
+`copy_of_checkout` with `home: local` requires confirmed adoption before sync or MCP writes.
+
+Plain catalog listing can additionally read reachable hosted bundles that have no local folder,
+without starting sign-in. `catalog list --local` suppresses that read; `--hosted` lists all reachable
+hosted bundles on the selected host. Catalog remains explicit selection, with existing folder
+paths and workspace-qualified references shown rather than silently switching current context.
+
+An explicit `--remote` URL is probed for hosted identity; hosted URLs receive checkout guidance
+rather than being treated as the unauthenticated reference server's default bundle. Continue with
+[Hosted CLI access](hosted-cli-access.md) and [Hosted recovery](../troubleshooting/hosted-checkout.md).
+Never infer routing from a marker or reuse another workspace's access.
+
+[Release source review](../sources/next-release.md).

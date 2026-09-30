@@ -4,7 +4,10 @@ title: Wire protocol and reference server
 description: >-
   Implemented v0 endpoints, preconditions, transport behavior, security limits,
   and RemoteBackend mapping.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: 'process:release-docs-review'
+generated:
+  by: 'process:release-docs-review'
+  at: '2026-09-30T19:53:22.895Z'
 ---
 # Scope
 
@@ -118,3 +121,33 @@ state before deciding whether to retry.
 
 See [Artifacts and byte channels](../guides/artifacts-and-byte-channels.md) for CLI routing and
 [Security and trust boundaries](security-and-trust-boundaries.md) before exposing a server.
+
+# Release contracts
+
+The wire contract advertises additive `heads`, `snapshot`, and `operations` capabilities.
+
+| Method | Route | Contract |
+| --- | --- | --- |
+| GET | `/v0/bundles/{bundle}/heads` | Complete ID/version rows, count, digest and ETag; a matching If-None-Match returns bodyless 304. |
+| GET | `/v0/bundles/{bundle}/snapshot` | NDJSON header, ordered document rows, and end record; validate count, completeness and digest before using it. |
+| GET | `/v0/bundles/{bundle}/operations/{requestId}` | Identified document-write outcome while retained. |
+
+Heads cover documents only, without pagination/filter; reserved files are separate. Snapshot
+transport failure or a missing end yields `SNAPSHOT_TRUNCATED`. A complete body with inconsistent
+digest yields `SNAPSHOT_DIGEST_MISMATCH`, which is not repaired by assuming a retry is safe.
+
+Document PUT and DELETE may carry `Idempotency-Key` (1 to 128 printable non-space ASCII
+characters) and use retained outcome lookup after a lost response. Identity is bundle/key scoped;
+reserved and blob writes do not gain this contract. An identified DELETE also requires a
+well-formed content-version `If-Match`; an idempotency key does not make an unconditional delete
+valid. The reference memory outcome store is bounded
+and not restart durable. Production hosts own authentication, admission, trusted attribution,
+persistence, and retention. The Worker-safe router requires canonical bundle IDs and a trusted
+context resolver; the Node reference serve adapter still offers no authentication.
+
+These storage operations and hosted generic `op list`/`op run` are distinct surfaces. The pinned
+[wire contract](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/docs/WIRE-PROTOCOL.md)
+and [wire tests](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/core/test/wire-protocol.test.ts)
+own route syntax and behavior.
+
+[Release source review](../sources/next-release.md).

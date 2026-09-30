@@ -4,7 +4,10 @@ title: View lifecycle and trust
 description: >-
   How exact View bytes are admitted, authorized, contained, bridged, confirmed,
   and revoked.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: 'process:release-docs-review'
+generated:
+  by: 'process:release-docs-review'
+  at: '2026-09-30T19:53:17.592Z'
 ---
 # Question answered
 
@@ -122,3 +125,13 @@ for confirmed writes see the [document mutation lifecycle](document-mutation-lif
 # Evidence
 
 [pinned implementation source](../sources/superbee-codebase-main.md)
+
+# Release contracts
+
+The diagram remains pinned to its original reviewed source. The local UI admits confirmed
+body replacement and atomic field/body updates in addition to scalar field proposals; MCP remains
+scalar-only. The common proposal parser/policy owns validation, while hosts own admission, trusted
+identity, human confirmation and CAS. Hosts advertise action protocol/grant/kinds and graph limits.
+See [View contract](../reference/view-contract-and-access.md) for the released interface contract.
+
+[Release source review](../sources/next-release.md).

@@ -4,7 +4,10 @@ title: Bundle engine and storage seam
 description: >-
   How core-owned OKF semantics remain consistent across filesystem, memory, and
   remote storage adapters.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: 'process:release-docs-review'
+generated:
+  by: 'process:release-docs-review'
+  at: '2026-09-30T19:53:18.096Z'
 ---
 # Question answered
 
@@ -113,3 +116,15 @@ implement the wire contract, version headers, and preconditions before it can cl
 See [Wire protocol and reference server](../reference/wire-protocol-and-reference-server.md),
 [Document mutation lifecycle](document-mutation-lifecycle.md), and
 [Query, links, and backlinks](../guides/query-links-and-backlinks.md).
+
+# Release contracts
+
+The architecture diagram and main narrative retain their independently pinned source scope.
+Release 0.3.0 extracts filesystem host policy and retains a backend in `initBundle`'s
+`{root, backend}` result. Hosted checkout reconciliation uses the filesystem working copy and
+identified whole-document transport; heads/snapshot and retained operation outcomes supply bounded
+network reconciliation. These changes do not make the reference wire server authenticated.
+Use [Wire reference](../reference/wire-protocol-and-reference-server.md) and
+[Hosted checkout](../guides/work-in-hosted-checkout.md) for release-facing interfaces.
+
+[Release source review](../sources/next-release.md).

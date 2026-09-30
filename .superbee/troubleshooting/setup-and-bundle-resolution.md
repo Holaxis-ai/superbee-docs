@@ -4,10 +4,10 @@ title: Troubleshoot setup and bundle resolution
 description: >-
   Diagnose installation, host setup, workspace selection, and local bundle
   health from their owning command receipts.
-superbee_updated_by: anthropic/claude
+superbee_updated_by: 'process:release-docs-review'
 generated:
-  by: anthropic/claude
-  at: '2026-09-22T22:26:50.312Z'
+  by: 'process:release-docs-review'
+  at: '2026-09-30T19:53:17.340Z'
 ---
 # Outcome
 
@@ -227,3 +227,21 @@ Bundle-health behavior is grounded in the tagged
 [`status` implementation](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/status.ts)
 and
 [`status` tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/status.test.ts).
+
+# Release contracts
+
+Native Windows `EBADPLATFORM` is the distribution boundary, not a missing npm prefix.
+Forcing installation will not restore support. WSL2 is the normal Linux route; preserve existing
+files before moving work. See [Host and platform support](../reference/host-and-platform-support.md) for the release matrix.
+
+If `home`, `status`, or `bundle locate` reports `copy_of_checkout`, the folder was moved/copied and
+is not bound to hosted state here. Do not initialize a replacement or route from the marker.
+Follow [Hosted checkout recovery](hosted-checkout.md) for adoption and workspace proof.
+`AUTH_REQUIRED`, `choose_workspace`, held deletions, and hosted conflicts also belong to that guide.
+
+For a fresh clone with a conventional shared-board binding, the orientation and setup
+retain the shared-board path. Follow the returned sync recovery; `init` is reserved for a confirmed
+new local bundle. Unavailable hook launchers are reported as unsupported by setup rather than as a
+ready integration.
+
+[Release source review](../sources/next-release.md).

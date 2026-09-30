@@ -4,7 +4,10 @@ title: Host and platform support
 description: >-
   Verified operating-system and AI-host integration support for the current
   stable Superbee release.
-superbee_updated_by: release-docs-review
+superbee_updated_by: 'process:release-docs-review'
+generated:
+  by: 'process:release-docs-review'
+  at: '2026-09-30T19:53:23.651Z'
 ---
 # Scope
 
@@ -23,7 +26,7 @@ accepted the change. Restart that host when instructed, then rerun setup until i
 | --- | --- | --- |
 | macOS | Supported | Node.js 20 or newer and npm are required. |
 | Linux | Supported | Node.js 20 or newer and npm are required. |
-| Windows | Supported | Node.js 20 or newer and npm are required. Private state uses the user's LocalAppData boundary. |
+| Native Windows | Unsupported | Use WSL2 for the Linux CLI; native npm installation fails with `EBADPLATFORM`. |
 
 Treat behavior present only on `main` as unreleased until the stable package evidence includes it.
 
@@ -31,10 +34,10 @@ Treat behavior present only on `main` as unreleased until the stable package evi
 
 | Host | Stable platform path | Agent Skill | MCP registration | SessionStart hook | Setup selector |
 | --- | --- | --- | --- | --- | --- |
-| Codex | macOS, Linux, and Windows | Required | Required | Recommended | `codex` |
-| Claude Code | macOS, Linux, and Windows | Required | Required | Recommended | `claude-code` |
-| Claude Desktop | macOS and Windows | Not available | Required | Not available | `claude-desktop` |
-| OpenCode | macOS, Linux, and Windows | Required | Required | Recommended | `opencode` |
+| Codex | macOS and Linux | Required | Required | Recommended | `codex` |
+| Claude Code | macOS and Linux | Required | Required | Recommended | `claude-code` |
+| Claude Desktop | macOS | Not available | Required | Not available | `claude-desktop` |
+| OpenCode | macOS and Linux | Required | Required | Recommended | `opencode` |
 
 Inspect one host explicitly:
 
@@ -76,3 +79,19 @@ recovery.
 [Install and set up Superbee](../get-started/install-and-setup.md)
 
 [CLI overview](cli-overview.md)
+
+# Release contracts
+
+The npm distribution supports macOS and Linux only. Native Windows npm upgrades fail with `EBADPLATFORM`; forcing installation does not restore
+runtime support. WSL2 follows the Linux installation. The separate
+[experimental Windows source build](https://github.com/Holaxis-ai/superbee-windows-cli) is unsupported
+and is not a replacement package on npm. The core library's other storage backends are a separate
+integration contract and do not restore native Windows CLI distribution.
+
+The four AI host selectors stay `codex`, `claude-code`, `claude-desktop`, and `opencode` on supported
+CLI platforms. Hosted Superbee is a storage/account destination, not a fifth AI host selector.
+`setup hosted` signs in and chooses the default workspace. Optional turn-end sync is available for
+Claude Code and Codex after explicit `hook install --turn-end-sync`; Git boards also require
+`--git-boards`. Host registration readiness still requires the host restart and a fresh check.
+
+[Release source review](../sources/next-release.md).

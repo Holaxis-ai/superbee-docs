@@ -34,7 +34,7 @@ export async function releaseFixture(root = ".") {
     (await document(bundle, id)).fields.documents))).flat())].sort();
   const supporting = [
     "design/docs-operating-model", "design/site-experience-contract", "examples/claims-and-evidence",
-    "plans/docs-coverage", "sources/current-release", "sources/superbee-codebase-main",
+    "plans/docs-coverage", "sources/current-release", "sources/next-release", "sources/superbee-codebase-main",
     "sources/superbee-core", "sources/superbee-portal", ...archive,
   ].sort();
   assert.deepEqual([...publication.fields.supporting_documents].sort(), supporting,

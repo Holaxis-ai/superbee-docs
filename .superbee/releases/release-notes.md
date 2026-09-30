@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: release-docs-automation
 generated:
   by: 'process:superbee'
-  at: '2026-09-22T22:27:26.112Z'
+  at: '2026-09-30T19:56:06.720Z'
 ---
 # Release notes
 
@@ -17,13 +17,19 @@ the exact package and source evidence used to verify it.
 
 # Current stable release
 
+## Superbee 0.3.0
+
+Superbee 0.3.0 adds hosted checkout workflows, explicit conflict recovery, bounded operation discovery, and expanded local View proposals. The npm CLI now targets macOS and Linux. Published 2026-09-30.
+
+[Read the current 0.3.0 release notes](current.md).
+
+# Previous stable releases
+
 ## Superbee 0.2.1
 
 Superbee 0.2.1 enforces OKF v0.2 authoring rules on v0.2 bundles, adds document verification with trust tiers and explicit frontmatter field actions, and clarifies first-time sharing and managed reader recovery. Published 2026-09-14.
 
-[Read the current 0.2.1 release notes](current.md).
-
-# Previous stable releases
+[Read the 0.2.1 release notes](0.2.1.md).
 
 ## Superbee 0.1.6
 

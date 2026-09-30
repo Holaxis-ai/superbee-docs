@@ -2,12 +2,12 @@
 type: Documentation System
 title: Superbee documentation
 product_name: Superbee
-version_label: v0.2.1
+version_label: v0.3.0
 repository_url: 'https://github.com/Holaxis-ai/superbee'
 superbee_updated_by: 'process:release-docs-automation'
 generated:
   by: 'process:release-docs-automation'
-  at: '2026-09-22T22:27:26.639Z'
+  at: '2026-09-30T19:56:07.269Z'
 ---
 # Purpose
 

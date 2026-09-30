@@ -4,10 +4,10 @@ title: Share and synchronize a Git-backed bundle
 description: >-
   Join, refresh, share, and recover a Git-backed Superbee bundle without
   crossing its publication boundary.
-superbee_updated_by: anthropic/claude
+superbee_updated_by: 'process:release-docs-review'
 generated:
-  by: anthropic/claude
-  at: '2026-09-22T22:33:28.927Z'
+  by: 'process:release-docs-review'
+  at: '2026-09-30T19:53:19.349Z'
 ---
 # Outcome
 
@@ -386,3 +386,28 @@ sequence.
 Repeat with competing claims on a Kind that declares ownership coordinates. Confirm that the lost
 claim is reported with upstream provenance when available, the complete local export survives,
 and recovery does not suggest restoring the losing ownership fields.
+
+# Release contracts
+
+Git boards add recorded conflict decisions:
+
+```sh
+superbee sync --inspect --doc <id>
+superbee sync --resolve take --doc <id>
+# Or choose one reviewed outgoing decision:
+superbee sync --resolve keep --doc <id>
+superbee sync --resolve revise --doc <id>
+superbee sync
+```
+
+Take keeps the teammate's retained version and clears the saved conflict. Keep reapplies the saved
+local body; revise uses the current edited document. These conflict verbs do not fetch, commit, or
+push. A later plain sync shares keep/revise. A lost claim does not offer ownership back; retain
+the arbitration and follow [claim recovery guidance](assigned-work-lifecycle.md).
+
+These choices also exist in hosted checkouts with their own host inspection/precondition rules.
+Deletion-hold acceptance/restore and take-host-deletions flags are hosted-only. See
+[Hosted checkout](work-in-hosted-checkout.md). This release's Git workflow should not be described
+as using the hosted deletion policy or hosted access credentials.
+
+[Release source review](../sources/next-release.md).

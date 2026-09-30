@@ -13,6 +13,11 @@ documents:
   - guides/choose-privacy-and-bundle-boundaries
   - guides/share-and-synchronize-git-bundle
   - guides/evolve-installed-recipes
+  - guides/work-in-hosted-checkout
+  - guides/move-bundle-between-local-and-hosted
+generated:
+  by: 'process:superbee'
+  at: '2026-09-30T18:48:14.856Z'
 ---
 # Purpose
 

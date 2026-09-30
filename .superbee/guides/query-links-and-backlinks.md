@@ -4,10 +4,10 @@ title: 'Query, links, and backlinks'
 description: >-
   Find documents, traverse derived relationships, and regenerate portable
   navigation safely.
-superbee_updated_by: anthropic/claude
+superbee_updated_by: 'process:release-docs-review'
 generated:
-  by: anthropic/claude
-  at: '2026-09-22T22:26:47.101Z'
+  by: 'process:release-docs-review'
+  at: '2026-09-30T19:53:18.349Z'
 ---
 # Goal
 
@@ -146,3 +146,13 @@ Query and graph behavior is grounded in the tagged
 [`index`](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/index.ts)
 commands. See [Research claims and evidence](../examples/claims-and-evidence.md) for a complete
 modeled example.
+
+# Release contracts
+
+A View can request graph only when `hello.host.capabilities` declares it. Respect the advertised
+document, relationship, reply, and body limits and render partial/over-limit states. OSS graph
+returns documents and relationships without model/definition projections; `graph.model` remains
+reserved. Typed CLI reads on a hosted checkout use its local folder so unsent changes are included;
+generic hosted op calls intentionally refuse those folder-owned read IDs.
+
+[Release source review](../sources/next-release.md).

@@ -4,10 +4,10 @@ title: View contract and access
 description: >-
   Exact registered and transient View schemas, access levels, admission,
   approval, saving, and recovery.
-superbee_updated_by: anthropic/claude
+superbee_updated_by: 'process:release-docs-review'
 generated:
-  by: anthropic/claude
-  at: '2026-09-22T22:26:49.993Z'
+  by: 'process:release-docs-review'
+  at: '2026-09-30T19:53:23.902Z'
 ---
 # Scope and supported version
 
@@ -66,9 +66,9 @@ while launch preparation is running.
 | --- | --- | --- | --- |
 | `none` | No bundle data. `open-page` remains available for navigation. | No data approval. | None. |
 | `bundle-read` | Bounded query, read, rendered-document, edge, subscription, versioned-read, and View-navigation requests. | Approval binds the exact source bytes, content type, capability, policy, and registered identity or transient bundle identity. | None. |
-| `bundle-propose` | Includes the `bundle-read` surface. | Same exact-subject approval as `bundle-read`. | May propose one `document.set-field` action. The trusted shell requires a separate human confirmation and rechecks the document version before committing it. |
+| `bundle-propose` | Includes the `bundle-read` surface. | Same exact-subject approval as `bundle-read`. | May propose advertised actions: `document.set-field`; the local UI also supports `document.set-body` and `document.update`. The trusted shell requires a separate human confirmation and rechecks the document version before committing it. |
 
-View code never receives direct write authority. A field proposal contains exactly `kind`, `docId`,
+View code never receives direct write authority. A scalar-field proposal contains exactly `kind`, `docId`,
 `field`, scalar `value`, and `expectedVersion`. Strings are limited to 4 KiB, field names to 128
 bytes, and the enclosing action message to 8 KiB.
 
@@ -138,7 +138,7 @@ approve its current access when a launch becomes stale.
 | Approval disappears after an edit | The authorization subject changed. Inspect and approve the current bytes and access. |
 | A transient launch asks for a workspace | Supply an exact catalog workspace for bundle access, or explicitly request `access: none` for a bundleless presentation. |
 | Saving a transient View fails after retaining an entry | Read the reported key and version. Retry only with the same current approved launch and intended durable ID, or resolve the destination conflict. |
-| A proposed change is rejected | Confirm `bundle-propose`, current authorization, a supported scalar field, Kind conformance, and the exact current document version. |
+| A proposed change is rejected | Confirm `bundle-propose`, current authorization, the advertised action kind, valid scalar fields or body, Kind conformance, and the exact current document version. |
 
 # Related
 
@@ -155,3 +155,26 @@ approve its current access when a launch becomes stale.
 - [Bounded read bridge](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/view-runtime/src/bridge.ts)
 - [MCP inputs and tool registration](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/mcp-app/src/server.ts)
 - [Current release evidence](../sources/current-release.md)
+
+# Release contracts
+
+The local UI can confirm `document.set-field`, `document.set-body`, and `document.update`.
+The MCP App remains scalar-only; do not assume an action because another host supports it.
+Negotiate `hello.actionProtocol: "v1"`, `grant: "propose"`, and the advertised `actions` list.
+`host.kind` and presentation mode are not write grants.
+
+A body proposal replaces complete Markdown, up to 64 KiB UTF-8, and must preserve existing
+cross-links. An atomic update combines one to eight distinct declared scalar fields and a body
+under one expected-version mutation. Trusted human confirmation, Kind validation, current
+registration/authorization checks, and compare-and-swap still govern the result. A lost reply
+can mean `writeState: unknown`; stop new proposals until the host resolves that outcome.
+
+`hello.host` advertises capabilities and limits. The graph request returns OKF edition, documents,
+relationships, and counts, optionally bodies, with bounds of 1,000 documents, 10,000 relationships,
+and 2 MiB reply. Per-body limits still apply. OSS does not implement `graph.model`; model and
+definitions are omitted. Discover query capabilities and `frame.resize` rather than assuming them.
+The pinned [View protocol](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/docs/VIEW-PROTOCOL.md)
+owns message shapes, action and graph limits, host descriptors, and errors.
+
+
+[Release source review](../sources/next-release.md).

@@ -4,7 +4,10 @@ title: 'Sharing, synchronization, and freshness'
 description: >-
   How Superbee classifies bundle channels, refreshes reads, converges shared
   changes, and preserves conflicting work.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: 'process:release-docs-review'
+generated:
+  by: 'process:release-docs-review'
+  at: '2026-09-30T19:53:17.844Z'
 ---
 # Question answered
 
@@ -117,3 +120,14 @@ see [architecture at a glance](architecture-at-a-glance.md).
 # Evidence
 
 [pinned implementation source](../sources/superbee-codebase-main.md)
+
+# Release contracts
+
+The diagram remains independently pinned. Release-facing sync now includes Git inspect/resolve
+verbs and hosted working-copy reconciliation, with whole-document conflicts, remembered decisions,
+held deletes, bounded read-side pulls and optional turn-end sync. Git and hosted retain separate
+access, ownership and transaction domains. See
+[Git sharing](../guides/share-and-synchronize-git-bundle.md) and
+[Hosted checkout](../guides/work-in-hosted-checkout.md).
+
+[Release source review](../sources/next-release.md).

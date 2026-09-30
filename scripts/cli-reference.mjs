@@ -10,7 +10,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const documentId = "reference/cli-commands";
 const beginMarker = "<!-- BEGIN GENERATED CLI INVENTORY -->";
 const endMarker = "<!-- END GENERATED CLI INVENTORY -->";
-const sectionNames = new Set(["Bundle", "Documents & links", "Artifacts", "Kinds", "Remote", "Session"]);
+const sectionNames = new Set(["Bundle", "Documents & links", "Artifacts", "Kinds", "Remote", "Session", "Hosted"]);
 
 function usage() {
   return `Usage:
@@ -47,22 +47,21 @@ async function run(bin, args) {
   }
 }
 
-function commandRows(help) {
+export function commandRows(help) {
   const rows = [];
   let section = null;
   for (const line of help.split(/\r?\n/)) {
     const heading = line.match(/^([^:]+):$/)?.[1];
-    if (heading && sectionNames.has(heading)) {
+    if (heading) {
       section = heading;
       continue;
     }
     if (!section) continue;
-    if (/^[A-Z][^:]+:$/.test(line)) {
-      section = null;
-      continue;
-    }
     const command = line.match(/^  (\S.*?)(?:\s+—\s+|\s+-\s+).+$/)?.[1];
-    if (command) rows.push({ section, command: command.trim() });
+    if (command) {
+      if (!sectionNames.has(section)) throw new Error(`unrecognized executable command section: ${section}`);
+      rows.push({ section, command: command.trim() });
+    }
   }
   if (rows.length < 25) throw new Error(`executable help yielded only ${rows.length} command rows`);
   return rows;
@@ -139,7 +138,7 @@ async function main() {
   process.stdout.write(`cli_reference: updated\nversion: ${version}\nrows: ${commandRows(help).length}\n`);
 }
 
-main().catch((error) => {
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main().catch((error) => {
   process.stderr.write(`cli_reference: ${error.message}\n`);
   process.exitCode = 1;
 });
