@@ -26,6 +26,19 @@ jobs:
           node-version: 22
           cache: npm
           registry-url: "https://registry.npmjs.org"
+      - name: Check out the exact shared package verification producer
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: Holaxis-ai/superbee
+          ref: e41394a26f66ec3f1b0555b021fbd62db6f75834
+          path: .deps/package-verification-source
+          persist-credentials: false
+      - name: Verify snapshot against actual pinned producer source
+        run: node .deps/package-verification-source/packages/package-verification/export.mjs --source .deps/package-verification-source --target scripts/vendor/package-verification --check
+      - name: Check dependency metadata access before installation
+        run: node scripts/release-dependency-preflight.mjs
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
       - run: npm ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}

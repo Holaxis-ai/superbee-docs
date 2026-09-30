@@ -40,7 +40,10 @@
     "cloudflare:reconcile": "node scripts/reconcile-cloudflare.mjs",
     "verify:production": "node scripts/verify-production.mjs",
     "test": "node --test test/*.test.mjs",
-    "check": "npm run diagram:check && npm run docs:release:check && npm run cli-reference:check && npm run architecture:check && npm run docs:impact:check && npm run prose:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run mkdocs:build && npm run cloudflare:check && npm run cloudflare:reconciliation:check && npm test"
+    "check": "npm run package-verification:check && npm run diagram:check && npm run docs:release:check && npm run cli-reference:check && npm run release-package:check && npm run architecture:check && npm run docs:impact:check && npm run prose:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run mkdocs:build && npm run cloudflare:check && npm run cloudflare:reconciliation:check && npm test",
+    "docs:release:finalize": "node scripts/release-conductor.mjs finalize",
+    "release-package:check": "node scripts/release-package-journeys.mjs",
+    "package-verification:check": "node scripts/check-package-verification.mjs"
   },
   "dependencies": {
     "@superbee/docs-mkdocs": "0.2.2",

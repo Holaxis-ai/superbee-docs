@@ -4,10 +4,10 @@ title: Documentation coverage and delivery
 description: >-
   Ordered page coverage, representative slice, and readiness gates for the
   public documentation.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-tooling-review'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:59:54.304Z'
+  by: 'process:release-tooling-review'
+  at: '2026-09-30T20:54:43.876Z'
 ---
 # Purpose
 
@@ -223,3 +223,17 @@ Production hosted acceptance and native Windows execution remain untested.
 
 The release conductor records every affected-page disposition against its captured registry and
 source packet. The tree-delta review retains the independently pinned architecture diagrams.
+
+# Release finalization tooling scope
+
+The `codex/docs-release-finalize` branch claims the existing conductor, dependency access
+preflight, reusable installed-package journeys and their tests, existing CI/check wiring, and
+operator guidance in the README, contributor quickstart, and operating model. The audience is
+the documentation maintainer; success means a reviewed handoff finalizes deterministically or
+stops before dependency mutation with a concrete recovery instruction. Product behavior pages
+and release identities remain governed by their existing verified sources.
+
+Journey checks cover stale supplied source without changing it, contradictory refs, inaccessible
+registry metadata without deleting installed files, interrupted apply/finalize, changed authority,
+exact-input invalidation, isolated package identity and fixture reads, and the full docs gate.
+Independent exact-head review and fresh required CI are the handoff gates.
