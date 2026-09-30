@@ -114,11 +114,17 @@ check whether another release has appeared. `npm run docs:release:status` remain
 authority probe.
 
 For `update_required`, preparation verifies the tarball's SHA-512 integrity, installs it in an
-isolated prefix with lifecycle scripts disabled, and checks its embedded package/source identity.
+isolated offline prefix with lifecycle scripts disabled, checks its embedded package/source identity,
+and executes the reusable credential-free installed-package journeys before review. Their machine
+summary is included in the manifest skeleton and must be retained in reviewed verification.
 It diffs the prior stable commit against the released tag, independently of the checkout's newer
 `main`, and combines source-path and release-event impacts. An optional `--source <checkout>` uses
-an existing public Superbee checkout without changing it; otherwise the conductor clones into its
-private state directory. The architecture source pin stays independent.
+an existing public Superbee checkout without changing its files, branch, tags, or object storage.
+The conductor checks its origin and rejects a contradictory existing release tag. It refreshes
+the released tag and prior commit in a bare cache inside the private state directory, verifies the
+dereferenced tag against release evidence, and uses compare-and-swap when admitting its private
+ref. A conflicting cached commit or tag object is refused; no ref is force-updated. The
+architecture source pin stays independent.
 
 The saved `packet.json` contains evidence and affected pages. `release.json` contains only the
 accepted release-manifest fields, with explicit placeholders for authored content. `review.json`
@@ -130,9 +136,14 @@ commit and matching conductor tools, then continue without repeating discovery:
 ```bash
 # Review evidence, fill .tmp/release-conductor/release.json and review.json,
 # and update the affected reader pages through Superbee.
-npm run docs:release:apply
-npm run docs:release:verify
+npm run docs:release:finalize
 ```
+
+Finalize rechecks public release authority, admits the reviewed manifest, runs dependency access
+preflight and captured package journeys, then applies and checks under the existing repository
+writer lock. It does not author reader prose or select page dispositions. A captured `current`
+packet returns `verification: not-performed`; it never substitutes for a successful check.
+The separate apply and verify commands remain available for diagnosis and recovery.
 
 Apply pins the package and lockfile, checks their integrity and embedded identity, invokes the
 existing Superbee release writer, and rebuilds the CLI reference. It journals each step before
@@ -143,14 +154,43 @@ writers: confirm the previous process has stopped before removing that single lo
 Apply and check also hold `.tmp/.release-apply.lock` so distinct packets cannot mutate one repository
 concurrently. Inspect its owner before removing a stale repository lock.
 
+Before a root dependency install or `npm ci`, the read-only preflight uses at most three concurrent
+`npm view` commands for direct dependencies and locked transitive dependencies in their scopes
+(ten candidates in the current consumer, including its eight `@superbee` packages). Missing or
+malformed direct lock entries, inaccessible metadata, and changed locked identities fail before
+existing dependencies are removed or docs are changed. Diagnostics contain package identity and
+recovery guidance, with no npm output, credentials, config changes, or workstation paths. npm may
+maintain its normal metadata cache; the installed tree and dependency manifests are untouched.
+Metadata access is a bounded check, not a promise that every transitive download will succeed.
+The admitted public release tarball, clean `npm ci`, and fresh required CI remain authoritative.
+
 Verify performs the dependency/bootstrap sequence and full repository check. It reuses a successful
 receipt only for the same commit, working-tree bytes, Node version, installed dependencies, source
 checkout, and built outputs. Changed or missing inputs invalidate reuse; externally symlinked
 dependency directories disable reuse. Runtime parity is tested
 at the primitive level: evidence capture, review admission, interrupted apply, and receipt reuse.
+The check includes `npm run release-package:check`: disposable local CAS/Kind/help/refusal probes
+and pinned in-process hosted read fixtures, with a closed child environment and denied sockets.
+It checks the actual installed version, clean source identity, and artifact channel; finalization
+also binds the captured artifact digest. The fixture receipt claims no production sign-in, write,
+conflict/deletion/transfer, or live host acceptance. Temporary workspaces are removed on success or
+failure; raw command output and paths are excluded from saved journey receipts. Runner, fixture,
+preflight, bootstrap, and check-definition changes invalidate saved verification.
 CI and the production verifier still run independently. State is ignored, private transport rather
 than a second documentation authority; do not commit it. The conductor never merges, publishes,
 changes host policy, installs host integrations, or deploys.
+
+### One publication status and authored handoff
+
+Use the conductor packet/status and PR checklist as the single operator publication gate. Its
+`publication` result names the documented release, npm release, and update requirement captured
+at preparation; these `captured*` fields remain historical after apply and are not current-stage
+claims. Finalize/check return the bound verification result. Ordinary maintained pages link to
+`releases/current` and `sources/current-release`. Keep one source review and migration guide for
+pending-release scope, with the hold and remaining checks in the PR. Avoid appending a pending
+publication disclaimer to every affected page; reconcile changed claims before finalization.
+The immutable release evidence must reflect performed checks. Keep later verification in a
+supporting Source or PR receipt instead of rewriting frozen evidence.
 
 The lower-level `npm run docs:release -- --manifest <file>` remains available for a reviewed handoff.
 It creates immutable versioned records and reconciles the stable release, archive, and publication

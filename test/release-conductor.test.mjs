@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { conduct, manifestSkeleton, assertReview, assertPackageIdentity, sourceDiff, installEvidence } from "../scripts/release-conductor.mjs";
+import { conduct, manifestSkeleton, assertReview, assertPackageIdentity, sourceDiff, installEvidence, journeyVerification } from "../scripts/release-conductor.mjs";
 
 const exec = promisify(execFile);
 const realRun = async (bin, args, cwd) => (await exec(bin, args, { cwd })).stdout;
@@ -27,6 +27,8 @@ async function fixture(t) {
   t.after(() => rm(root, { recursive: true, force: true }));
   await mkdir(path.join(root, ".superbee/releases"), { recursive: true });
   await cp("scripts", path.join(root, "scripts"), { recursive: true });
+  await mkdir(path.join(root, ".github/workflows"), { recursive: true });
+  await cp(".github/workflows/check.yml", path.join(root, ".github/workflows/check.yml"));
   await writeFile(path.join(root, ".gitignore"), ".tmp/\nnode_modules\n.deps/\ndist/\ndeploy/\n");
   await writeFile(path.join(root, ".superbee/releases/current.md"), "---\nversion: 1.2.3\n---\n");
   await write(path.join(root, "package.json"), { dependencies: { superbee: "1.2.3" } });
@@ -39,6 +41,8 @@ async function fixture(t) {
   const dependencies = {
     status: async () => { calls.push("status"); return { status: "update_required", documentedVersion: "1.2.3", verifiedFacts: facts,
       sourceDiff: { base: "c".repeat(40), head: facts.sourceCommit }, impactEvents: ["npm-latest"] }; },
+    preflight: async () => { calls.push("preflight"); },
+    journeys: async () => ({ status: "passed", commands: 29, platform: "darwin", node: process.version, identity: packed }),
     install: async () => { calls.push("install-evidence"); return packed; },
     diff: async () => ["packages/cli/changed.ts"],
     triggers: async () => [
@@ -65,12 +69,16 @@ async function fixture(t) {
   const state = path.join(root, ".tmp/release-conductor");
   const review = async () => {
     const packet = await read(path.join(state, "packet.json"));
-    await write(path.join(state, "release.json"), { ...manifestSkeleton(facts), ...authored });
+    await write(path.join(state, "release.json"), { ...manifestSkeleton(facts), ...authored, verification: [...authored.verification, journeyVerification(packet.journeys)] });
     await write(path.join(state, "review.json"), { packetDigest: packet.digest, reviewedBy: "test-reviewer",
       pages: packet.affectedPages.map((id) => ({ id, disposition: "no-change", reason: "Reviewed the released change; this page remains accurate." })) });
     return packet;
   };
   return { root, state, options, dependencies, calls, review, interrupt: () => { breakRelease = true; } };
+}
+
+function fixtureSourceRun(remote) {
+  return (bin, args, cwd) => realRun(bin, args.map((arg) => arg === "https://github.com/Holaxis-ai/superbee.git" ? remote : arg), cwd);
 }
 
 test("prepare freezes one evidence packet, includes path and event impact, and preserves authored retries", async (t) => {
@@ -178,9 +186,9 @@ test("source diff uses the released tag rather than a newer checkout and rejects
   await realRun("git", ["tag", facts.sourceTag], f.root);
   await writeFile(path.join(f.root, "unreleased.txt"), "not in released evidence");
   const status = { sourceDiff: { base, head }, verifiedFacts: facts };
-  assert.deepEqual(await sourceDiff(f.root, f.state, f.root, status, realRun), ["released.txt"]);
+  assert.deepEqual(await sourceDiff(f.root, f.state, f.root, status, fixtureSourceRun(f.root)), ["released.txt"]);
   await realRun("git", ["remote", "set-url", "origin", "https://example.org/other.git"], f.root);
-  await assert.rejects(sourceDiff(f.root, f.state, f.root, status, realRun), /public Superbee/);
+  await assert.rejects(sourceDiff(f.root, f.state, f.root, status, fixtureSourceRun(f.root)), /public Superbee/);
 });
 
 test("source diff compares a release cut from a branch the next release never merged", async (t) => {
@@ -201,8 +209,8 @@ test("source diff compares a release cut from a branch the next release never me
   await git("tag", facts.sourceTag);
   await assert.rejects(git("merge-base", "--is-ancestor", base, head));
   const status = { sourceDiff: { base, head }, verifiedFacts: facts };
-  assert.deepEqual(await sourceDiff(f.root, f.state, f.root, status, realRun), ["next.txt", "release-only.txt"]);
-  await assert.rejects(sourceDiff(f.root, f.state, f.root, { ...status, sourceDiff: { base: "d".repeat(40), head } }, realRun), /cat-file/);
+  assert.deepEqual(await sourceDiff(f.root, f.state, f.root, status, fixtureSourceRun(f.root)), ["next.txt", "release-only.txt"]);
+  await assert.rejects(sourceDiff(f.root, f.state, f.root, { ...status, sourceDiff: { base: "d".repeat(40), head } }, fixtureSourceRun(f.root)), /fetch/);
 });
 
 test("conductor drives the real release writer and CLI generator, preserving prior history on replay", async (t) => {
@@ -227,6 +235,7 @@ test("conductor drives the real release writer and CLI generator, preserving pri
   await cp(path.join(f.root, ".superbee/sources/superbee-release-0.1.4.md"), path.join(f.root, ".superbee/sources/current-release.md"));
   f.dependencies.status = async () => ({ status: "update_required", documentedVersion: "0.1.4", verifiedFacts: currentFacts,
     sourceDiff: { base: "c".repeat(40), head: currentFacts.sourceCommit }, impactEvents: [] });
+  f.dependencies.journeys = async () => ({ status: "passed", commands: 29, platform: process.platform, node: process.version, identity: actualIdentity });
   f.dependencies.install = async () => ({ package: actualIdentity.package, source: actualIdentity.source, artifact: actualIdentity.artifact });
   f.dependencies.run = async (bin, args, cwd) => {
     // Package is already installed from the repository lock; all writer/generator calls are real.
@@ -235,7 +244,7 @@ test("conductor drives the real release writer and CLI generator, preserving pri
   };
   await conduct("prepare", f.options, f.dependencies);
   const packet = await read(path.join(f.state, "packet.json"));
-  await write(path.join(f.state, "release.json"), { ...manifestSkeleton(currentFacts), ...authored });
+  await write(path.join(f.state, "release.json"), { ...manifestSkeleton(currentFacts), ...authored, verification: [...authored.verification, journeyVerification(packet.journeys)] });
   await write(path.join(f.state, "review.json"), { packetDigest: packet.digest, reviewedBy: "integration-test",
     pages: packet.affectedPages.map((id) => ({ id, disposition: "updated", reason: "Verified the real generator path." })) });
   assert.equal((await conduct("apply", f.options, f.dependencies)).status, "applied");
@@ -245,4 +254,93 @@ test("conductor drives the real release writer and CLI generator, preserving pri
   assert.deepEqual(await readFile(path.join(f.root, ".superbee/releases/0.1.4.md")), predecessor);
   await realRun(process.execPath, ["scripts/release-docs.mjs", "check", "--superbee-bin", path.resolve("node_modules/.bin/superbee")], f.root);
   await realRun(process.execPath, ["scripts/cli-reference.mjs", "check"], f.root);
+});
+
+test("finalize requires authored review, binds machine verification, retries and reuses exact inputs", async (t) => {
+  const f = await fixture(t);
+  await conduct("prepare", f.options, f.dependencies);
+  await assert.rejects(conduct("finalize", f.options, f.dependencies), /placeholder/);
+  await f.review();
+  const manifest = await read(path.join(f.state, "release.json"));
+  await write(path.join(f.state, "release.json"), { ...manifest, verification: authored.verification });
+  await assert.rejects(conduct("finalize", f.options, f.dependencies), /machine journey summary/);
+  await write(path.join(f.state, "release.json"), manifest);
+  f.interrupt();
+  await assert.rejects(conduct("finalize", f.options, f.dependencies), /simulated interruption/);
+  const verified = await conduct("finalize", f.options, f.dependencies);
+  assert.equal(verified.status, "verified"); assert.equal(verified.journeys.commands, 29);
+  assert.equal(f.calls.filter((call) => call === "ci").length, 1);
+  const reused = await conduct("finalize", f.options, f.dependencies);
+  assert.equal(reused.reused, true); assert.equal(reused.journeys.commands, 29);
+  assert.equal(f.calls.filter((call) => call === "ci").length, 1);
+  await writeFile(path.join(f.root, "scripts/release-journey-fixtures/no-network.mjs"), "changed fixture guard");
+  await assert.rejects(conduct("finalize", f.options, f.dependencies), /conductor tools changed/);
+});
+
+test("finalize current probe never implies verification and changed public authority blocks mutation", async (t) => {
+  const f = await fixture(t);
+  const initial = f.dependencies.status;
+  f.dependencies.status = async () => ({ status: "current", verifiedFacts: facts });
+  await conduct("prepare", f.options, f.dependencies);
+  assert.deepEqual(await conduct("finalize", f.options, f.dependencies), {
+    status: "current", changed: false, verification: "not-performed",
+    next: "This captured authority probe performed no finalization checks. Use npm run check and fresh CI for verification; prepare a new state for fresh authority." });
+  assert.deepEqual(f.calls, []);
+  const options = { ...f.options, state: ".tmp/second" };
+  f.dependencies.status = initial;
+  await conduct("prepare", options, f.dependencies);
+  const state = path.join(f.root, options.state), packet = await read(path.join(state, "packet.json"));
+  await write(path.join(state, "release.json"), { ...manifestSkeleton(facts), ...authored, verification: [...authored.verification, journeyVerification(packet.journeys)] });
+  await write(path.join(state, "review.json"), { packetDigest: packet.digest, reviewedBy: "test", pages: packet.affectedPages.map((id) => ({ id, disposition: "updated", reason: "Reviewed." })) });
+  f.dependencies.status = async () => ({ ...(await initial()), verifiedFacts: { ...facts, sourceCommit: "e".repeat(40) } });
+  const before = f.calls.length;
+  await assert.rejects(conduct("finalize", options, f.dependencies), /public release authority changed/);
+  assert.ok(!f.calls.slice(before).some((call) => call.startsWith("install ") || call === "ci"));
+});
+
+test("dependency denial precedes install and ci and preserves docs and installed files", async (t) => {
+  const f = await fixture(t);
+  await mkdir(path.join(f.root, "node_modules"));
+  await writeFile(path.join(f.root, "node_modules/retained"), "preserved");
+  await conduct("prepare", f.options, f.dependencies); await f.review();
+  const files = [".superbee/releases/current.md", "package.json", "package-lock.json", "node_modules/retained"];
+  const snapshot = () => Promise.all(files.map((name) => readFile(path.join(f.root, name))));
+  const before = await snapshot();
+  f.dependencies.preflight = async () => { throw new Error("sanitized registry access failure"); };
+  const start = f.calls.length;
+  await assert.rejects(conduct("finalize", f.options, f.dependencies), /registry access failure/);
+  assert.ok(!f.calls.slice(start).some((call) => call.startsWith("install ") || call === "ci"));
+  assert.deepEqual(await snapshot(), before);
+  f.dependencies.preflight = async () => {};
+  await conduct("apply", f.options, f.dependencies);
+  const applied = await snapshot(), checkStart = f.calls.length;
+  f.dependencies.preflight = async () => { throw new Error("sanitized registry access failure"); };
+  await assert.rejects(conduct("check", f.options, f.dependencies), /registry access failure/);
+  assert.ok(!f.calls.slice(checkStart).includes("ci"));
+  assert.deepEqual(await snapshot(), applied);
+});
+
+test("source refresh fills missing tag in private cache and preserves supplied checkout and conflicting refs", async (t) => {
+  const f = await fixture(t);
+  const git = (...args) => realRun("git", ["-c", "user.name=Test", "-c", "user.email=test@example.invalid", ...args], f.root);
+  const base = (await git("rev-parse", "HEAD")).trim();
+  const supplied = path.join(f.root, ".tmp/stale-source");
+  await realRun("git", ["clone", "-q", f.root, supplied], f.root);
+  await realRun("git", ["remote", "set-url", "origin", "https://github.com/Holaxis-ai/superbee.git"], supplied);
+  await writeFile(path.join(supplied, "local-edit.txt"), "uncommitted preserved");
+  await writeFile(path.join(f.root, "released.txt"), "released"); await git("add", "."); await git("commit", "-qm", "released");
+  const head = (await git("rev-parse", "HEAD")).trim(); await git("tag", "-a", facts.sourceTag, "-m", "release");
+  const status = { sourceDiff: { base, head }, verifiedFacts: facts };
+  const run = fixtureSourceRun(f.root);
+  assert.deepEqual(await sourceDiff(f.root, f.state, supplied, status, run), ["released.txt"]);
+  assert.equal((await realRun("git", ["rev-parse", "HEAD"], supplied)).trim(), base);
+  assert.equal((await realRun("git", ["tag", "--list"], supplied)).trim(), "");
+  assert.equal(await readFile(path.join(supplied, "local-edit.txt"), "utf8"), "uncommitted preserved");
+  await realRun("git", ["tag", facts.sourceTag, base], supplied);
+  await assert.rejects(sourceDiff(f.root, f.state, supplied, status, run), /supplied source tag contradicts/);
+  assert.equal((await realRun("git", ["rev-parse", facts.sourceTag], supplied)).trim(), base);
+  const cache = path.join(f.state, "source-cache"), ref = "refs/release-conductor/verified-tag";
+  await realRun("git", ["update-ref", ref, base], cache);
+  await assert.rejects(sourceDiff(f.root, f.state, undefined, status, run), /private source tag contradicts/);
+  assert.equal((await realRun("git", ["rev-parse", ref], cache)).trim(), base);
 });

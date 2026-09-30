@@ -26,6 +26,10 @@ jobs:
           node-version: 22
           cache: npm
           registry-url: "https://registry.npmjs.org"
+      - name: Check dependency metadata access before installation
+        run: node scripts/release-dependency-preflight.mjs
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
       - run: npm ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
