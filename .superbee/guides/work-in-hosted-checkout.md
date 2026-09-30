@@ -6,21 +6,20 @@ description: >-
   conflicts.
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:45:55.250Z'
+  at: '2026-09-30T19:59:53.343Z'
 superbee_updated_by: 'process:release-docs-review'
 ---
 # Release applicability
 
-This page prepares the pending release described in [next release evidence](../sources/next-release.md).
-The [current stable release](../releases/current.md) remains the installation authority until
-publication is verified. Hosted availability also depends on the selected host's capabilities and
-your access; CLI source support does not establish that a production host offers every feature.
+This page describes [the current stable CLI](../sources/current-release.md). Hosted availability depends on
+the selected host's capabilities and your access. CLI support does not establish that a production
+host offers every feature.
 
 # Outcome
 
 Work on a hosted bundle through a local folder while the host remains authoritative. Edits stay in
 the folder until sync sends them under the signed-in person's access. Use this guide as an agent
-or practitioner with the prepared CLI on macOS or Linux and access to a compatible hosted service.
+or practitioner with the current stable CLI on macOS or Linux and access to a compatible hosted service.
 
 # 1. Sign in and select a workspace
 
@@ -141,7 +140,7 @@ edited files; it sends nothing to the host.
 # What cannot be edited in a checkout
 
 Kinds and recipes are designed in a local or Git bundle before publication. Definition changes
-are refused in this prepared release; a generic operation is not a bypass. Artifact and blob
+are refused in this release; a generic operation is not a bypass. Artifact and blob
 writes, verification, and View saves require the supported owning interface, usually the Superbee
 app. Renames, retypes, unsupported metadata changes, and size-limit failures must be handled from
 the returned refusal. Never bypass a refusal by editing reserved files or copying the folder.

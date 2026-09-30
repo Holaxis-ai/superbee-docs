@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:45:58.757Z'
+  at: '2026-09-30T19:53:20.604Z'
 ---
 # Question answered
 
@@ -199,13 +199,12 @@ do not establish feature equivalence with Superbee.
 
 [what Superbee is](what-superbee-is.md)
 
-# Prepared release changes
+# Release contracts
 
 Kind Conventions can declare numeric `order` to guide reading sequence without changing the
 instances' schemas. Bundle-owned placement survives recipe reapplication. Hosted checkouts retain
-the model established before publication and refuse in-place definition edits in this prepared
+the model established before publication and refuse in-place definition edits in this
 release. See [Kind reference](../reference/kind-conventions-and-recipes.md) and
 [Hosted checkout](../guides/work-in-hosted-checkout.md).
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:46:02.190Z'
+  at: '2026-09-30T19:53:17.844Z'
 ---
 # Question answered
 
@@ -121,7 +121,7 @@ see [architecture at a glance](architecture-at-a-glance.md).
 
 [pinned implementation source](../sources/superbee-codebase-main.md)
 
-# Prepared release changes
+# Release contracts
 
 The diagram remains independently pinned. Release-facing sync now includes Git inspect/resolve
 verbs and hosted working-copy reconciliation, with whole-document conflicts, remembered decisions,
@@ -130,5 +130,4 @@ access, ownership and transaction domains. See
 [Git sharing](../guides/share-and-synchronize-git-bundle.md) and
 [Hosted checkout](../guides/work-in-hosted-checkout.md).
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

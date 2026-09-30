@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:45:57.597Z'
+  at: '2026-09-30T19:53:17.340Z'
 ---
 # Outcome
 
@@ -228,22 +228,20 @@ Bundle-health behavior is grounded in the tagged
 and
 [`status` tests](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/test/status.test.ts).
 
-# Prepared release changes
+# Release contracts
 
-Native Windows `EBADPLATFORM` is the prepared distribution boundary, not a missing npm prefix.
+Native Windows `EBADPLATFORM` is the distribution boundary, not a missing npm prefix.
 Forcing installation will not restore support. WSL2 is the normal Linux route; preserve existing
-files before moving work. The current stable release matrix above remains historical until the
-new package is published.
+files before moving work. See [Host and platform support](../reference/host-and-platform-support.md) for the release matrix.
 
 If `home`, `status`, or `bundle locate` reports `copy_of_checkout`, the folder was moved/copied and
 is not bound to hosted state here. Do not initialize a replacement or route from the marker.
 Follow [Hosted checkout recovery](hosted-checkout.md) for adoption and workspace proof.
 `AUTH_REQUIRED`, `choose_workspace`, held deletions, and hosted conflicts also belong to that guide.
 
-For a fresh clone with a conventional shared-board binding, the prepared orientation and setup
+For a fresh clone with a conventional shared-board binding, the orientation and setup
 retain the shared-board path. Follow the returned sync recovery; `init` is reserved for a confirmed
 new local bundle. Unavailable hook launchers are reported as unsupported by setup rather than as a
 ready integration.
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

@@ -4,19 +4,18 @@ title: Move a bundle between local and hosted
 description: 'Preview hosted publication, adopt a moved checkout, or export a hosted bundle.'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:39:40.745Z'
+  at: '2026-09-30T19:59:53.022Z'
 superbee_updated_by: 'process:release-docs-review'
 ---
 # Release applicability
 
-This page prepares the pending release described in [next release evidence](../sources/next-release.md).
-The [current stable release](../releases/current.md) remains the installation authority until
-publication is verified. Hosted availability also depends on the selected host's capabilities and
-your access; CLI source support does not establish that a production host offers every feature.
+This page describes [the current stable CLI](../sources/current-release.md). Hosted availability depends on
+the selected host's capabilities and your access. CLI support does not establish that a production
+host offers every feature.
 
 # Outcome and prerequisites
 
-Move only when the person has chosen the destination and sharing boundary. You need the prepared
+Move only when the person has chosen the destination and sharing boundary. You need the current stable CLI
 CLI, the intended bundle path, and access to a compatible host. Keep a recoverable copy of local
 work. A migration changes how future synchronization travels; it does not prove teammates have
 moved with you.

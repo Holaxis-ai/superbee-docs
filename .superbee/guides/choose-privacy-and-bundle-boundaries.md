@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:46:01.045Z'
+  at: '2026-09-30T19:53:19.599Z'
 ---
 # Outcome
 
@@ -222,7 +222,7 @@ implementation.
 
 [current stable release evidence](../sources/current-release.md)
 
-# Prepared release changes
+# Release contracts
 
 A hosted checkout folder is a working copy of a separately authoritative bundle. Private state
 binds its path to the confirmed host/workspace/bundle, while the marker is only descriptive.
@@ -231,5 +231,4 @@ by them until shared. Export does not change hosted ownership or access. Catalog
 available choices without making them current project context. See
 [Hosted transfer and adoption](move-bundle-between-local-and-hosted.md).
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

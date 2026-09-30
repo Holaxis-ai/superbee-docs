@@ -6,15 +6,14 @@ description: >-
   boundaries.
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:55:16.111Z'
+  at: '2026-09-30T19:59:53.660Z'
 superbee_updated_by: 'process:release-docs-review'
 ---
 # Release applicability
 
-This page prepares the pending release described in [next release evidence](../sources/next-release.md).
-The [current stable release](../releases/current.md) remains the installation authority until
-publication is verified. Hosted availability also depends on the selected host's capabilities and
-your access; CLI source support does not establish that a production host offers every feature.
+This page describes [the current stable CLI](../sources/current-release.md). Hosted availability depends on
+the selected host's capabilities and your access. CLI support does not establish that a production
+host offers every feature.
 
 # Hosted selection and identity
 
@@ -71,7 +70,7 @@ A missing sign-in returns a tool error with the link to relay; retry after brows
 
 # Capability and refusal matrix
 
-| Surface | Prepared release behavior |
+| Surface | Release behavior |
 | --- | --- |
 | Document reads and ordinary edits | Work on the checkout folder; compatible sync sends whole-document create, replace, or delete with version preconditions. |
 | Host history | `doc history` reads sent host versions; it does not include an unsent edit. |

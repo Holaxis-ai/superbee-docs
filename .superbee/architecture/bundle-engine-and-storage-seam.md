@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:46:01.618Z'
+  at: '2026-09-30T19:53:18.096Z'
 ---
 # Question answered
 
@@ -117,15 +117,14 @@ See [Wire protocol and reference server](../reference/wire-protocol-and-referenc
 [Document mutation lifecycle](document-mutation-lifecycle.md), and
 [Query, links, and backlinks](../guides/query-links-and-backlinks.md).
 
-# Prepared release changes
+# Release contracts
 
 The architecture diagram and main narrative retain their independently pinned source scope.
-The next release extracts filesystem host policy and retains a backend in `initBundle`'s
+Release 0.3.0 extracts filesystem host policy and retains a backend in `initBundle`'s
 `{root, backend}` result. Hosted checkout reconciliation uses the filesystem working copy and
 identified whole-document transport; heads/snapshot and retained operation outcomes supply bounded
 network reconciliation. These changes do not make the reference wire server authenticated.
 Use [Wire reference](../reference/wire-protocol-and-reference-server.md) and
 [Hosted checkout](../guides/work-in-hosted-checkout.md) for release-facing interfaces.
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

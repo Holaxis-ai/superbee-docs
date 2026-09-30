@@ -6,15 +6,14 @@ description: >-
   transfers.
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:39:41.064Z'
+  at: '2026-09-30T19:59:53.985Z'
 superbee_updated_by: 'process:release-docs-review'
 ---
 # Release applicability
 
-This page prepares the pending release described in [next release evidence](../sources/next-release.md).
-The [current stable release](../releases/current.md) remains the installation authority until
-publication is verified. Hosted availability also depends on the selected host's capabilities and
-your access; CLI source support does not establish that a production host offers every feature.
+This page describes [the current stable CLI](../sources/current-release.md). Hosted availability depends on
+the selected host's capabilities and your access. CLI support does not establish that a production
+host offers every feature.
 
 # Collect the relevant receipts
 

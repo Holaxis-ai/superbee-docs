@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:46:01.335Z'
+  at: '2026-09-30T19:53:16.838Z'
 ---
 # Goal
 
@@ -144,15 +144,14 @@ Architecture contributors should begin with [Architecture at a glance](../archit
 and [Bundle engine and storage seam](../architecture/bundle-engine-and-storage-seam.md). CLI changes
 must also review [CLI commands](../reference/cli-commands.md) and its documentation trigger.
 
-# Prepared release changes
+# Release contracts
 
-The prepared distribution targets macOS and Linux. Native Windows CLI source has moved to a
+The distribution targets macOS and Linux. Native Windows CLI source has moved to a
 separate experimental repository; library host-policy integration is a separate contract.
-Use the prepared commit's
+Use the release commit's
 [CONTRIBUTING.md](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/CONTRIBUTING.md)
 and [SECURITY.md](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/SECURITY.md)
-for this release review. The historical links above describe the original quickstart boundary.
+for this release. The historical links above describe the original quickstart boundary.
 Do not import later `main` features into the fixed release branch's documentation.
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

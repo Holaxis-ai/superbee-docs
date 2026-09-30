@@ -5,7 +5,7 @@ description: Author one safe responsive View for the local UI and MCP Apps hosts
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:45:59.609Z'
+  at: '2026-09-30T19:53:24.156Z'
 ---
 # Goal
 
@@ -27,7 +27,7 @@ Choose the least capable access level:
 | --- | --- | --- |
 | `none` | Static diagram or self-contained explainer | No document data; registered View navigation only |
 | `bundle-read` | Dashboard or live browser | Bounded read, render, edge, and subscription bridge |
-| `bundle-propose` | Human-reviewed workflow control | Read bridge plus one narrow scalar-field proposal flow |
+| `bundle-propose` | Human-reviewed workflow control | Read bridge plus advertised confirmed actions; local UI supports field, body, and atomic updates, while MCP supports scalar fields |
 
 Every `bundle-propose` mutation is presented by trusted shell chrome and requires a separate human
 Apply decision against the current target version. The View cannot commit directly.
@@ -134,7 +134,7 @@ The full message protocol travels with the tagged
 See [View contract and access](../reference/view-contract-and-access.md) for lookup details and
 [View lifecycle and trust](../architecture/view-lifecycle-and-trust.md) for the system boundary.
 
-# Prepared release changes
+# Release contracts
 
 Negotiate the host descriptor's query, graph, and action capabilities before enabling controls.
 Graph is bounded and does not supply OSS model/definitions. Require explicit action protocol,
@@ -146,5 +146,4 @@ and lock proposals after an unknown outcome. See [View contract](../reference/vi
 Hosted checkouts cannot save View artifacts through this CLI. Follow the app/interface instruction
 rather than using a generic operation or direct blob mutation to bypass the refusal.
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

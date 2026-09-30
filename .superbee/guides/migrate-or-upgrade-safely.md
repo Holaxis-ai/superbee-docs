@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:45:56.433Z'
+  at: '2026-09-30T19:54:20.864Z'
 ---
 # Outcome
 
@@ -272,9 +272,9 @@ workspace. The reader should preserve the same bundle path, use logical `progres
 successfully, and finish with a verified host setup. Test legacy private-state migration only in an
 isolated home directory that contains a supported legacy fixture.
 
-# Prepared release changes
+# Release contracts
 
-Review the native Windows platform withdrawal before an upgrade: the prepared npm package allows
+Review the native Windows platform withdrawal before an upgrade: the npm package allows
 only darwin/linux, and a forced native Windows install refuses commands. Use WSL2 or evaluate the
 unsupported Windows source build; do not remove or migrate existing bundles as an installation
 repair. Preserve the previous executable identity and local work before changing environments.
@@ -290,5 +290,4 @@ for a non-POSIX host and retain the backend returned by `initBundle` as `{root, 
 has no npm OS restriction and its non-filesystem backends remain available. See the pinned
 [core migration contract](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/core/README.md).
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

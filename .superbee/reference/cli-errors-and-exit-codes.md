@@ -5,7 +5,7 @@ description: 'Stable CLI failure codes, exit statuses, output channels, and retr
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:45:57.882Z'
+  at: '2026-09-30T19:53:22.395Z'
 ---
 # Scope
 
@@ -123,7 +123,7 @@ Actor and field-action classification is in
 and sharing details are defined in
 [`sync-outcomes.ts` at v0.2.1](https://github.com/Holaxis-ai/superbee/blob/v0.2.1/packages/cli/src/sync-outcomes.ts).
 
-# Prepared release changes
+# Release contracts
 
 | Hosted condition | Machine receipt / code | Response |
 | --- | --- | --- |
@@ -141,5 +141,4 @@ A sync receipt can contain committed, conflict, held, refused, unknown, and paus
 requires all rows committed. Preserve partial outcomes; a failed command or missing acknowledgement
 does not mean no write happened. See [Hosted recovery](../troubleshooting/hosted-checkout.md).
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

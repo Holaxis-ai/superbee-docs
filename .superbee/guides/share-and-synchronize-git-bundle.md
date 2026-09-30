@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:51:11.377Z'
+  at: '2026-09-30T19:53:19.349Z'
 ---
 # Outcome
 
@@ -387,7 +387,7 @@ Repeat with competing claims on a Kind that declares ownership coordinates. Conf
 claim is reported with upstream provenance when available, the complete local export survives,
 and recovery does not suggest restoring the losing ownership fields.
 
-# Prepared release changes
+# Release contracts
 
 Git boards add recorded conflict decisions:
 
@@ -410,5 +410,4 @@ Deletion-hold acceptance/restore and take-host-deletions flags are hosted-only. 
 [Hosted checkout](work-in-hosted-checkout.md). This release's Git workflow should not be described
 as using the hosted deletion policy or hosted access credentials.
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:45:55.845Z'
+  at: '2026-09-30T19:53:23.401Z'
 ---
 # Outcome
 
@@ -106,19 +106,18 @@ verify the restarted host.
 
 Continue with [Create your first durable workspace](first-durable-workspace.md).
 
-# Prepared release changes
+# Release contracts
 
-The prepared npm distribution supports macOS and Linux with Node.js 20 or newer. Native Windows
+The npm distribution supports macOS and Linux with Node.js 20 or newer. Native Windows
 upgrades are rejected by npm with `EBADPLATFORM`. A forced installation still refuses command
 execution; bare `--version` can identify the build. Windows users should use WSL2 or evaluate the
 experimental source-only [Windows build](https://github.com/Holaxis-ai/superbee-windows-cli), which
 has no first-party native Windows support promise. These changes do not migrate bundle files.
 
-Persistent AI host setup and hosted account setup are distinct. After publication and ordinary
+Persistent AI host setup and hosted account setup are distinct. After ordinary
 host setup, users choosing hosted storage can run `superbee setup hosted --url <hosted-url>`.
 This explicit command starts sign-in and records the hosted workspace. Relay its returned browser
 link, wait for confirmation, and repeat its resume command; select among workspaces with the
 person. Continue with [Work in a hosted checkout](../guides/work-in-hosted-checkout.md).
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

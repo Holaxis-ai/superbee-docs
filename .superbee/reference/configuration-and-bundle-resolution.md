@@ -7,7 +7,7 @@ description: >-
   precedence and recovery.
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:45:57.301Z'
+  at: '2026-09-30T19:53:23.146Z'
 ---
 # Scope
 
@@ -246,7 +246,7 @@ and
 
 [CLI overview](cli-overview.md)
 
-# Prepared release changes
+# Release contracts
 
 A hosted checkout is selected through its local folder with normal discovery or `--dir`.
 Private state binds that canonical folder path to host, workspace, and bundle. A read-only
@@ -263,5 +263,4 @@ rather than being treated as the unauthenticated reference server's default bund
 [Hosted CLI access](hosted-cli-access.md) and [Hosted recovery](../troubleshooting/hosted-checkout.md).
 Never infer routing from a marker or reuse another workspace's access.
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

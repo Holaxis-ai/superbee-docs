@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:45:56.140Z'
+  at: '2026-09-30T19:53:23.651Z'
 ---
 # Scope
 
@@ -26,7 +26,7 @@ accepted the change. Restart that host when instructed, then rerun setup until i
 | --- | --- | --- |
 | macOS | Supported | Node.js 20 or newer and npm are required. |
 | Linux | Supported | Node.js 20 or newer and npm are required. |
-| Windows | Supported | Node.js 20 or newer and npm are required. Private state uses the user's LocalAppData boundary. |
+| Native Windows | Unsupported | Use WSL2 for the Linux CLI; native npm installation fails with `EBADPLATFORM`. |
 
 Treat behavior present only on `main` as unreleased until the stable package evidence includes it.
 
@@ -34,10 +34,10 @@ Treat behavior present only on `main` as unreleased until the stable package evi
 
 | Host | Stable platform path | Agent Skill | MCP registration | SessionStart hook | Setup selector |
 | --- | --- | --- | --- | --- | --- |
-| Codex | macOS, Linux, and Windows | Required | Required | Recommended | `codex` |
-| Claude Code | macOS, Linux, and Windows | Required | Required | Recommended | `claude-code` |
-| Claude Desktop | macOS and Windows | Not available | Required | Not available | `claude-desktop` |
-| OpenCode | macOS, Linux, and Windows | Required | Required | Recommended | `opencode` |
+| Codex | macOS and Linux | Required | Required | Recommended | `codex` |
+| Claude Code | macOS and Linux | Required | Required | Recommended | `claude-code` |
+| Claude Desktop | macOS | Not available | Required | Not available | `claude-desktop` |
+| OpenCode | macOS and Linux | Required | Required | Recommended | `opencode` |
 
 Inspect one host explicitly:
 
@@ -80,11 +80,9 @@ recovery.
 
 [CLI overview](cli-overview.md)
 
-# Prepared release changes
+# Release contracts
 
-The next npm distribution supports macOS and Linux only. Windows entries in the current stable
-matrix above describe the previous release and must be removed when the stable evidence advances.
-Native Windows npm upgrades fail with `EBADPLATFORM`; forcing installation does not restore
+The npm distribution supports macOS and Linux only. Native Windows npm upgrades fail with `EBADPLATFORM`; forcing installation does not restore
 runtime support. WSL2 follows the Linux installation. The separate
 [experimental Windows source build](https://github.com/Holaxis-ai/superbee-windows-cli) is unsupported
 and is not a replacement package on npm. The core library's other storage backends are a separate
@@ -96,5 +94,4 @@ CLI platforms. Hosted Superbee is a storage/account destination, not a fifth AI 
 Claude Code and Codex after explicit `hook install --turn-end-sync`; Git boards also require
 `--git-boards`. Host registration readiness still requires the host restart and a fresh check.
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

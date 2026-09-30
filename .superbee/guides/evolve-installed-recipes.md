@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:45:59.041Z'
+  at: '2026-09-30T19:54:20.593Z'
 ---
 # Goal
 
@@ -113,12 +113,11 @@ and exercised by its integration tests. See
 [Kind conventions and recipes](../reference/kind-conventions-and-recipes.md) for the static recipe
 model and [Migrate or upgrade safely](migrate-or-upgrade-safely.md) for package-level recovery.
 
-# Prepared release changes
+# Release contracts
 
 A bundle-authored Convention `order` controls reading placement and is preserved when its recipe
 is reapplied. It does not create schema drift requiring evolution. Validate the live Convention
 and instances after substantive model changes. A hosted checkout cannot evolve definitions in this
-prepared release; finish and validate the local/Git model before publication.
+release; finish and validate the local/Git model before publication.
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

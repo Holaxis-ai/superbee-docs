@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:45:59.887Z'
+  at: '2026-09-30T19:53:18.349Z'
 ---
 # Goal
 
@@ -147,7 +147,7 @@ Query and graph behavior is grounded in the tagged
 commands. See [Research claims and evidence](../examples/claims-and-evidence.md) for a complete
 modeled example.
 
-# Prepared release changes
+# Release contracts
 
 A View can request graph only when `hello.host.capabilities` declares it. Respect the advertised
 document, relationship, reply, and body limits and render partial/over-limit states. OSS graph
@@ -155,5 +155,4 @@ returns documents and relationships without model/definition projections; `graph
 reserved. Typed CLI reads on a hosted checkout use its local folder so unsent changes are included;
 generic hosted op calls intentionally refuse those folder-owned read IDs.
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

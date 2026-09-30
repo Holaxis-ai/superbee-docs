@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:48:16.209Z'
+  at: '2026-09-30T19:59:54.304Z'
 ---
 # Purpose
 
@@ -198,31 +198,28 @@ The representative slice is ready to expand when:
 
 [site experience contract](../design/site-experience-contract.md)
 
-# Prepared release coverage
+# Current stable release coverage
 
-The `codex/docs-0.3.0-draft` branch claims this coupled release-facing page set. Publication is
-blocked until the registry and final release evidence establish the pending release described in
-[the source preparation record](../sources/next-release.md). Stable release records, package pins,
-publication version label, and generated inventory continue to identify the published package.
-No live-host or installed next-package journey is claimed by authored source review.
+The `codex/docs-0.3.0-draft` branch covers the coupled release-facing page set below.
+[Current release evidence](../sources/current-release.md) owns package verification;
+[the release source review](../sources/next-release.md) bounds the implementation claims.
+Production hosted acceptance and native Windows execution remain untested.
 
-| Page set | Mode / audience / successful outcome | Draft disposition and governing evidence |
+| Page set | Mode / audience / successful outcome | Disposition and governing evidence |
 | --- | --- | --- |
-| Hosted checkout, transfer, access reference, and recovery | How-to / practitioner and agent / select, edit, reconcile, transfer the intended hosted bundle | New authored procedures and trigger from fixed checkout, auth, operation, sync, publish/export source; disposable installed-package and compatible-host journeys pending. |
+| Hosted checkout, transfer, access reference, and recovery | How-to / practitioner and agent / select, edit, reconcile, transfer the intended hosted bundle | New authored procedures and trigger from fixed checkout, auth, operation, sync, publish/export source; installed-package journeys are recorded in release evidence; production host acceptance is untested. |
 | Install, host support, verify host setup, upgrade, setup troubleshooting | Tutorial or how-to / new and existing user / use supported CLI and reconnect integrations | Installation and platform change sections plus hosted setup routing; verify-host procedure unchanged except optional hook capability, which is covered by host support. Native Windows support removal is fixed source evidence. |
-| CLI overview, inventory, configuration, errors | Reference / agent and integrator / select the right command and recover from receipts | Authored pending ownership/selection/error sections; inventory regenerated only after stable package identity is verified. |
+| CLI overview, inventory, configuration, errors | Reference / agent and integrator / select the right command and recover from receipts | Updated command ownership, selection, and errors; inventory generated from the verified installed package. |
 | Kinds, reusable structure, modeling, recipe evolution | Explanation or how-to / bundle author / preserve the model and guide reading order | Numeric Convention order and hosted definition refusal documented. Later hosted-definition writes excluded. |
-| View contract, View authoring, query/links, trust | Reference or how-to / View author and operator / discover capabilities and confirm bounded changes | Local body/atomic proposal support, MCP scalar-only scope, graph bounds and absent OSS model projection documented from pinned protocol and tests. Live host acceptance pending. |
+| View contract, View authoring, query/links, trust | Reference or how-to / View author and operator / discover capabilities and confirm bounded changes | Local body/atomic proposal support, MCP scalar-only scope, graph bounds and absent OSS model projection documented from pinned protocol and tests. Live production host acceptance is untested. |
 | Git sharing and privacy boundaries | How-to / practitioner / resolve saved conflicts without restoring lost ownership or confusing hosted policy | Recorded inspect/resolve decisions and explicit transfer boundary documented. Remote access principles unchanged. |
 | Wire contract | Reference / integrator / reconcile complete reads and ambiguous document writes | Heads/snapshot/identified outcomes and retention limits documented. Server remains unauthenticated by default. |
-| Contributor quickstart | How-to / contributor / find the governing release workflow | Prepared source instruction links added; no current-main feature inference. |
-| Architecture at a glance, system context, document mutation, public publication | Explanation / technical reader / understand the independently pinned architecture | No change to the separately pinned source or admitted diagrams. Next-release interface changes route through authored references; architecture refresh remains independently reviewed. |
+| Contributor quickstart | How-to / contributor / find the governing release workflow | Release source instruction links added; no current-main feature inference. |
+| Architecture at a glance, system context, document mutation, public publication | Explanation / technical reader / understand the independently pinned architecture | No change to the separately pinned source or admitted diagrams. Release interface changes route through authored references; architecture refresh remains independently reviewed. |
 | Bundle engine, View lifecycle, sync/freshness architecture | Explanation / integrator / locate changed contracts | Added release-facing change notes; main narrative and diagrams retain their stated source scope. |
-| What Superbee is, bundles/documents, start here, first workspace, context, assigned work, claims example | Explanation or tutorial / new and active user / preserve or model local work | No change: source delta retains these local journeys and actor/model examples; new hosted workflow is independently linked through navigation and CLI reference. Rerun representative local journeys against published package before merge. |
-| Artifacts and publication snapshot API, OKF compatibility, show documents/Views | How-to or reference / operator / preserve byte channels and use supported presentation | No change to the documented local/versioned contract; checkout refusals and View proposal extension are documented in the new hosted and View references. Actual packed public exports and host rendering require final-package review. |
-| Current release and archive | Reference / existing user / know actual stable identity and recovery | Retained without invented publication; pending release notes/handoff are selected separately. Conductor must promote real release evidence and remove draft caveats before merge. |
+| What Superbee is, bundles/documents, start here, first workspace, context, assigned work, claims example | Explanation or tutorial / new and active user / preserve or model local work | No change: source delta retains these local journeys and actor/model examples; new hosted workflow is independently linked through navigation and CLI reference. Representative local journeys use the published package. |
+| Artifacts and publication snapshot API, OKF compatibility, show documents/Views | How-to or reference / operator / preserve byte channels and use supported presentation | No change to the documented local/versioned contract; checkout refusals and View proposal extension are documented in the new hosted and View references. The installed package and documentation rendering are checked separately from production host acceptance. |
+| Current release and archive | Reference / existing user / know actual stable identity and recovery | Promoted by the release conductor from verified registry, tag, and packed identity; immutable release history retained. |
 
-The actual tree-delta impact query covered all returned maintained pages. The table records
-updated or reasoned no-change disposition for that set without treating historical release events
-as completed publication. Final conductor review must bind every affected page to the captured
-registry package and final checks.
+The release conductor records every affected-page disposition against its captured registry and
+source packet. The tree-delta review retains the independently pinned architecture diagrams.

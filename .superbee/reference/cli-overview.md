@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:45:56.721Z'
+  at: '2026-09-30T19:53:20.860Z'
 ---
 # Scope
 
@@ -156,7 +156,7 @@ and defaults.
 
 [current release evidence](../sources/current-release.md)
 
-# Prepared release changes
+# Release contracts
 
 | Area | Additional commands | Task ownership |
 | --- | --- | --- |
@@ -168,9 +168,6 @@ and defaults.
 | Optional session sync | `hook install --turn-end-sync` | Sync at turn end on Claude Code/Codex after agreement; Git boards also require `--git-boards`. |
 
 Use [Hosted CLI access and operations](hosted-cli-access.md) for selection and capability constraints.
-The generated stable inventory stays at the previous stable package until the release conductor
-pins the published package and regenerates it. Source help is preparation evidence, not a claimed
-installed stable-package result.
+The [generated command inventory](cli-commands.md) is captured from the installed 0.3.0 package.
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

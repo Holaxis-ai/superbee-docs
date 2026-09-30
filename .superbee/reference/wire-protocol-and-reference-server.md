@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:55:16.390Z'
+  at: '2026-09-30T19:53:22.895Z'
 ---
 # Scope
 
@@ -122,9 +122,9 @@ state before deciding whether to retry.
 See [Artifacts and byte channels](../guides/artifacts-and-byte-channels.md) for CLI routing and
 [Security and trust boundaries](security-and-trust-boundaries.md) before exposing a server.
 
-# Prepared release changes
+# Release contracts
 
-The next wire contract advertises additive `heads`, `snapshot`, and `operations` capabilities.
+The wire contract advertises additive `heads`, `snapshot`, and `operations` capabilities.
 
 | Method | Route | Contract |
 | --- | --- | --- |
@@ -150,5 +150,4 @@ These storage operations and hosted generic `op list`/`op run` are distinct surf
 and [wire tests](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/core/test/wire-protocol.test.ts)
 own route syntax and behavior.
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).

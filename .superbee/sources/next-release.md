@@ -1,28 +1,20 @@
 ---
 type: Source
-title: Pending Superbee release evidence
-description: >-
-  Public source identity and verification limits for the prepared stable
-  release.
+title: Superbee 0.3.0 source review
+description: Fixed release source and the verification limits for Superbee 0.3.0.
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:39:40.427Z'
+  at: '2026-09-30T19:59:13.369Z'
 superbee_updated_by: 'process:release-docs-review'
 ---
-# Identity and publication status
+# Release source review
 
-The prepared release is Superbee 0.3.0 at source commit
-`bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8`, merged through
-[release preparation PR 355](https://github.com/Holaxis-ai/superbee/pull/355).
-The comparison baseline is the currently documented stable release 0.2.1 at
-`ff8f9c8681c94204cac23e8ab7bb2981bb256a12`. Compare the two source trees; the histories diverged,
-so commit lists alone do not establish a newly introduced behavior.
-
-This is source preparation evidence. It records no stable npm publication date, tarball,
-integrity, or completed installed-package journey for 0.3.0. The stable authorities remain
-[current release evidence](current-release.md) and [current release](../releases/current.md).
-The planned docs must stay in draft until those authorities can be advanced from verified npm
-`latest`, the final GitHub release, and the matching source tag.
+Superbee 0.3.0 is published as npm `latest`. The release tag resolves to
+`bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8`, the source prepared through
+[PR 355](https://github.com/Holaxis-ai/superbee/pull/355).
+[Current release evidence](current-release.md) owns the verified package, tarball integrity,
+publication date, and embedded identity. This review compares its tree with 0.2.1 at
+`ff8f9c8681c94204cac23e8ab7bb2981bb256a12`; the histories diverged.
 
 # Public implementation authorities
 
@@ -42,13 +34,26 @@ All links below pin the prepared release commit, independently of subsequent `ma
 
 # Verification boundary
 
-The draft is authored from the public source tree and its committed tests. No production hosted
-sign-in, hosted write, native Windows execution, or installed stable-package journey is claimed
-by this record. Later source changes are outside its scope. Hosted operations are discovered from
-the chosen host; the OSS release does not promise deployment or access on that host.
+Claims are grounded in the fixed release tree and its committed tests, with disposable installed
+package journeys recorded below. No production hosted sign-in/write or
+native Windows execution is claimed. Hosted operations are discovered from the chosen host; the
+OSS release does not establish host deployment or access. Later `main` changes, including hosted
+definition writes, are outside this release.
 
-Before merge, prepare a fresh release-conductor packet for the published stable package, verify its
-integrity and embedded source identity, complete every affected-page review, run disposable
-package journeys, apply the reviewed release manifest, rebuild the generated CLI inventory, and
-run the complete repository check and exact-SHA CI. Preserve bounded untested host claims in the
-final immutable release evidence.
+# Installed package journeys
+
+The isolated published executable completed 29 command probes on macOS with Node.js 26.8.2:
+
+- Identity reports 0.3.0, the clean source commit above, and npm-package channel.
+- Fresh `init --create-only --recipe none`, document creation, complete `--body-out`, and guarded
+  replacement succeed. Reusing the stale version returns `STALE_HEAD` with exit 5 and preserves
+  the successful replacement.
+- Three promoted Kind Conventions enumerate in declared order 10, 20, then undeclared.
+- Hosted account, checkout, operation, publication, export, sync, and hook help is available.
+- Local `op list` is empty; local `op run documents.history.v1` returns `NOT_IMPLEMENTED` (exit 2).
+- An in-process hosted fixture hydrates a checkout and retains an unsent title edit through folder
+  reads. Its operation listing discovers history; generic `documents.read.v1` is refused (exit 2)
+  with folder-owned read guidance. Fixture transport refuses external or unconfigured requests.
+
+These probes use no production credentials. Live OAuth, hosted sync writes, conflict/deletion-hold
+acceptance, transfer, Linux, and Windows execution were not repeated in this update.

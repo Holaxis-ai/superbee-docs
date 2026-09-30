@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:45:57.011Z'
+  at: '2026-09-30T19:59:54.614Z'
 ---
 # Scope
 
@@ -36,12 +36,12 @@ The text between the markers is owned by `npm run cli-reference:build`. Do not e
 
 <!-- BEGIN GENERATED CLI INVENTORY -->
 
-Generated from the current stable package's executable help. 38 command entries are present.
+Generated from the current stable package's executable help. 39 command entries are present.
 
 | Group | Command signature |
 | --- | --- |
 | Bundle | `bundle locate [--dir <path>]` |
-| Bundle | `catalog (add <label> [--dir <path>] \| list \| resolve <label-or-id> [--field path])` |
+| Bundle | `catalog (add <label> [--dir <path>] \| list [--local \| --hosted [--host <url>]] \| resolve <label-or-id> [--field path])` |
 | Bundle | `init [--dir <path>] [--okf-version <v>] [--recipe <name-or-path>] [--create-only]` |
 | Bundle | `index generate [--dir <path>] [--check] [--force] [--actor <name>]` |
 | Bundle | `status [--limit <n>] [--dir <path>] [--remote <url>]` |
@@ -51,7 +51,7 @@ Generated from the current stable package's executable help. 38 command entries 
 | Documents & links | `doc verify <id> --actor <n> [--at <iso-8601>] [--expected-version <v>] [--dir <path>] [--remote <url>]` |
 | Documents & links | `doc read <id> [--out (<path> \| -) \| --body-out (<path> \| -) \| --rendered-out (<path> \| -) \| --field <name>] [--dir <path>] [--remote <url>]` |
 | Documents & links | `doc open <id> [--dir <path> \| --remote <url>] [--port <n>] [--actor <name>]` |
-| Documents & links | `doc history <id> [--limit <n>] [--dir <path>] [--remote <url>]` |
+| Documents & links | `doc history <id> [--limit <n> \| --seq <n>] [--dir <path>] [--remote <url>]` |
 | Documents & links | `doc delete <id> [--expected-version <v>] [--dir <path>] [--remote <url>]` |
 | Documents & links | `list [--type <t>] [--tag <t>] [--field <k=v>] [--prefix <p>] [--open] [--limit <n>] [--dir <path>] [--remote <url>]` |
 | Documents & links | `link (add <from> <to> [--text <t>] [--actor <n>] \| show <id> [--limit <n>] [--text <t>] \| list [--from <id\|prefix/>] [--to <id\|prefix/>] [--text <t>] [--limit <n>]) [--dir <path>] [--remote <url>]` |
@@ -72,12 +72,13 @@ Generated from the current stable package's executable help. 38 command entries 
 | Remote | `ui [--dir <path> \| --remote <url>] [--port <p>] [--open] \| ui --status [--dir <path>] [--limit <n>] \| ui --stop [--dir <path>] [--actor <name>] [--abandon]` |
 | Remote | `mcp [install\|status\|uninstall \| --dir <path>]` |
 | Remote | `view list [--limit <n>] [--dir <path> \| --remote <url>]` |
-| Remote | `sync [--establish [--yes] \| --pull-only \| --show-incoming <id> [--out <file> \| --body-out <file>]] [--dir <path>] [--limit <n>]` |
+| Remote | `sync [--establish [--yes] \| --pull-only \| --show-incoming <id> [--out <file> \| --body-out <file>] \| --inspect --doc <id> [--out <file>] \| --resolve keep\|take\|revise --doc <id> \| --restore-deletes \| --accept-deletes <token> \| --take-host-deletions <token>] [--dir <path>] [--limit <n>]` |
 | Session | `version [--check] [--tag latest\|next] [--json]` |
 | Session | `session-start [--dir <path>] [--no-update-check]` |
-| Session | `hook install\|status\|uninstall [--scope project\|user]` |
+| Session | `turn-end [--dir <path>] [--git-boards]` |
+| Session | `hook install\|status\|uninstall [--scope project\|user] [--turn-end-sync [--git-boards]]` |
 | Session | `skill install\|status\|uninstall [--scope project\|user]` |
-| Session | `setup [migrate-state\|harden-state\|quarantine-state] [--host codex\|claude-code\|claude-desktop\|opencode] [--scope project\|user] [--json]` |
+| Session | `setup [migrate-state\|harden-state\|quarantine-state] [--host codex\|claude-code\|claude-desktop\|opencode] [--scope project\|user] [--json] \| setup hosted [--url <hosted-url>] [--workspace <id>] [--json]` |
 
 <!-- END GENERATED CLI INVENTORY -->
 
@@ -108,19 +109,6 @@ diagnostics to stderr. See [CLI errors and exit codes](cli-errors-and-exit-codes
 # Stability and evidence
 
 The command graph comes from tagged
-[`command-spec.ts`](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/command-spec.ts)
+[`command-spec.ts`](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/cli/src/command-spec.ts)
 and the packed executable help. Descriptions and defaults can change between pre-1.0 releases.
 Always pair automated usage with the release evidence and the exact command's help.
-
-# Prepared release changes
-
-The generated inventory above belongs to the current published package. The prepared source adds
-hosted login/session commands, setup hosted, checkout/adopt/release, publication/export, generic
-operations, conflict decisions, deletion-hold recovery, and opt-in turn-end hook flags.
-[Hosted command ownership](hosted-cli-access.md) and the
-[checkout guide](../guides/work-in-hosted-checkout.md) describe those procedures. Once publication is
-verified, the existing conductor must pin the actual package and rebuild this inventory from its
-executable help. Do not edit the generated table by hand.
-
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.

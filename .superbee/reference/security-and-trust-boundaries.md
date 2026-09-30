@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-review'
 generated:
   by: 'process:release-docs-review'
-  at: '2026-09-30T18:46:00.761Z'
+  at: '2026-09-30T19:54:21.134Z'
 ---
 # Scope
 
@@ -78,8 +78,9 @@ Access is explicit:
 - `bundle-propose`: the read bridge plus a narrow local proposal protocol.
 
 Approval binds the registry identity, exact entry digest, and access. Changed bytes or broader
-access require a fresh decision. Proposal Views cannot create, delete, write bodies or links, make
-remote mutations, or retain ambient grants. The trusted shell rechecks the View, target document,
+access require a fresh decision. Proposal Views cannot create or delete documents, rewrite links, make remote mutations, or retain
+ambient grants. The local UI can confirm complete-body replacement and atomic field/body updates;
+MCP proposals remain scalar-field-only. The trusted shell rechecks the View, target document,
 Kind, and expected version before showing each action to the human.
 
 # Remote protocol
@@ -125,7 +126,7 @@ See [Wire protocol and reference server](wire-protocol-and-reference-server.md),
 include the UI server, View runtime, storage backends, setup conductor, and publication package at
 `v0.1.4`.
 
-# Prepared release changes
+# Release contracts
 
 Hosted checkout sync uses the person's authenticated access. Agent `via` attribution is
 unverified descriptive data and never expands that access. Host-provided operation descriptions
@@ -137,8 +138,7 @@ own admission. Definitions and unsupported artifacts remain refused from a check
 
 The local UI's confirmed proposal surface expands to complete bodies and atomic field/body
 updates while MCP stays scalar-only. Existing cross-links must survive body replacement;
-versions and source authorization are rechecked before commit. The current stable scalar-only
-restriction above must be reconciled when the release is verified. A lost acknowledgement is an
+versions and source authorization are rechecked before commit. A lost acknowledgement is an
 unknown write outcome, never evidence that nothing changed.
 
 A production wire host must resolve and authorize its canonical bundle route and provide durable
@@ -146,5 +146,4 @@ outcome retention if it promises recovery across restart. Reference memory reten
 such guarantee. See [Wire protocol](wire-protocol-and-reference-server.md) and
 [View contract](view-contract-and-access.md).
 
-[Pending release evidence](../sources/next-release.md). These changes await stable publication;
-[current stable evidence](../sources/current-release.md) continues to describe the previous release.
+[Release source review](../sources/next-release.md).
