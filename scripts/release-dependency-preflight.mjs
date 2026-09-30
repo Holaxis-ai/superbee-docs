@@ -6,7 +6,7 @@ import { promisify } from "node:util";
 
 const exec = promisify(execFile);
 const read = async (file) => JSON.parse(await readFile(file, "utf8"));
-const packageName = /^(?:@[a-z0-9._-]+\/)?[a-z0-9._-]+$/;
+const packageName = /^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/;
 const version = /^\d+\.\d+\.\d+(?:[-+][a-zA-Z0-9.-]+)?$/;
 
 // Direct registry dependencies plus locked transitive dependencies in their scopes cover this

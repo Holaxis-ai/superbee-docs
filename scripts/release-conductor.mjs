@@ -306,6 +306,10 @@ export async function conduct(mode, options, dependencies = {}) {
         if (mode === "apply") return { status: "applied", reused: true, packetDigest: packet.digest };
       } else {
         await (dependencies.preflight ?? dependencyPreflight)(root, { run, replacement: manifest });
+        // Nightly review artifacts transport JSON, not installed executables. Reconstruct the
+        // admitted package from frozen tarball facts and check its artifact before using it.
+        const captured = await (dependencies.install ?? installEvidence)(root, state, manifest, run, fetcher);
+        assertPackageIdentity({ identity: captured }, manifest, packet.packageIdentity.artifact);
         const journeys = await (dependencies.journeys ?? packageJourneys)({
           bin: path.join(state, "package/node_modules/.bin/superbee"), facts: { ...manifest, artifact: packet.packageIdentity.artifact } });
         if (journeys.status !== "passed") fail("captured package journeys did not pass");

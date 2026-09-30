@@ -344,3 +344,39 @@ test("source refresh fills missing tag in private cache and preserves supplied c
   await assert.rejects(sourceDiff(f.root, f.state, undefined, status, run), /private source tag contradicts/);
   assert.equal((await realRun("git", ["rev-parse", ref], cache)).trim(), base);
 });
+
+test("transported JSON review reconstructs captured executable and rejects a changed artifact before apply", async (t) => {
+  const f = await fixture(t);
+  await conduct("prepare", f.options, f.dependencies); await f.review();
+  const imported = { ...f.options, state: ".tmp/imported-review" };
+  const state = path.join(f.root, imported.state);
+  await mkdir(state, { recursive: true });
+  for (const name of ["packet.json", "release.json", "review.json"]) await cp(path.join(f.state, name), path.join(state, name));
+  const files = [".superbee/releases/current.md", "package.json", "package-lock.json"];
+  const before = await Promise.all(files.map((name) => readFile(path.join(f.root, name))));
+  const install = f.dependencies.install;
+  f.dependencies.install = async () => ({ ...packed, artifact: { ...packed.artifact, sha256: `sha256:${"e".repeat(64)}` } });
+  const start = f.calls.length;
+  await assert.rejects(conduct("finalize", imported, f.dependencies), /artifact digest differs/);
+  assert.ok(!f.calls.slice(start).some((call) => call.startsWith("install ") || call === "ci"));
+  assert.deepEqual(await Promise.all(files.map((name) => readFile(path.join(f.root, name)))), before);
+  f.dependencies.install = install;
+  assert.equal((await conduct("finalize", imported, f.dependencies)).status, "verified");
+  assert.equal(f.calls.filter((call) => call === "install-evidence").length, 2);
+});
+
+test("a changed annotated tag object cannot overwrite an admitted private cache ref", async (t) => {
+  const f = await fixture(t);
+  const git = (...args) => realRun("git", ["-c", "user.name=Test", "-c", "user.email=test@example.invalid", ...args], f.root);
+  const head = (await git("rev-parse", "HEAD")).trim();
+  await git("tag", "-a", facts.sourceTag, "-m", "original annotation");
+  const status = { sourceDiff: { base: head, head }, verifiedFacts: facts };
+  const run = fixtureSourceRun(f.root);
+  await sourceDiff(f.root, f.state, undefined, status, run);
+  const cache = path.join(f.state, "source-cache"), ref = "refs/release-conductor/verified-tag";
+  const original = (await realRun("git", ["rev-parse", ref], cache)).trim();
+  await git("tag", "-fa", facts.sourceTag, "-m", "changed annotation");
+  await assert.rejects(sourceDiff(f.root, f.state, undefined, status, run), /tag object changed/);
+  assert.equal((await realRun("git", ["rev-parse", ref], cache)).trim(), original);
+  assert.equal((await realRun("git", ["for-each-ref", "--format=%(refname)", "refs/release-conductor/fetch-"], cache)).trim(), "");
+});
