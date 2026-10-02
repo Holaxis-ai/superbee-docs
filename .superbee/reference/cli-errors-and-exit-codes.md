@@ -5,7 +5,7 @@ description: 'Stable CLI failure codes, exit statuses, output channels, and retr
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:56:02.799Z'
+  at: '2026-10-02T20:07:58.625Z'
 ---
 # Scope
 
@@ -150,3 +150,12 @@ Paging combined with a complete byte/field channel returns `USAGE` (exit 2).
 Hosted `ambiguous_host`, model compatibility, front-page conflicts, write-size holds, and staged
 transfer outcomes retain their owning structured receipts. See [hosted recovery](../troubleshooting/hosted-checkout.md).
 A skipped malformed listing is partial visibility, not evidence of a deletion.
+
+# Prepared Git frontmatter holds
+
+Outgoing dedicated-board sync with malformed document frontmatter returns a held receipt and
+`CONFLICT` (exit 5). `held_documents` names IDs, paths, reasons, and details; `held_help` gives the
+repair. Scripts and turn-end hooks should return this work to the writer. No outgoing push occurs;
+valid pending edits wait too. A fresh establishment snapshot instead returns `USAGE` (exit 2) with
+`details.malformed`, before publication or move. Follow the Git recovery procedure linked above;
+do not treat a successful partial listing as proof that these files were deleted.

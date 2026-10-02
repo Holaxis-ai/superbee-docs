@@ -6,7 +6,7 @@ description: >-
   package.
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:57:22.031Z'
+  at: '2026-10-02T20:06:39.967Z'
 superbee_updated_by: 'process:release-docs-preparation'
 ---
 # Release status
@@ -43,6 +43,10 @@ install `superbee@0.4.0-pre.4` on macOS or Linux with Node.js 20 or newer.
 - Local UI View delivery fetches and verifies approved bytes in the trusted shell before mounting
   the sandboxed View. View authors should refresh data through the bridge instead of reloading
   their own frame. A delivery receipt does not prove visible rendering.
+- Malformed frontmatter holds all outgoing dedicated-board work, including valid pending edits.
+  The receipt names held documents and exits 5. Repair the YAML, check `status`, and retry;
+  preserve committed history and put its correction on top. A malformed fresh establishment
+  snapshot exits 2 before publication or move. See [Git recovery](../guides/share-and-synchronize-git-bundle.md).
 - Plain `init` in a Git work tree uses its top-level `.superbee/` unless an existing bundle or
   project binding selects another target. Initialization stays local; establishing a board is a
   separate publication decision.

@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:56:02.633Z'
+  at: '2026-10-02T20:07:58.460Z'
 ---
 # Outcome
 
@@ -417,3 +417,29 @@ The [prepared release](../releases/next-release.md) aligns plain init in a Git w
 conventional top-level `.superbee/` that establishment shares. Existing bundle selection and
 explicit `--dir` take precedence. Initialization is local and invokes no Git sharing command.
 Keep the repository/board existence checks and separate consent before `sync --establish`.
+
+# Prepared malformed-document publication holds
+
+The prepared release holds outgoing dedicated-board work when a
+changed document has invalid YAML frontmatter. The receipt names `held_documents` with each
+document's ID, path, reason, and detail, plus `held_help`; the command exits with `CONFLICT` (5).
+For malformed files still in the worktree, nothing local is committed or pushed, including valid
+pending edits. Incoming changes can still fast-forward when they do not overwrite a local edit;
+otherwise the receipt reports that the pull was held too. Files remain in place.
+
+Repair the named YAML between its `---` markers; quote values containing `: `. Preserve the full
+document body, then check and retry the already authorized board update:
+
+```sh
+superbee status
+superbee sync
+```
+
+Malformed content already in an unpushed local commit also prevents every outgoing push. Keep that
+history and fix the current document; the next sync commits the correction on top and sends both
+commits together. Do not reset or discard the earlier commit to clear the hold.
+
+A fresh `sync --establish` snapshot with malformed documents fails with `USAGE` (2) before any
+publication or move. Its `details.malformed` names the records. Repair them, check `status`, and
+retry establishment only under the same explicit publication approval. A skipped listing is not
+proof that the document was deleted or that the remaining bundle is a complete publication source.

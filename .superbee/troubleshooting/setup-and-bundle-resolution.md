@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:53:30.753Z'
+  at: '2026-10-02T20:06:39.224Z'
 ---
 # Outcome
 
@@ -59,8 +59,7 @@ Set `stable_version` from [the verified stable release](../releases/current.md),
 [the installation guide](../get-started/install-and-setup.md). Then run:
 
 ```sh
-: "${stable_version:?Set stable_version to the version in the verified stable release}"
-npm install -g "superbee@$stable_version"
+npm install -g "superbee@${stable_version:?Set stable_version to the version in the verified stable release}"
 ```
 
 Open a fresh terminal and run `superbee version` again. Persistent Skills, hooks, and MCP

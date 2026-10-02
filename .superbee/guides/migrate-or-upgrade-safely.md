@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:53:30.329Z'
+  at: '2026-10-02T20:06:39.409Z'
 ---
 # Outcome
 
@@ -53,8 +53,7 @@ Set `stable_version` from [the verified stable release](../releases/current.md),
 [the installation guide](../get-started/install-and-setup.md). Then run:
 
 ```sh
-: "${stable_version:?Set stable_version to the version in the verified stable release}"
-npm install -g "superbee@$stable_version"
+npm install -g "superbee@${stable_version:?Set stable_version to the version in the verified stable release}"
 ```
 
 Confirm the installed package and source identity:

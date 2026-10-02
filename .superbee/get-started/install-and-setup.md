@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:53:30.123Z'
+  at: '2026-10-02T20:06:38.863Z'
 ---
 # Outcome
 
@@ -37,8 +37,7 @@ then run the following command. An unversioned install follows npm `latest`, whi
 point at a prerelease; verify the version rather than treating the tag as stable-release evidence.
 
 ```sh
-: "${stable_version:?Set stable_version to the version in the verified stable release}"
-npm install -g "superbee@$stable_version"
+npm install -g "superbee@${stable_version:?Set stable_version to the version in the verified stable release}"
 ```
 
 Then inspect the installed identity:

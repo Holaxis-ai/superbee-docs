@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:52:27.610Z'
+  at: '2026-10-02T20:07:58.790Z'
 ---
 # Purpose
 
@@ -201,8 +201,8 @@ The representative slice is ready to expand when:
 # Current stable release coverage
 
 The `codex/docs-0.3.0-draft` branch covers the coupled release-facing page set below.
-[Current release evidence](../sources/current-release.md) owns package verification;
-[the release source review](../sources/next-release.md) bounds the implementation claims.
+[Current release evidence](../sources/current-release.md) owns package verification and bounds
+the stable implementation claims.
 Production hosted acceptance and native Windows execution remain untested.
 
 | Page set | Mode / audience / successful outcome | Disposition and governing evidence |
@@ -239,7 +239,7 @@ The complete tree-delta plus release-event query selects 43 maintained pages. Di
 | --- | --- | --- |
 | Install, verify host setup, migration, platform support, CLI overview, setup recovery | New or existing user / tutorial, how-to, reference / install the intended verified package | Correct moving-tag assumptions, retain stable identity, add prepared paging/platform/migration limits. |
 | Hosted checkout, transfer, access, recovery | Operator and agent / how-to and reference / change only admitted state and recover transfers | Explain model and root permissions, write bounds, canonical sync bytes, staged/paged transfers and explicit host selection. Production hosted acceptance is untested. |
-| First workspace, configuration, Git sharing | User and operator / tutorial and reference / create the intended local target before sharing | Explain plain Git init selection; explicit local-first tutorial and publication consent remain valid. |
+| First workspace, configuration, Git sharing | User and operator / tutorial and reference / create the intended local target before sharing | Explain plain Git init selection and malformed-document publication holds with non-destructive YAML recovery; explicit local-first tutorial and publication consent remain valid. |
 | Reusable structure, modeling, recipe evolution, Kind reference | Bundle author / explanation and how-to / evolve an admitted hosted model | Add convention-only, person-scoped capability and incompatible-instance recovery. |
 | Byte channels, query/links, View reference/authoring, errors, wire | Agent and integrator / reference and how-to / page safely and negotiate capabilities | Add page termination/version/channel contract, newest query ordering, local View refresh behavior, and malformed-list semantics. |
 | Stable current/archive and generated CLI commands | Existing user / reference / discover verified identity | No promotion: actual stable release/package evidence is required before conductor finalization. |
