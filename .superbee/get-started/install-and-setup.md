@@ -4,10 +4,10 @@ title: Install and set up Superbee
 description: >-
   Install the released CLI and let the read-only setup conductor verify one
   exact AI host.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:23.401Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:53:30.123Z'
 ---
 # Outcome
 
@@ -32,10 +32,13 @@ prerelease support become stable-package capabilities only when the release evid
 
 # 1. Install the CLI
 
-Run:
+Set `stable_version` to the version in [the verified stable release](../releases/current.md),
+then run the following command. An unversioned install follows npm `latest`, which can temporarily
+point at a prerelease; verify the version rather than treating the tag as stable-release evidence.
 
 ```sh
-npm install -g superbee
+: "${stable_version:?Set stable_version to the version in the verified stable release}"
+npm install -g "superbee@$stable_version"
 ```
 
 Then inspect the installed identity:
@@ -120,4 +123,10 @@ This explicit command starts sign-in and records the hosted workspace. Relay its
 link, wait for confirmation, and repeat its resume command; select among workspaces with the
 person. Continue with [Work in a hosted checkout](../guides/work-in-hosted-checkout.md).
 
-[Release source review](../sources/next-release.md).
+[Current stable release evidence](../sources/current-release.md).
+
+# Preparing for the next stable release
+
+Use [the preparation guide](../releases/next-release.md) for prerelease evaluation and the stable
+publication gate. The current stable record, generated command inventory, and this site's version
+label retain their verified release identity until finalization.

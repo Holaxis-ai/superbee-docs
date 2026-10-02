@@ -4,10 +4,10 @@ title: 'Sharing, synchronization, and freshness'
 description: >-
   How Superbee classifies bundle channels, refreshes reads, converges shared
   changes, and preserves conflicting work.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:17.844Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:52:21.383Z'
 ---
 # Question answered
 
@@ -130,4 +130,4 @@ access, ownership and transaction domains. See
 [Git sharing](../guides/share-and-synchronize-git-bundle.md) and
 [Hosted checkout](../guides/work-in-hosted-checkout.md).
 
-[Release source review](../sources/next-release.md).
+[Current stable release evidence](../sources/current-release.md).

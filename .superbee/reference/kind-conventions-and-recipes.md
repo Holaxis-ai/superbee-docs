@@ -1,13 +1,13 @@
 ---
 type: Reference
 title: Kind conventions and recipe formats
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 description: >-
   Exact Convention schemas, recipe formats, validation modes, installation, and
   safe evolution.
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:21.634Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:52:24.034Z'
 ---
 # Scope
 
@@ -346,4 +346,13 @@ validate locally before explicit publication. See the pinned
 [order tests](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/core/test/kinds.test.ts)
 and [recipe preservation test](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/cli/test/recipes.test.ts).
 
-[Release source review](../sources/next-release.md).
+[Current stable release evidence](../sources/current-release.md).
+
+# Prepared hosted model editing
+
+The [prepared release](../releases/next-release.md) permits CLI Kind and convention-only recipe
+changes in a checkout when the host declares that the person may change the bundle model.
+Recipes containing Views, References, or other non-convention content remain refused. Host model
+validation can reject changes incompatible with existing instances. Preserve the findings and fix
+the instances before retrying. Absent or refused capability retains the older boundary; local MCP
+convention writes remain refused. See [hosted editing](../guides/work-in-hosted-checkout.md).

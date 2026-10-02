@@ -4,10 +4,10 @@ title: Model recurring domain concepts
 description: >-
   Turn a proven recurring concept into a bundle-owned Kind and validated
   instances.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:54:20.324Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:52:22.517Z'
 ---
 # Outcome
 
@@ -261,4 +261,13 @@ preserves local placement. See [Kind conventions](../reference/kind-conventions-
 Design Kinds and validate instances locally before publishing a hosted bundle. This CLI
 refuses definition changes in a hosted checkout; later source changes are not release evidence.
 
-[Release source review](../sources/next-release.md).
+[Current stable release evidence](../sources/current-release.md).
+
+# Prepared hosted model editing
+
+The [prepared release](../releases/next-release.md) permits CLI Kind and convention-only recipe
+changes in a checkout when the host declares that the person may change the bundle model.
+Recipes containing Views, References, or other non-convention content remain refused. Host model
+validation can reject changes incompatible with existing instances. Preserve the findings and fix
+the instances before retrying. Absent or refused capability retains the older boundary; local MCP
+convention writes remain refused. See [hosted editing](../guides/work-in-hosted-checkout.md).

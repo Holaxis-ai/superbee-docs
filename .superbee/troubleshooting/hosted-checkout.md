@@ -5,9 +5,9 @@ description: >-
   Recover sign-in, selection, held files, conflicts, and interrupted hosted
   transfers.
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:59:53.985Z'
-superbee_updated_by: 'process:release-docs-review'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:52:27.387Z'
+superbee_updated_by: 'process:release-docs-preparation'
 ---
 # Release applicability
 
@@ -51,3 +51,22 @@ requires the intended person's access.
 [Publish, adopt, or export](../guides/move-bundle-between-local-and-hosted.md)
 
 [Hosted operations and identity](../reference/hosted-cli-access.md)
+
+# Prepared recovery additions
+
+These additions apply to [the prepared release](../releases/next-release.md), with matching host
+capabilities and access:
+
+| Receipt | Recovery |
+| --- | --- |
+| `ambiguous_host` on a new hosted write | Select the intended host explicitly with `--host`; keep bound checkout selection intact. |
+| `definitions_refused` | Ask the person managing bundle access for model-edit permission. Do not infer an admin-role requirement or use generic operations as a bypass. |
+| `definition_incompatible` | Preserve the convention file, inspect the named instance findings, fix those documents, and sync again. |
+| `index.md` conflict | Inspect the front-page versions; take, keep, or revise one deliberate result, then sync outgoing decisions. |
+| `too_large` | Preserve the file; account for request encoding and the host's declared bound. Split only with the person's agreement. |
+| `not_sendable`, `symlink`, or `unsafe_path` on the root | Correct the intended plain UTF-8 file without changing the bundle edition; never send through a link or directory. |
+| `export_source_changed` | Retry the same export after concurrent source writes settle. |
+| Interrupted staged publish / unknown creation outcome | Retry the same approved intent and target; preserve local files and inspect progress/receipts. |
+
+The older definition-refusal row above describes the current stable release. Prepared capability
+extensions are explained in [the checkout guide](../guides/work-in-hosted-checkout.md).

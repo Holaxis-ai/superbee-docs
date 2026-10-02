@@ -2,10 +2,10 @@
 type: Reference
 title: CLI errors and exit codes
 description: 'Stable CLI failure codes, exit statuses, output channels, and retry guidance.'
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:22.395Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:56:02.799Z'
 ---
 # Scope
 
@@ -141,4 +141,12 @@ A sync receipt can contain committed, conflict, held, refused, unknown, and paus
 requires all rows committed. Preserve partial outcomes; a failed command or missing acknowledgement
 does not mean no write happened. See [Hosted recovery](../troubleshooting/hosted-checkout.md).
 
-[Release source review](../sources/next-release.md).
+
+# Prepared paging and hosted receipts
+
+The [prepared release](../releases/next-release.md) returns `CONFLICT` with `reason: version_conflict` (exit 5) when a page's
+`--expected-version` no longer matches. Restart the paged read; never combine versions.
+Paging combined with a complete byte/field channel returns `USAGE` (exit 2).
+Hosted `ambiguous_host`, model compatibility, front-page conflicts, write-size holds, and staged
+transfer outcomes retain their owning structured receipts. See [hosted recovery](../troubleshooting/hosted-checkout.md).
+A skipped malformed listing is partial visibility, not evidence of a deletion.

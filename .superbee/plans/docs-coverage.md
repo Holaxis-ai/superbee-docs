@@ -4,10 +4,10 @@ title: Documentation coverage and delivery
 description: >-
   Ordered page coverage, representative slice, and readiness gates for the
   public documentation.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:59:54.304Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:52:27.610Z'
 ---
 # Purpose
 
@@ -223,3 +223,31 @@ Production hosted acceptance and native Windows execution remain untested.
 
 The release conductor records every affected-page disposition against its captured registry and
 source packet. The tree-delta review retains the independently pinned architecture diagrams.
+
+# Stable preparation from the documented release
+
+Branch `docs/prepare-0.4.0` owns the coupled preparation pages. The proximate goal is to explain
+verified changes from the documented stable source to the published prerelease while preserving
+user-owned bundles and trustworthy release identities. [Preparation evidence](../sources/next-release.md)
+owns the fixed source comparison. Current stable records, site version label, dependency pins,
+generated CLI inventory, archive, and independently pinned architecture/diagrams are retained
+pending stable package verification.
+
+The complete tree-delta plus release-event query selects 43 maintained pages. Dispositions:
+
+| Page set | Audience / mode / outcome | Preparation disposition |
+| --- | --- | --- |
+| Install, verify host setup, migration, platform support, CLI overview, setup recovery | New or existing user / tutorial, how-to, reference / install the intended verified package | Correct moving-tag assumptions, retain stable identity, add prepared paging/platform/migration limits. |
+| Hosted checkout, transfer, access, recovery | Operator and agent / how-to and reference / change only admitted state and recover transfers | Explain model and root permissions, write bounds, canonical sync bytes, staged/paged transfers and explicit host selection. Production hosted acceptance is untested. |
+| First workspace, configuration, Git sharing | User and operator / tutorial and reference / create the intended local target before sharing | Explain plain Git init selection; explicit local-first tutorial and publication consent remain valid. |
+| Reusable structure, modeling, recipe evolution, Kind reference | Bundle author / explanation and how-to / evolve an admitted hosted model | Add convention-only, person-scoped capability and incompatible-instance recovery. |
+| Byte channels, query/links, View reference/authoring, errors, wire | Agent and integrator / reference and how-to / page safely and negotiate capabilities | Add page termination/version/channel contract, newest query ordering, local View refresh behavior, and malformed-list semantics. |
+| Stable current/archive and generated CLI commands | Existing user / reference / discover verified identity | No promotion: actual stable release/package evidence is required before conductor finalization. |
+| Architecture at a glance, system context, mutation, bundle engine, View lifecycle, sync/freshness | Technical reader / explanation / understand the independently pinned source | No diagram or source-pin change; retain historical scope and route prepared interface differences to references. Stable release citations remain stable. |
+| What Superbee is, bundles/documents, start here, context, assigned work, claims example, privacy, publication snapshot, OKF, show documents/Views, contributor quickstart | New user or integrator / explanation, tutorial, reference / retain working local journeys and boundaries | No behavioral rewrite: the reviewed delta preserves these documented local/OKF/byte/presentation contracts. Existing stable sections cite current stable evidence; prepared capabilities route through the updated guides. |
+
+Installed prerelease probes verify clean identity, Unicode paging, absent-next termination,
+stale-version refusal, complete byte export, malformed listing and Git init. Hosted execution and
+live integration acceptance remain source/test-grounded limitations. After stable publication,
+review any additional source delta, use the existing release conductor, regenerate stable references,
+and run fresh checks before publication. No other active tooling task or PR is claimed here.

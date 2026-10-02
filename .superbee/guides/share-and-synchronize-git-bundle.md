@@ -4,10 +4,10 @@ title: Share and synchronize a Git-backed bundle
 description: >-
   Join, refresh, share, and recover a Git-backed Superbee bundle without
   crossing its publication boundary.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:19.349Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:56:02.633Z'
 ---
 # Outcome
 
@@ -410,4 +410,10 @@ Deletion-hold acceptance/restore and take-host-deletions flags are hosted-only. 
 [Hosted checkout](work-in-hosted-checkout.md). This release's Git workflow should not be described
 as using the hosted deletion policy or hosted access credentials.
 
-[Release source review](../sources/next-release.md).
+
+# Prepared initialization alignment
+
+The [prepared release](../releases/next-release.md) aligns plain init in a Git work tree with the
+conventional top-level `.superbee/` that establishment shares. Existing bundle selection and
+explicit `--dir` take precedence. Initialization is local and invokes no Git sharing command.
+Keep the repository/board existence checks and separate consent before `sync --establish`.

@@ -4,10 +4,10 @@ title: Migrate or upgrade safely
 description: >-
   Upgrade Superbee or move from AgentState while preserving the intended
   workspace and verifying each compatibility step.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:54:20.864Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:53:30.329Z'
 ---
 # Outcome
 
@@ -49,8 +49,12 @@ support. Confirm that it lists your environment before installing the package.
 
 Install the current stable package:
 
+Set `stable_version` from [the verified stable release](../releases/current.md), following
+[the installation guide](../get-started/install-and-setup.md). Then run:
+
 ```sh
-npm install -g superbee
+: "${stable_version:?Set stable_version to the version in the verified stable release}"
+npm install -g "superbee@$stable_version"
 ```
 
 Confirm the installed package and source identity:
@@ -290,4 +294,13 @@ for a non-POSIX host and retain the backend returned by `initBundle` as `{root, 
 has no npm OS restriction and its non-filesystem backends remain available. See the pinned
 [core migration contract](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/core/README.md).
 
-[Release source review](../sources/next-release.md).
+[Current stable release evidence](../sources/current-release.md).
+
+# Preparing a stable upgrade
+
+Review [the preparation guide](../releases/next-release.md) before changing automation or hosted
+model/front-page workflows. It separates changes from the current stable release from the
+metadata-only stable candidate comparison with its published prerelease. Finalization requires the
+actual stable package, source tag, and release receipts; a version label alone does not prove a
+functional rollback or migration. Keep existing bundles and their edition unchanged unless a
+separate reviewed migration is intended.

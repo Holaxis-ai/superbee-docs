@@ -2,10 +2,10 @@
 type: Guide
 title: Create a bundle View
 description: Author one safe responsive View for the local UI and MCP Apps hosts.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:24.156Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:52:23.165Z'
 ---
 # Goal
 
@@ -146,4 +146,17 @@ and lock proposals after an unknown outcome. See [View contract](../reference/vi
 Hosted checkouts cannot save View artifacts through this CLI. Follow the app/interface instruction
 rather than using a generic operation or direct blob mutation to bypass the refusal.
 
-[Release source review](../sources/next-release.md).
+[Current stable release evidence](../sources/current-release.md).
+
+# Prepared View ordering and local delivery
+
+The [prepared release](../releases/next-release.md) adds `query.newest`. Discover it through
+`hello.host.capabilities` before using `order: "newest"`; a host without it refuses the option.
+Newest sorting occurs before the reply limit. See [query ordering](../guides/query-links-and-backlinks.md).
+
+The local UI's trusted shell fetches and verifies approved View HTML, then mounts it through a
+sandboxed host and a revoked-after-load blob URL. Refresh data through the bridge; reloading or
+renavigating the View's own frame can leave it blank. `window.parent` is the intermediary host.
+The checked delivery receipt establishes byte delivery, not visible rendering or authorization.
+Changed bytes and access retain their approval requirements. These are local UI changes; an
+embedding host's advertised capabilities still determine its own supported surface.

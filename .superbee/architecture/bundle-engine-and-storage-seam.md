@@ -4,10 +4,10 @@ title: Bundle engine and storage seam
 description: >-
   How core-owned OKF semantics remain consistent across filesystem, memory, and
   remote storage adapters.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:18.096Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:52:21.627Z'
 ---
 # Question answered
 
@@ -127,4 +127,4 @@ network reconciliation. These changes do not make the reference wire server auth
 Use [Wire reference](../reference/wire-protocol-and-reference-server.md) and
 [Hosted checkout](../guides/work-in-hosted-checkout.md) for release-facing interfaces.
 
-[Release source review](../sources/next-release.md).
+[Current stable release evidence](../sources/current-release.md).

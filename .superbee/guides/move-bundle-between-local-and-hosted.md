@@ -3,9 +3,9 @@ type: Guide
 title: Move a bundle between local and hosted
 description: 'Preview hosted publication, adopt a moved checkout, or export a hosted bundle.'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:59:53.022Z'
-superbee_updated_by: 'process:release-docs-review'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:57:22.207Z'
+superbee_updated_by: 'process:release-docs-preparation'
 ---
 # Release applicability
 
@@ -15,8 +15,7 @@ host offers every feature.
 
 # Outcome and prerequisites
 
-Move only when the person has chosen the destination and sharing boundary. You need the current stable CLI
-CLI, the intended bundle path, and access to a compatible host. Keep a recoverable copy of local
+Move only when the person has chosen the destination and sharing boundary. You need the current stable CLI, the intended bundle path, and access to a compatible host. Keep a recoverable copy of local
 work. A migration changes how future synchronization travels; it does not prove teammates have
 moved with you.
 
@@ -34,7 +33,7 @@ and the host. Fix nonconforming documents and malformed Kinds before publishing.
 behind upstream must be synced before publication.
 
 Show the preview to the person. Once they agree, run the exact `--yes` command it supplies.
-The command signs in if needed, creates a hosted bundle in their workspace, and converts the
+The command signs in if needed, creates a hosted bundle in their workspace, and, within checkout limits, converts the
 folder into a checkout without rewriting its files. Only that person can reach the new bundle
 until they share it. A Git board loses its local binding but its local and remote board branches
 remain. Teammates continue using that board until they explicitly move to the hosted bundle.
@@ -95,3 +94,28 @@ Verify the resulting target with `bundle locate`, `home`, and `status`. For a ch
 [Hosted checkout procedure](work-in-hosted-checkout.md)
 
 [Choose privacy and bundle boundaries](choose-privacy-and-bundle-boundaries.md)
+
+# Prepared large-bundle transfer
+
+The [prepared release](../releases/next-release.md) selects staged creation when publication exceeds
+one request's bounds. Preview reports the transport, limits, blockers, destination, and the folder's
+post-publication ownership. Staged creation admits at most 10,000 documents, 1,000 reserved files,
+1,000 other files of 16 MiB each, and 64 MiB of current files. Optional history admits up to 5,000
+versions and 64 MiB; the manifest is capped at 3 MiB. Documents must also satisfy the host's
+advertised write bound. These are CLI protocol limits, not a promise of host availability.
+
+Review the preview, then retry the same approved command and target after an interrupted or unknown
+outcome. Progress is emitted on stderr (JSON lines with `--json`). Preserve the staged intent; do
+not invent a new bundle ID as recovery. The preview and receipt state whether the folder converts to a checkout or remains local or Git.
+If it remains local or Git, later edits there do not sync to the newly published hosted bundle.
+
+On a paging-capable host, checkout follows heads/snapshot pages with a maximum of 10,000 documents
+and any lower host limit. Export verifies each page and the complete chain before exposing the
+finished local copy. A changed source restarts from the first page a bounded number of times;
+`export_source_changed` requires retrying when the source settles. An older host's export can fall
+back to its single-archive contract.
+
+For a new hosted write with more than one stored or remembered host candidate, supply the intended `--host`.
+`ambiguous_host` is a selection refusal; the last sign-in no longer chooses among those hosts.
+A bound checkout retains its own host. Use [preparation evidence](../sources/next-release.md) for
+fixed implementation and verification limits.

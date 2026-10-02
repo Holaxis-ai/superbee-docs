@@ -4,10 +4,10 @@ title: View lifecycle and trust
 description: >-
   How exact View bytes are admitted, authorized, contained, bridged, confirmed,
   and revoked.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:17.592Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:52:21.089Z'
 ---
 # Question answered
 
@@ -134,4 +134,4 @@ scalar-only. The common proposal parser/policy owns validation, while hosts own 
 identity, human confirmation and CAS. Hosts advertise action protocol/grant/kinds and graph limits.
 See [View contract](../reference/view-contract-and-access.md) for the released interface contract.
 
-[Release source review](../sources/next-release.md).
+[Current stable release evidence](../sources/current-release.md).

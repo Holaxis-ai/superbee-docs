@@ -4,10 +4,10 @@ title: 'Query, links, and backlinks'
 description: >-
   Find documents, traverse derived relationships, and regenerate portable
   navigation safely.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:18.349Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:52:21.860Z'
 ---
 # Goal
 
@@ -155,4 +155,16 @@ returns documents and relationships without model/definition projections; `graph
 reserved. Typed CLI reads on a hosted checkout use its local folder so unsent changes are included;
 generic hosted op calls intentionally refuse those folder-owned read IDs.
 
-[Release source review](../sources/next-release.md).
+[Current stable release evidence](../sources/current-release.md).
+
+# Prepared newest-first View queries
+
+In the [prepared release](../releases/next-release.md), discover `query.newest` in `hello` before
+sending a View `query` with `order: "newest"`. The default or `order: "id"` retains ID order.
+Newest order uses `generated.at` when present, otherwise legacy `timestamp`; an invalid present
+clock is untimed rather than replaced by the fallback. Timed rows precede untimed rows, ties use
+canonical ID in UTF-16 code-unit order, and ordering precedes the limit. `count` retains its filtered
+meaning. A host without the capability refuses `order` with `USAGE`.
+
+CLI list and home share this newest comparator. View queries have no cursor; narrow the query when
+its limit would hide needed rows. See [the View contract](../reference/view-contract-and-access.md).

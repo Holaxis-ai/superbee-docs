@@ -1,59 +1,82 @@
 ---
 type: Source
-title: Superbee 0.3.0 source review
-description: Fixed release source and the verification limits for Superbee 0.3.0.
+title: Superbee 0.4.0 preparation evidence
+description: >-
+  Published pre.4 identity, fixed source comparison, and verification limits for
+  stable preparation.
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:59:13.369Z'
-superbee_updated_by: 'process:release-docs-review'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:52:25.807Z'
+superbee_updated_by: 'process:release-docs-preparation'
 ---
-# Release source review
+# Preparation identity
 
-Superbee 0.3.0 is published as npm `latest`. The release tag resolves to
-`bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8`, the source prepared through
-[PR 355](https://github.com/Holaxis-ai/superbee/pull/355).
-[Current release evidence](current-release.md) owns the verified package, tarball integrity,
-publication date, and embedded identity. This review compares its tree with 0.2.1 at
-`ff8f9c8681c94204cac23e8ab7bb2981bb256a12`; the histories diverged.
+The current stable documentation is 0.3.0, whose source is
+`bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8`. This preparation reviews its actual tree difference
+against the published pre.4 source below. Stable 0.4.0 is not recorded as published.
 
-# Public implementation authorities
+| Field | Observed value |
+| --- | --- |
+| Published evaluation package | `superbee@0.4.0-pre.4` |
+| Source tag | `v0.4.0-pre.4` |
+| Dereferenced source commit | `2f12937e983b904d7a5c529ab12c546b682bd883` |
+| npm integrity | `sha512-JdRNR9fjX0Y4p+XUkTzATs0XAm8+s2mQy4puWqEh1g9Vc38LpLd5wdDFx/xLEtpd5aFkTQyy0/XFI8TF/g86Ow==` |
+| Tarball SHA-256 | `7bf2985ad55aa6c088d3ef2f150e9ef293efe39a5bbfa2295a41a4c9e79fdc42` |
+| Node / platforms | `>=20`; `darwin`, `linux` |
 
-All links below pin the prepared release commit, independently of subsequent `main` changes.
+The downloaded public tarball matches the registry's SHA-512 integrity. Lifecycle-disabled isolated
+installation reports `superbee 0.4.0-pre.4`, `npm-package`, the clean source commit above, and
+executable digest `sha256:08306f2fa0a23f38fd0145d87f295dfd3115b8265c1fa4b3060e95269b9e87b5`.
 
-- [Distribution platforms and Node requirement](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/superbee/package.json): Node >=20; darwin and linux.
-- [Windows upgrade guidance](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/superbee/README.md).
-- [Shipped command specifications](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/cli/src/command-spec.ts).
-- [Hosted checkout instructions shipped with the Skill](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/examples/references/hosted-checkout.md).
-- [Hosted setup](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/cli/src/commands/setup-hosted.ts).
-- [Hosted generic reads](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/cli/src/commands/op.ts).
-- [Checkout sync, conflict decisions, and delete acceptance](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/cli/src/hosted/sync.ts).
-- [Definition and artifact refusal policy](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/cli/src/hosted/refusals.ts).
-- [Wire contract](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/docs/WIRE-PROTOCOL.md).
-- [View protocol](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/docs/VIEW-PROTOCOL.md).
-- [Kind convention parser](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/core/src/kinds.ts).
+# Release state and candidate comparison
 
-# Verification boundary
+At the 2026-10-02 check, npm `latest` and `next` both name `0.4.0-pre.4`; npm has no `0.4.0`
+version and GitHub has no `v0.4.0` tag. The
+[pre.4 GitHub release](https://github.com/Holaxis-ai/superbee/releases/tag/v0.4.0-pre.4) is published
+and marked prerelease. These observations are a dated receipt, not a future availability promise.
 
-Claims are grounded in the fixed release tree and its committed tests, with disposable installed
-package journeys recorded below. No production hosted sign-in/write or
-native Windows execution is claimed. Hosted operations are discovered from the chosen host; the
-OSS release does not establish host deployment or access. Later `main` changes, including hosted
-definition writes, are outside this release.
+The prepared candidate at `b2911c7f26c60d6648ad2d53a1962259cb8b3a08`, in
+[PR 383](https://github.com/Holaxis-ai/superbee/pull/383), differs from pre.4 only in
+`packages/superbee/package.json`, its lockfile version entry, and two READMEs. No executable source
+changes are present in that comparison. A stable package will still need independent integrity and
+embedded identity verification. No stable tarball identity is inferred from this prerelease.
 
-# Installed package journeys
+# Fixed public implementation authorities
 
-The isolated published executable completed 29 command probes on macOS with Node.js 26.8.2:
+- [Command specifications](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/cli/src/command-spec.ts).
+- [Paged read bounds and Unicode offsets](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/cli/src/body-pages.ts).
+- [Paged read, byte channels, and version preconditions](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/cli/src/commands/doc/read.ts).
+- [Paging, UTF-8, and stale-version tests](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/cli/test/doc.test.ts).
+- [Plain init and Git target selection](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/cli/src/commands/init.ts).
+- [Git initialization tests](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/cli/test/init-hint.test.ts).
+- [Hosted model permissions and recipe refusals](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/cli/src/hosted/refusals.ts).
+- [Hosted model write tests](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/cli/test/hosted-definition-writes.test.ts).
+- [Front-page reconciliation](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/cli/src/hosted/root-sync.ts).
+- [Sync limits, canonical bytes, and front-page tests](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/cli/test/hosted-sync.test.ts).
+- [Staged publication and bounds](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/cli/src/commands/publish.ts).
+- [Staged retry tests](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/cli/test/publish-staged.test.ts).
+- [Paged export](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/cli/src/commands/export.ts).
+- [Export chain verification](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/cli/src/hosted/export-archive.ts).
+- [Checkout capability and document limits](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/cli/src/commands/checkout.ts).
+- [Explicit hosted write target selection](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/cli/src/hosted-auth/session.ts).
+- [View protocol and query.newest](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/docs/VIEW-PROTOCOL.md).
+- [Shell-owned View byte delivery](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/view-runtime/src/view-host.ts).
+- [Wire list, malformed rows, heads, and snapshot contract](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/docs/WIRE-PROTOCOL.md).
+- [Shared newest-first ordering](https://github.com/Holaxis-ai/superbee/blob/2f12937e983b904d7a5c529ab12c546b682bd883/packages/core/src/query-order.ts).
 
-- Identity reports 0.3.0, the clean source commit above, and npm-package channel.
-- Fresh `init --create-only --recipe none`, document creation, complete `--body-out`, and guarded
-  replacement succeed. Reusing the stale version returns `STALE_HEAD` with exit 5 and preserves
-  the successful replacement.
-- Three promoted Kind Conventions enumerate in declared order 10, 20, then undeclared.
-- Hosted account, checkout, operation, publication, export, sync, and hook help is available.
-- Local `op list` is empty; local `op run documents.history.v1` returns `NOT_IMPLEMENTED` (exit 2).
-- An in-process hosted fixture hydrates a checkout and retains an unsent title edit through folder
-  reads. Its operation listing discovers history; generic `documents.read.v1` is refused (exit 2)
-  with folder-owned read guidance. Fixture transport refuses external or unconfigured requests.
+# Verification limits
 
-These probes use no production credentials. Live OAuth, hosted sync writes, conflict/deletion-hold
-acceptance, transfer, Linux, and Windows execution were not repeated in this update.
+Installed-package probes run on macOS with Node.js 26.8.2 and no production credentials. They check
+identity, Unicode body paging and termination, stale-page version refusal, complete body export,
+incompatible paging/byte-channel flags, malformed-file listing, plain Git init target selection,
+and shipped help for hosted transfer and checkout.
+
+Hosted model changes, root writes, staged publication, canonical sync bytes, paged export, and
+View runtime behavior are grounded in the fixed source and committed tests linked above. This
+update does not claim that it executed production OAuth, hosted writes or transfer, live AI-host
+restart, native Windows, or Linux acceptance. The independently pinned architecture and site
+rendering dependencies are retained. Later main commits and unmerged feature PRs are excluded.
+
+[Current stable package evidence](current-release.md)
+
+[Preparation and migration guidance](../releases/next-release.md)

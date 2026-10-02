@@ -5,9 +5,9 @@ description: >-
   Hosted sign-in, selection, generic read operations, and CLI capability
   boundaries.
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:59:53.660Z'
-superbee_updated_by: 'process:release-docs-review'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:57:22.380Z'
+superbee_updated_by: 'process:release-docs-preparation'
 ---
 # Release applicability
 
@@ -83,3 +83,16 @@ A missing sign-in returns a tool error with the link to relay; retry after brows
 [Work in a hosted checkout](../guides/work-in-hosted-checkout.md)
 
 [Hosted recovery](../troubleshooting/hosted-checkout.md)
+
+# Prepared capability extensions
+
+The [prepared release](../releases/next-release.md) retains person-scoped hosted access. A new
+hosted write with several stored or remembered host candidates requires `--host`; a bound checkout uses its stored
+host. Model changes depend on `definition_writes: "allowed"`; absent or refused permission does
+not grant a bypass. Root front-page writes have their own host capability. `limits.documentInputBytes`
+owns each whole-document request bound, with a legacy fallback when absent.
+
+[The checkout guide](../guides/work-in-hosted-checkout.md) explains model and front-page decisions.
+[The transfer guide](../guides/move-bundle-between-local-and-hosted.md) explains staged creation and
+paged checkout/export. Generic operations grant no extra authority, and MCP convention writes,
+artifact writes, verification, and View saves retain the documented refusals.

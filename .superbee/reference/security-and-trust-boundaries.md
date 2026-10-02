@@ -4,10 +4,10 @@ title: Security and trust boundaries
 description: >-
   Trust map for bundles, private state, local readers, Views, remote access,
   sharing, and publication.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:54:21.134Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:52:23.828Z'
 ---
 # Scope
 
@@ -146,4 +146,4 @@ outcome retention if it promises recovery across restart. Reference memory reten
 such guarantee. See [Wire protocol](wire-protocol-and-reference-server.md) and
 [View contract](view-contract-and-access.md).
 
-[Release source review](../sources/next-release.md).
+[Current stable release evidence](../sources/current-release.md).

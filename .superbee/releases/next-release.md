@@ -1,58 +1,85 @@
 ---
 type: Reference
-title: Upgrade to Superbee 0.3.0
-description: 'User actions, compatibility changes, and recovery when upgrading from 0.2.1.'
+title: Prepare for Superbee 0.4.0
+description: >-
+  Planned changes, compatibility, and recovery from 0.3.0 or the published pre.4
+  package.
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:59:54.931Z'
-superbee_updated_by: 'process:release-docs-review'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:57:22.031Z'
+superbee_updated_by: 'process:release-docs-preparation'
 ---
-# Upgrade scope
+# Release status
 
-This guide summarizes the migration from 0.2.1 to [Superbee 0.3.0](current.md).
-[Release source review](../sources/next-release.md) records the fixed source scope.
-Hosted capabilities require support and access on the selected host.
+This is preparation for Superbee 0.4.0, based on the published `0.4.0-pre.4` package and its fixed
+source. Stable 0.4.0 publication has not been verified. [The current stable record](current.md)
+continues to document 0.3.0. [Preparation evidence](../sources/next-release.md) records the
+prerelease identity, source comparison, and verification limits.
 
-# Changes users need to review
+At the recorded registry check, both npm `latest` and `next` resolve to `0.4.0-pre.4`. A dist-tag is
+a moving package selector; it does not make a prerelease stable. Use an explicit version from the
+verified stable record for stable installation. Readers deliberately evaluating this prerelease can
+install `superbee@0.4.0-pre.4` on macOS or Linux with Node.js 20 or newer.
 
-- Hosted sign-in, workspace discovery, and checkout let an agent work through a local folder,
-  then pull and send document edits with the person's access. Conflicts require explicit inspection
-  and resolution; large deletion sets retain a separate person-at-terminal acceptance step.
-- Hosted catalog entries expose reachable bundles and existing checkout folders. Checkout markers
-  identify moved or copied folders without granting routing authority. Adoption rebinds only an
-  intended proven origin.
-- Previewed publication can move a local or Git bundle to hosted; verified export can create a
-  portable local copy or end checkout ownership in place. Publication is an explicit sharing
-  decision. Export leaves the host unchanged and carries only the current revision.
-- Generic CLI and local MCP operations discover and run host reads without a typed verb. The
-  checkout's folder remains the owner of reads that need to include unsent local changes.
-- Optional turn-end hooks synchronize hosted work; Git boards require an additional opt-in.
-  Agent attribution accompanies writes as unverified descriptive data, never access authority.
-- Native Windows support is removed from the public npm package. npm metadata permits macOS and
-  Linux, still requiring Node >=20. Native Windows upgrades fail with `EBADPLATFORM`; forcing
-  installation does not restore command support. Use WSL2 or evaluate the separately documented
-  experimental source build. Existing bundle files are not migrated or removed.
-- Kind conventions gain a reading-order declaration named `order`. Governed View actions and wire
-  transport gain additional contracts described in their reference pages. Hosted Kind
-  writes present only in later source are outside this release's scope.
+# Changes since 0.3.0
 
-# User actions
+- Hosted checkouts can change Kind conventions through `kind` and convention-only recipes when the
+  host permits that person to change the bundle model. The host validates compatibility against
+  existing documents. Artifact, verification, and View-save refusals still apply.
+- The root `index.md` can sync as the bundle's front page when the host advertises root writes.
+  Conflicting front pages use inspect and take/keep/revise. Changing the bundle's OKF edition is
+  refused; subdirectory indexes and `log.md` remain held.
+- Hosted publication can stage larger bundles in bounded parts. Paged export and checkout read
+  beyond one response's document limit when the host supports it. These operations retain explicit
+  destination selection, access checks, verification, and retry of the same intent.
+- Sync and publication honor the host's advertised document-write bound. Oversize writes are held
+  or blocked; agents should preserve content and resolve the limit with the person.
+- `doc read --offset` returns bounded body pages with a version guard. Follow `range.next_offset`
+  while it exists. A later final page still has `range.complete: false`; only a whole-body first
+  page sets it true. Complete byte channels remain available for editing.
+- View queries can request `order: "newest"` when `query.newest` is advertised. CLI list and home
+  use the same meaningful-change ordering. Malformed document listings name skipped records;
+  complete heads and snapshots still fail rather than silently implying deletion.
+- Local UI View delivery fetches and verifies approved bytes in the trusted shell before mounting
+  the sandboxed View. View authors should refresh data through the bridge instead of reloading
+  their own frame. A delivery receipt does not prove visible rendering.
+- Plain `init` in a Git work tree uses its top-level `.superbee/` unless an existing bundle or
+  project binding selects another target. Initialization stays local; establishing a board is a
+  separate publication decision.
+- A new hosted write with several stored or remembered host candidates requires explicit host selection. A bound
+  checkout continues to use its stored host. After a committed sync send, the folder takes the
+  host's returned canonical bytes.
 
-Users on supported platforms can install
-`superbee@latest`, verify the embedded package and source identity, and rerun setup for the selected
-AI host. Restart when the setup receipt requires it. Windows users should review the platform
-migration before attempting an upgrade. Hosted users should confirm the intended host and workspace,
-follow browser sign-in, then select an existing checkout or returned hosted reference.
+# Compatibility and user actions
 
-Read [hosted checkout](../guides/work-in-hosted-checkout.md),
-[local/hosted transfer](../guides/move-bundle-between-local-and-hosted.md), and
-[hosted recovery](../troubleshooting/hosted-checkout.md) before enabling unattended sync.
-No generic operation grants authority to bypass a definition or artifact refusal.
+The prepared stable candidate changes only package version metadata and README installation text
+relative to pre.4. The comparison shows no executable-code rollback. Stable and prerelease
+artifacts will have different package/source identities; verify the actual stable tarball after
+publication rather than assuming byte identity.
+
+From 0.3.0, keep existing bundle files and their declared OKF edition. Node >=20, macOS/Linux
+support, and the native Windows exclusion continue. WSL2 follows the Linux installation path.
+Review [hosted checkout changes](../guides/work-in-hosted-checkout.md),
+[transfer limits and retry behavior](../guides/move-bundle-between-local-and-hosted.md), and
+[paged reads](../reference/cli-overview.md) before updating automation. Check host capabilities;
+the CLI version alone does not establish production host support or grant model-edit permissions.
+
+From pre.4, the prepared stable version requires no functional rollback or bundle migration based
+on the reviewed source delta. Once stable evidence exists, install its explicit verified version,
+inspect `superbee version`, rerun setup for the chosen AI host, and restart when instructed.
 
 # Recovery
 
-Keep a recoverable local bundle and the prior executable identity before upgrading. Reinstalling
-0.2.1 restores that CLI but does not undo writes already sent to a host. A hosted conflict should
-be settled through inspect and take/keep/revise; a pending delete can be restored. Export is the
-supported path to a complete local copy. Neither a copied marker nor a package downgrade migrates
-private checkout state by itself.
+Keep a recoverable bundle and the previous executable identity. Reinstalling an earlier CLI does
+not undo sent hosted writes or model changes. Preserve held and refused files, inspect conflicts,
+and retry interrupted staged publication or export with the same target. Export is the supported
+route to a portable local current-revision copy. Never shorten someone else's document to satisfy a
+write bound or replace a full body with a read page.
+
+# Finalization gate
+
+Before this preparation becomes the current release, verify the non-prerelease GitHub release,
+dereferenced `v0.4.0` tag, npm package integrity, and installed clean source identity. Review any
+source difference from this candidate. Then use the repository's release-documentation conductor
+to pin the stable package, regenerate the CLI inventory, create immutable release/evidence records,
+and reconcile the current release and archive. Fresh site checks and reviewed publication follow.
