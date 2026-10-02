@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:20.609Z'
+  at: '2026-10-02T20:51:07.778Z'
 ---
 # Goal
 
@@ -117,8 +117,8 @@ model and [Migrate or upgrade safely](migrate-or-upgrade-safely.md) for package-
 
 A bundle-authored Convention `order` controls reading placement and is preserved when its recipe
 is reapplied. It does not create schema drift requiring evolution. Validate the live Convention
-and instances after substantive model changes. A hosted checkout cannot evolve definitions in this
-release; finish and validate the local/Git model before publication.
+and instances after substantive model changes. Hosted recipe evolution requires convention-only
+content, host model-edit permission, and compatibility with existing instances as described below.
 
 Current stable release evidence.
 

@@ -4,10 +4,10 @@ title: Contributor quickstart
 description: >-
   Prepare a checkout, make a bounded source change, run the right proofs, and
   verify exact-SHA CI.
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: 'process:release-docs-review'
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:52:20.548Z'
+  by: 'process:superbee'
+  at: '2026-10-02T20:51:08.085Z'
 ---
 # Goal
 
@@ -154,4 +154,4 @@ and [SECURITY.md](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e
 for this release. The historical links above describe the original quickstart boundary.
 Do not import later `main` features into the fixed release branch's documentation.
 
-[Current stable release evidence](../sources/current-release.md).
+[Release source review](../sources/next-release.md).
