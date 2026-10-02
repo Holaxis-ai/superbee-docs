@@ -4,10 +4,10 @@ title: View contract and access
 description: >-
   Exact registered and transient View schemas, access levels, admission,
   approval, saving, and recovery.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:23.902Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T20:45:23.642Z'
 ---
 # Scope and supported version
 
@@ -154,7 +154,7 @@ approve its current access when a launch becomes stale.
 - [Catalog projection](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/view-runtime/src/catalog.ts)
 - [Bounded read bridge](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/view-runtime/src/bridge.ts)
 - [MCP inputs and tool registration](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/mcp-app/src/server.ts)
-- [Current release evidence](../sources/current-release.md)
+- Current release evidence
 
 # Release contracts
 
@@ -177,4 +177,17 @@ The pinned [View protocol](https://github.com/Holaxis-ai/superbee/blob/bc4314b07
 owns message shapes, action and graph limits, host descriptors, and errors.
 
 
-[Release source review](../sources/next-release.md).
+Current stable release evidence.
+
+# View ordering and local delivery
+
+The [current release](../releases/current.md) adds `query.newest`. Discover it through
+`hello.host.capabilities` before using `order: "newest"`; a host without it refuses the option.
+Newest sorting occurs before the reply limit. See [query ordering](../guides/query-links-and-backlinks.md).
+
+The local UI's trusted shell fetches and verifies approved View HTML, then mounts it through a
+sandboxed host and a revoked-after-load blob URL. Refresh data through the bridge; reloading or
+renavigating the View's own frame can leave it blank. `window.parent` is the intermediary host.
+The checked delivery receipt establishes byte delivery, not visible rendering or authorization.
+Changed bytes and access retain their approval requirements. These are local UI changes; an
+embedding host's advertised capabilities still determine its own supported surface.

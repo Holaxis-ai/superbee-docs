@@ -5,9 +5,9 @@ description: >-
   Sign in, select a hosted bundle, edit its local working copy, and reconcile
   conflicts.
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:59:53.343Z'
-superbee_updated_by: 'process:release-docs-review'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T20:45:21.967Z'
+superbee_updated_by: 'process:release-docs-preparation'
 ---
 # Release applicability
 
@@ -137,10 +137,10 @@ in the Superbee app that the bundle really shrank before running the receipt's
 `--take-host-deletions <count>:<digest>` command. It removes only that reviewed set and preserves
 edited files; it sends nothing to the host.
 
-# What cannot be edited in a checkout
+# Editing limits in a checkout
 
-Kinds and recipes are designed in a local or Git bundle before publication. Definition changes
-are refused in this release; a generic operation is not a bypass. Artifact and blob
+Kind and convention-only recipe changes require the host model-edit permission and validation
+described below. A generic operation does not bypass a refusal. Artifact and blob
 writes, verification, and View saves require the supported owning interface, usually the Superbee
 app. Renames, retypes, unsupported metadata changes, and size-limit failures must be handled from
 the returned refusal. Never bypass a refusal by editing reserved files or copying the folder.
@@ -165,3 +165,32 @@ attribution (1 to 32 lowercase letters, numbers, dots, underscores, or dashes, n
 Continue with [hosted access and operations](../reference/hosted-cli-access.md),
 [move a bundle between local and hosted](move-bundle-between-local-and-hosted.md), or
 [hosted recovery](../troubleshooting/hosted-checkout.md).
+
+# Hosted editing changes
+
+The [current release](../releases/current.md) offers these changes only when the
+chosen host advertises the relevant capability and permits the signed-in person:
+
+- `kind`, `recipe add`, and `recipe evolve` can change Kind conventions when
+  `definition_writes: "allowed"` is recorded from the host. Recipes must install only conventions;
+  recipes with Views or References are refused before writing. A `definition_incompatible` reply
+  names documents that do not satisfy the proposed model. Fix those instances before syncing the
+  model again. `"refused"` means the person lacks model-edit permission; an absent capability
+  retains the older refusal. Request the needed bundle permission rather than assuming an admin
+  role.
+- The root `index.md` can be edited and synced as a front page when the host allows root writes.
+  Inspect a conflict with `sync --inspect --doc index.md`; take adopts the host file, while keep or
+  revise records a decision that a later sync sends. Keep/revise require inspection. The host
+  refuses changes to `okf_version`. Subdirectory `index.md` and every `log.md` remain reserved.
+- Sync holds a document exceeding the host's advertised request-size bound as `too_large`.
+  JSON escaping and frontmatter count toward that bound. Preserve the edit, split it with the
+  person's agreement, or use a host with a sufficient limit. Never silently shorten content.
+- A committed send adopts the host's canonical returned bytes. Future local compare-and-swap
+  uses the version from a new folder read. Preserved local edits and a `committed` host write are
+  separate facts; inspect the receipt for refused or held rows.
+
+Root files over 64 KiB as a request, invalid UTF-8 or a byte-order mark, symbolic links, and unsafe
+paths are held. Artifact/blob mutation, verification and View saves retain their refusal. The local
+MCP interface still refuses convention writes even when CLI Kind commands are allowed.
+The release evidence bounds these source-grounded claims;
+production hosted acceptance was not executed here.

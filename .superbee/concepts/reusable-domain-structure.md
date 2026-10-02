@@ -4,10 +4,10 @@ title: Understand reusable domain structure
 description: >-
   Choose when documents, relationships, Kinds, recipes, and Views earn their
   maintenance cost.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:20.604Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T20:45:19.334Z'
 ---
 # Question answered
 
@@ -202,9 +202,17 @@ do not establish feature equivalence with Superbee.
 # Release contracts
 
 Kind Conventions can declare numeric `order` to guide reading sequence without changing the
-instances' schemas. Bundle-owned placement survives recipe reapplication. Hosted checkouts retain
-the model established before publication and refuse in-place definition edits in this
-release. See [Kind reference](../reference/kind-conventions-and-recipes.md) and
+instances' schemas. Bundle-owned placement survives recipe reapplication. Hosted model changes
+require the host to grant model-edit permission and validate compatibility with existing documents. See [Kind reference](../reference/kind-conventions-and-recipes.md) and
 [Hosted checkout](../guides/work-in-hosted-checkout.md).
 
-[Release source review](../sources/next-release.md).
+Current stable release evidence.
+
+# Hosted model editing
+
+The [current release](../releases/current.md) permits CLI Kind and convention-only recipe
+changes in a checkout when the host declares that the person may change the bundle model.
+Recipes containing Views, References, or other non-convention content remain refused. Host model
+validation can reject changes incompatible with existing instances. Preserve the findings and fix
+the instances before retrying. Absent or refused capability retains the older boundary; local MCP
+convention writes remain refused. See hosted editing.

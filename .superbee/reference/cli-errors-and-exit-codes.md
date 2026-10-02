@@ -2,10 +2,10 @@
 type: Reference
 title: CLI errors and exit codes
 description: 'Stable CLI failure codes, exit statuses, output channels, and retry guidance.'
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:22.395Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T20:45:22.211Z'
 ---
 # Scope
 
@@ -141,4 +141,21 @@ A sync receipt can contain committed, conflict, held, refused, unknown, and paus
 requires all rows committed. Preserve partial outcomes; a failed command or missing acknowledgement
 does not mean no write happened. See [Hosted recovery](../troubleshooting/hosted-checkout.md).
 
-[Release source review](../sources/next-release.md).
+
+# Paging and hosted receipts
+
+The [current release](../releases/current.md) returns `CONFLICT` with `reason: version_conflict` (exit 5) when a page's
+`--expected-version` no longer matches. Restart the paged read; never combine versions.
+Paging combined with a complete byte/field channel returns `USAGE` (exit 2).
+Hosted `ambiguous_host`, model compatibility, front-page conflicts, write-size holds, and staged
+transfer outcomes retain their owning structured receipts. See hosted recovery.
+A skipped malformed listing is partial visibility, not evidence of a deletion.
+
+# Git frontmatter holds
+
+Outgoing dedicated-board sync with malformed document frontmatter returns a held receipt and
+`CONFLICT` (exit 5). `held_documents` names IDs, paths, reasons, and details; `held_help` gives the
+repair. Scripts and turn-end hooks should return this work to the writer. No outgoing push occurs;
+valid pending edits wait too. A fresh establishment snapshot instead returns `USAGE` (exit 2) with
+`details.malformed`, before publication or move. Follow the Git recovery procedure linked above;
+do not treat a successful partial listing as proof that these files were deleted.

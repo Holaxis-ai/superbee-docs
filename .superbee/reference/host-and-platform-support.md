@@ -4,10 +4,10 @@ title: Host and platform support
 description: >-
   Verified operating-system and AI-host integration support for the current
   stable Superbee release.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:23.651Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T20:45:22.914Z'
 ---
 # Scope
 
@@ -94,4 +94,11 @@ CLI platforms. Hosted Superbee is a storage/account destination, not a fifth AI 
 Claude Code and Codex after explicit `hook install --turn-end-sync`; Git boards also require
 `--git-boards`. Host registration readiness still requires the host restart and a fresh check.
 
-[Release source review](../sources/next-release.md).
+Current stable release evidence.
+
+# Distribution scope
+
+The [current release](../releases/current.md) retains Node >=20 and the npm package's
+`darwin`/`linux` support, including WSL2's Linux environment. Native Windows remains excluded.
+The separately installed stable package was probed on macOS only; Linux, native Windows, and live AI
+host restart acceptance are not claimed by the release evidence.

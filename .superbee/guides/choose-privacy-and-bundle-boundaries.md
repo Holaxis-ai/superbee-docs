@@ -4,10 +4,10 @@ title: Choose privacy and bundle boundaries
 description: >-
   Choose one or several bundles, select the intended workspace explicitly, and
   keep publication within its approved disclosure boundary.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:19.599Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:52:22.942Z'
 ---
 # Outcome
 
@@ -231,4 +231,4 @@ by them until shared. Export does not change hosted ownership or access. Catalog
 available choices without making them current project context. See
 [Hosted transfer and adoption](move-bundle-between-local-and-hosted.md).
 
-[Release source review](../sources/next-release.md).
+[Current stable release evidence](../sources/current-release.md).

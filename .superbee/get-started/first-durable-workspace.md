@@ -4,10 +4,10 @@ title: Create your first durable workspace
 description: >-
   Create a local bundle, preserve one decision, verify it, and open it for a
   human.
-superbee_updated_by: anthropic/claude
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: anthropic/claude
-  at: '2026-09-22T22:26:45.195Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T20:45:19.658Z'
 ---
 # Outcome
 
@@ -142,7 +142,7 @@ denied-operation recovery.
 - Use `superbee recipe add <recipe>` to add capability to an existing workspace. Do not rerun init
   to force a recipe into it.
 
-[current release evidence](../sources/current-release.md)
+current release evidence
 
 [learn what Superbee is](../concepts/what-superbee-is.md)
 
@@ -151,3 +151,11 @@ denied-operation recovery.
 [find a command](../reference/cli-overview.md)
 
 [inspect the system context](../architecture/superbee-system-context.md)
+
+# Plain-init behavior in Git
+
+The [current release](../releases/current.md) makes plain `superbee init` inside a Git work
+tree select its top-level `.superbee/` when no existing bundle or project binding selects another
+target. Outside Git, the default remains the current directory. The tutorial's explicit
+`--create-only --dir .superbee` remains a deliberate local creation. Initialization performs no
+sharing; `sync --establish` still requires a separate publication decision.

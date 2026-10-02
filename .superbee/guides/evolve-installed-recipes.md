@@ -4,10 +4,10 @@ title: Evolve installed recipes
 description: >-
   Plan and apply an additive installed-recipe upgrade with state-bound safety
   and explicit recovery.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:54:20.593Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T20:51:07.778Z'
 ---
 # Goal
 
@@ -117,7 +117,16 @@ model and [Migrate or upgrade safely](migrate-or-upgrade-safely.md) for package-
 
 A bundle-authored Convention `order` controls reading placement and is preserved when its recipe
 is reapplied. It does not create schema drift requiring evolution. Validate the live Convention
-and instances after substantive model changes. A hosted checkout cannot evolve definitions in this
-release; finish and validate the local/Git model before publication.
+and instances after substantive model changes. Hosted recipe evolution requires convention-only
+content, host model-edit permission, and compatibility with existing instances as described below.
 
-[Release source review](../sources/next-release.md).
+Current stable release evidence.
+
+# Hosted model editing
+
+The [current release](../releases/current.md) permits CLI Kind and convention-only recipe
+changes in a checkout when the host declares that the person may change the bundle model.
+Recipes containing Views, References, or other non-convention content remain refused. Host model
+validation can reject changes incompatible with existing instances. Preserve the findings and fix
+the instances before retrying. Absent or refused capability retains the older boundary; local MCP
+convention writes remain refused. See [hosted editing](../guides/work-in-hosted-checkout.md).

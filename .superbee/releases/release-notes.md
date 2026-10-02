@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: release-docs-automation
 generated:
   by: 'process:superbee'
-  at: '2026-09-30T19:56:06.720Z'
+  at: '2026-10-02T20:41:10.643Z'
 ---
 # Release notes
 
@@ -17,13 +17,19 @@ the exact package and source evidence used to verify it.
 
 # Current stable release
 
+## Superbee 0.4.0
+
+Superbee 0.4.0 adds capability-qualified hosted model and front-page editing, bounded large-bundle transfer, paged document reads, newest-first queries, and clearer malformed-document recovery. It promotes the published pre.4 behavior with corrected stable package identity. Published 2026-10-02.
+
+[Read the current 0.4.0 release notes](current.md).
+
+# Previous stable releases
+
 ## Superbee 0.3.0
 
 Superbee 0.3.0 adds hosted checkout workflows, explicit conflict recovery, bounded operation discovery, and expanded local View proposals. The npm CLI now targets macOS and Linux. Published 2026-09-30.
 
-[Read the current 0.3.0 release notes](current.md).
-
-# Previous stable releases
+[Read the 0.3.0 release notes](0.3.0.md).
 
 ## Superbee 0.2.1
 

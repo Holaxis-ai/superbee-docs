@@ -4,10 +4,10 @@ title: Troubleshoot setup and bundle resolution
 description: >-
   Diagnose installation, host setup, workspace selection, and local bundle
   health from their owning command receipts.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:17.340Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T20:45:24.376Z'
 ---
 # Outcome
 
@@ -55,8 +55,11 @@ superbee version
 
 Install the persistent CLI when it is absent:
 
+Set `stable_version` from the verified stable release, following
+the installation guide. Then run:
+
 ```sh
-npm install -g superbee
+npm install -g "superbee@${stable_version:?Set stable_version to the version in the verified stable release}"
 ```
 
 Open a fresh terminal and run `superbee version` again. Persistent Skills, hooks, and MCP
@@ -212,7 +215,7 @@ superbee <command> --help
 ```
 
 For document or View presentation failures, continue with the
-[presentation recovery guide](../guides/show-documents-and-views.md).
+presentation recovery guide.
 
 # Evidence
 
@@ -244,4 +247,12 @@ retain the shared-board path. Follow the returned sync recovery; `init` is reser
 new local bundle. Unavailable hook launchers are reported as unsupported by setup rather than as a
 ready integration.
 
-[Release source review](../sources/next-release.md).
+Current stable release evidence.
+
+# Malformed-file recovery
+
+With the current release, a malformed document can be listed as a
+skipped ID while readable documents remain available. Run `doc read <id>` for the named parse
+error, preserve the file, and repair its YAML. Complete heads/snapshot reads still fail on malformed
+content instead of interpreting the missing record as deletion. Repair the document before using
+that bundle as a complete synchronization source.

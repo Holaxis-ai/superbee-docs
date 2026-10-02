@@ -4,10 +4,10 @@ title: Share and synchronize a Git-backed bundle
 description: >-
   Join, refresh, share, and recover a Git-backed Superbee bundle without
   crossing its publication boundary.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:19.349Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T20:45:21.734Z'
 ---
 # Outcome
 
@@ -403,11 +403,43 @@ superbee sync
 Take keeps the teammate's retained version and clears the saved conflict. Keep reapplies the saved
 local body; revise uses the current edited document. These conflict verbs do not fetch, commit, or
 push. A later plain sync shares keep/revise. A lost claim does not offer ownership back; retain
-the arbitration and follow [claim recovery guidance](assigned-work-lifecycle.md).
+the arbitration and follow claim recovery guidance.
 
 These choices also exist in hosted checkouts with their own host inspection/precondition rules.
 Deletion-hold acceptance/restore and take-host-deletions flags are hosted-only. See
 [Hosted checkout](work-in-hosted-checkout.md). This release's Git workflow should not be described
 as using the hosted deletion policy or hosted access credentials.
 
-[Release source review](../sources/next-release.md).
+
+# Initialization alignment
+
+The current release aligns plain init in a Git work tree with the
+conventional top-level `.superbee/` that establishment shares. Existing bundle selection and
+explicit `--dir` take precedence. Initialization is local and invokes no Git sharing command.
+Keep the repository/board existence checks and separate consent before `sync --establish`.
+
+# Malformed-document publication holds
+
+The current release holds outgoing dedicated-board work when a
+changed document has invalid YAML frontmatter. The receipt names `held_documents` with each
+document's ID, path, reason, and detail, plus `held_help`; the command exits with `CONFLICT` (5).
+For malformed files still in the worktree, nothing local is committed or pushed, including valid
+pending edits. Incoming changes can still fast-forward when they do not overwrite a local edit;
+otherwise the receipt reports that the pull was held too. Files remain in place.
+
+Repair the named YAML between its `---` markers; quote values containing `: `. Preserve the full
+document body, then check and retry the already authorized board update:
+
+```sh
+superbee status
+superbee sync
+```
+
+Malformed content already in an unpushed local commit also prevents every outgoing push. Keep that
+history and fix the current document; the next sync commits the correction on top and sends both
+commits together. Do not reset or discard the earlier commit to clear the hold.
+
+A fresh `sync --establish` snapshot with malformed documents fails with `USAGE` (2) before any
+publication or move. Its `details.malformed` names the records. Repair them, check `status`, and
+retry establishment only under the same explicit publication approval. A skipped listing is not
+proof that the document was deleted or that the remaining bundle is a complete publication source.
