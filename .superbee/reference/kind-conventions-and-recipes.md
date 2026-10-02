@@ -7,7 +7,7 @@ description: >-
   safe evolution.
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:52:24.034Z'
+  at: '2026-10-02T20:45:23.368Z'
 ---
 # Scope
 
@@ -340,17 +340,16 @@ no Kind declares order, `kinds` preserves its historical governs ordering. Inval
 warn and register without an order. Recipe reapplication preserves bundle-authored placement
 without treating it as recipe drift. The field is named `order`, not `reading_order`.
 
-Hosted checkout definitions remain immutable in this release. Kind fields, recipes,
-Convention files, and generic operations cannot be used to change that model in place. Design and
-validate locally before explicit publication. See the pinned
+Hosted model changes require the capability and compatible-instance checks below. Generic
+operations do not bypass a refusal. Design and validate before explicit publication. See the pinned
 [order tests](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/core/test/kinds.test.ts)
 and [recipe preservation test](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/cli/test/recipes.test.ts).
 
-[Current stable release evidence](../sources/current-release.md).
+Current stable release evidence.
 
-# Prepared hosted model editing
+# Hosted model editing
 
-The [prepared release](../releases/next-release.md) permits CLI Kind and convention-only recipe
+The current release permits CLI Kind and convention-only recipe
 changes in a checkout when the host declares that the person may change the bundle model.
 Recipes containing Views, References, or other non-convention content remain refused. Host model
 validation can reject changes incompatible with existing instances. Preserve the findings and fix

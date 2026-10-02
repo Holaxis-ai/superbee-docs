@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:52:24.257Z'
+  at: '2026-10-02T20:45:23.642Z'
 ---
 # Scope and supported version
 
@@ -154,7 +154,7 @@ approve its current access when a launch becomes stale.
 - [Catalog projection](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/view-runtime/src/catalog.ts)
 - [Bounded read bridge](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/view-runtime/src/bridge.ts)
 - [MCP inputs and tool registration](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/mcp-app/src/server.ts)
-- [Current release evidence](../sources/current-release.md)
+- Current release evidence
 
 # Release contracts
 
@@ -177,11 +177,11 @@ The pinned [View protocol](https://github.com/Holaxis-ai/superbee/blob/bc4314b07
 owns message shapes, action and graph limits, host descriptors, and errors.
 
 
-[Current stable release evidence](../sources/current-release.md).
+Current stable release evidence.
 
-# Prepared View ordering and local delivery
+# View ordering and local delivery
 
-The [prepared release](../releases/next-release.md) adds `query.newest`. Discover it through
+The [current release](../releases/current.md) adds `query.newest`. Discover it through
 `hello.host.capabilities` before using `order: "newest"`; a host without it refuses the option.
 Newest sorting occurs before the reply limit. See [query ordering](../guides/query-links-and-backlinks.md).
 

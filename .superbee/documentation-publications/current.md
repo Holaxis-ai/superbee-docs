@@ -12,6 +12,7 @@ supporting_documents:
   - releases/0.1.6
   - releases/0.2.1
   - releases/0.3.0
+  - releases/0.4.0
   - sources/current-release
   - sources/next-release
   - sources/superbee-codebase-main
@@ -22,11 +23,12 @@ supporting_documents:
   - sources/superbee-release-0.1.6
   - sources/superbee-release-0.2.1
   - sources/superbee-release-0.3.0
+  - sources/superbee-release-0.4.0
 operational_types: Documentation Trigger
 superbee_updated_by: release-docs-automation
 generated:
   by: 'process:superbee'
-  at: '2026-09-30T19:56:08.219Z'
+  at: '2026-10-02T20:41:12.201Z'
 ---
 # Purpose
 

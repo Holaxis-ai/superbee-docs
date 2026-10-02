@@ -6,7 +6,7 @@ description: >-
   conflicts.
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:52:26.688Z'
+  at: '2026-10-02T20:45:21.967Z'
 superbee_updated_by: 'process:release-docs-preparation'
 ---
 # Release applicability
@@ -137,10 +137,10 @@ in the Superbee app that the bundle really shrank before running the receipt's
 `--take-host-deletions <count>:<digest>` command. It removes only that reviewed set and preserves
 edited files; it sends nothing to the host.
 
-# What cannot be edited in a checkout
+# Editing limits in a checkout
 
-Kinds and recipes are designed in a local or Git bundle before publication. Definition changes
-are refused in this release; a generic operation is not a bypass. Artifact and blob
+Kind and convention-only recipe changes require the host model-edit permission and validation
+described below. A generic operation does not bypass a refusal. Artifact and blob
 writes, verification, and View saves require the supported owning interface, usually the Superbee
 app. Renames, retypes, unsupported metadata changes, and size-limit failures must be handled from
 the returned refusal. Never bypass a refusal by editing reserved files or copying the folder.
@@ -166,9 +166,9 @@ Continue with [hosted access and operations](../reference/hosted-cli-access.md),
 [move a bundle between local and hosted](move-bundle-between-local-and-hosted.md), or
 [hosted recovery](../troubleshooting/hosted-checkout.md).
 
-# Prepared hosted editing changes
+# Hosted editing changes
 
-The [prepared release](../releases/next-release.md) extends the stable rules above only when the
+The [current release](../releases/current.md) offers these changes only when the
 chosen host advertises the relevant capability and permits the signed-in person:
 
 - `kind`, `recipe add`, and `recipe evolve` can change Kind conventions when
@@ -192,5 +192,5 @@ chosen host advertises the relevant capability and permits the signed-in person:
 Root files over 64 KiB as a request, invalid UTF-8 or a byte-order mark, symbolic links, and unsafe
 paths are held. Artifact/blob mutation, verification and View saves retain their refusal. The local
 MCP interface still refuses convention writes even when CLI Kind commands are allowed.
-The [preparation evidence](../sources/next-release.md) bounds these source-grounded claims;
+The release evidence bounds these source-grounded claims;
 production hosted acceptance was not executed here.

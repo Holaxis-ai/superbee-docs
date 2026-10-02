@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:52:21.860Z'
+  at: '2026-10-02T20:45:21.532Z'
 ---
 # Goal
 
@@ -155,11 +155,11 @@ returns documents and relationships without model/definition projections; `graph
 reserved. Typed CLI reads on a hosted checkout use its local folder so unsent changes are included;
 generic hosted op calls intentionally refuse those folder-owned read IDs.
 
-[Current stable release evidence](../sources/current-release.md).
+Current stable release evidence.
 
-# Prepared newest-first View queries
+# Newest-first View queries
 
-In the [prepared release](../releases/next-release.md), discover `query.newest` in `hello` before
+In the [current release](../releases/current.md), discover `query.newest` in `hello` before
 sending a View `query` with `order: "newest"`. The default or `order: "id"` retains ID order.
 Newest order uses `generated.at` when present, otherwise legacy `timestamp`; an invalid present
 clock is untimed rather than replaced by the fallback. Timed rows precede untimed rows, ties use

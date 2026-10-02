@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:52:26.234Z'
+  at: '2026-10-02T20:45:20.148Z'
 ---
 # Goal
 
@@ -163,9 +163,9 @@ The contract is grounded in the tagged
 and storage implementations. See [Security and trust boundaries](../reference/security-and-trust-boundaries.md)
 before storing public or sensitive material.
 
-# Prepared large-document reads
+# Large-document reads
 
-The [prepared release](../releases/next-release.md) adds paged record reads for inspecting large
+The [current release](../releases/current.md) adds paged record reads for inspecting large
 bodies. Follow `range.next_offset` with the same `head_version` until no next offset is returned;
 a later final page can have `complete: false`. Pages carry partial body content. Continue using
 `--body-out` for a complete edit-and-update loop and `--out` for a full document export. See the

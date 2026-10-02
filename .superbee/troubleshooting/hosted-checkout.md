@@ -6,7 +6,7 @@ description: >-
   transfers.
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:52:27.387Z'
+  at: '2026-10-02T20:45:24.102Z'
 superbee_updated_by: 'process:release-docs-preparation'
 ---
 # Release applicability
@@ -37,7 +37,7 @@ context. Keep local edits until the receipt establishes their disposition.
 | `sync_busy` | Wait and retry. Never remove the lock while another process holds, takes, or releases it. |
 | `lock_orphaned` | Confirm no Superbee command is still running, then remove only the lock the receipt names. |
 | `unknown` / `write_outcome_unknown` | Preserve the local files and retry the same intent so the command can reconcile the outcome. |
-| Definition, artifact, verification, View-save, or metadata refusal | Use the interface named by the receipt; definitions cannot be changed from this checkout. Do not work around the refusal. |
+| Definition, artifact, verification, View-save, or metadata refusal | Read the reason and use the named owning interface. Model changes need host permission and instance compatibility; artifacts, verification and View saves retain their refusal. |
 | `export_incomplete` | Repeat the same export into its intended destination. |
 | `unsent_changes` on in-place export | Sync first, or obtain agreement that keep-unsent leaves those edits local permanently. |
 
@@ -52,9 +52,9 @@ requires the intended person's access.
 
 [Hosted operations and identity](../reference/hosted-cli-access.md)
 
-# Prepared recovery additions
+# Recovery additions
 
-These additions apply to [the prepared release](../releases/next-release.md), with matching host
+These additions apply to [the current release](../releases/current.md), with matching host
 capabilities and access:
 
 | Receipt | Recovery |
@@ -68,5 +68,4 @@ capabilities and access:
 | `export_source_changed` | Retry the same export after concurrent source writes settle. |
 | Interrupted staged publish / unknown creation outcome | Retry the same approved intent and target; preserve local files and inspect progress/receipts. |
 
-The older definition-refusal row above describes the current stable release. Prepared capability
-extensions are explained in [the checkout guide](../guides/work-in-hosted-checkout.md).
+Capability-qualified model editing is explained in the checkout guide.

@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:52:26.481Z'
+  at: '2026-10-02T20:45:19.658Z'
 ---
 # Outcome
 
@@ -142,7 +142,7 @@ denied-operation recovery.
 - Use `superbee recipe add <recipe>` to add capability to an existing workspace. Do not rerun init
   to force a recipe into it.
 
-[current release evidence](../sources/current-release.md)
+current release evidence
 
 [learn what Superbee is](../concepts/what-superbee-is.md)
 
@@ -152,9 +152,9 @@ denied-operation recovery.
 
 [inspect the system context](../architecture/superbee-system-context.md)
 
-# Prepared plain-init behavior in Git
+# Plain-init behavior in Git
 
-The [prepared release](../releases/next-release.md) makes plain `superbee init` inside a Git work
+The [current release](../releases/current.md) makes plain `superbee init` inside a Git work
 tree select its top-level `.superbee/` when no existing bundle or project binding selects another
 target. Outside Git, the default remains the current directory. The tutorial's explicit
 `--create-only --dir .superbee` remains a deliberate local creation. Initialization performs no

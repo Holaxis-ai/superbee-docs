@@ -6,7 +6,7 @@ description: >-
   boundaries.
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:57:22.380Z'
+  at: '2026-10-02T20:45:23.129Z'
 superbee_updated_by: 'process:release-docs-preparation'
 ---
 # Release applicability
@@ -75,7 +75,7 @@ A missing sign-in returns a tool error with the link to relay; retry after brows
 | Document reads and ordinary edits | Work on the checkout folder; compatible sync sends whole-document create, replace, or delete with version preconditions. |
 | Host history | `doc history` reads sent host versions; it does not include an unsent edit. |
 | Generic operations | Discover and run hosted reads without an existing typed verb. |
-| Kind and recipe definitions | Refused in a checkout. Design locally before publication. |
+| Kind and recipe definitions | CLI Kind and convention-only recipe changes require host model-edit permission and instance compatibility. Recipes with non-convention content and local MCP convention writes remain refused. |
 | Verification, artifacts, blob mutation, index generation, View saves | Refused where the checkout cannot deliver them; follow the supported app/interface instruction. |
 | Read-only host or withdrawn write access | Local work is retained; receipts explain what could not be sent. |
 | Host operation unavailable | `NOT_IMPLEMENTED`; do not infer capabilities from a CLI version alone. |
@@ -84,15 +84,15 @@ A missing sign-in returns a tool error with the link to relay; retry after brows
 
 [Hosted recovery](../troubleshooting/hosted-checkout.md)
 
-# Prepared capability extensions
+# Capability extensions
 
-The [prepared release](../releases/next-release.md) retains person-scoped hosted access. A new
+The [current release](../releases/current.md) retains person-scoped hosted access. A new
 hosted write with several stored or remembered host candidates requires `--host`; a bound checkout uses its stored
 host. Model changes depend on `definition_writes: "allowed"`; absent or refused permission does
 not grant a bypass. Root front-page writes have their own host capability. `limits.documentInputBytes`
 owns each whole-document request bound, with a legacy fallback when absent.
 
-[The checkout guide](../guides/work-in-hosted-checkout.md) explains model and front-page decisions.
+The checkout guide explains model and front-page decisions.
 [The transfer guide](../guides/move-bundle-between-local-and-hosted.md) explains staged creation and
 paged checkout/export. Generic operations grant no extra authority, and MCP convention writes,
 artifact writes, verification, and View saves retain the documented refusals.

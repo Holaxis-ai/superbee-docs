@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:52:22.517Z'
+  at: '2026-10-02T20:45:21.075Z'
 ---
 # Outcome
 
@@ -258,14 +258,14 @@ then inspect `superbee kinds`. Declared positions come before undeclared Kinds; 
 ID. This is a Convention display hint, not a field to add to each instance. Recipe reapplication
 preserves local placement. See [Kind conventions](../reference/kind-conventions-and-recipes.md).
 
-Design Kinds and validate instances locally before publishing a hosted bundle. This CLI
-refuses definition changes in a hosted checkout; later source changes are not release evidence.
+Design Kinds and validate instances before publishing a hosted bundle. In a checkout, model
+changes depend on the host permission and compatibility rules below.
 
-[Current stable release evidence](../sources/current-release.md).
+Current stable release evidence.
 
-# Prepared hosted model editing
+# Hosted model editing
 
-The [prepared release](../releases/next-release.md) permits CLI Kind and convention-only recipe
+The [current release](../releases/current.md) permits CLI Kind and convention-only recipe
 changes in a checkout when the host declares that the person may change the bundle model.
 Recipes containing Views, References, or other non-convention content remain refused. Host model
 validation can reject changes incompatible with existing instances. Preserve the findings and fix

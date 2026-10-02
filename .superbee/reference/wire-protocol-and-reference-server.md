@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:56:02.984Z'
+  at: '2026-10-02T20:45:23.868Z'
 ---
 # Scope
 
@@ -151,9 +151,9 @@ and [wire tests](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e1
 own route syntax and behavior.
 
 
-# Prepared malformed-document listing
+# Malformed-document listing
 
-The [prepared release](../releases/next-release.md) adds `malformed=skip` to document listing.
+The [current release](../releases/current.md) adds `malformed=skip` to document listing.
 The response excludes malformed records from `docs` and `count` and names them in optional
 `skipped: [{ id, reason }]`. Without that request, malformed content still fails loudly.
 `RemoteBackend.queryHeads` reports skipped rows through `onSkip`; without a handler it raises a
@@ -162,4 +162,4 @@ malformed-document error. CLI listing names skipped documents for repair.
 Reading the malformed document itself, complete heads, and snapshot still fail with
 `details.malformed`. Complete synchronization inputs cannot silently omit an existing ID, because
 that would look like deletion. This extension changes neither authentication nor server exposure.
-[Preparation evidence](../sources/next-release.md) pins the wire contract.
+Release evidence pins the wire contract.

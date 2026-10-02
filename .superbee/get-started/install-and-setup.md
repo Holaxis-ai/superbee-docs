@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:06:38.863Z'
+  at: '2026-10-02T20:45:19.896Z'
 ---
 # Outcome
 
@@ -32,7 +32,7 @@ prerelease support become stable-package capabilities only when the release evid
 
 # 1. Install the CLI
 
-Set `stable_version` to the version in [the verified stable release](../releases/current.md),
+Set `stable_version` to the version in the verified stable release,
 then run the following command. An unversioned install follows npm `latest`, which can temporarily
 point at a prerelease; verify the version rather than treating the tag as stable-release evidence.
 
@@ -47,7 +47,7 @@ superbee version
 ```
 
 The output identifies package `superbee`, channel `npm-package`, and a version and source commit that
-agree with the [current release evidence](../sources/current-release.md).
+agree with the current release evidence.
 
 If `superbee` is not found, make sure npm's global binary directory is on `PATH`, then open a fresh
 terminal. Do not use `npx` for persistent host integrations: MCP, Skills, and hooks need an
@@ -122,10 +122,10 @@ This explicit command starts sign-in and records the hosted workspace. Relay its
 link, wait for confirmation, and repeat its resume command; select among workspaces with the
 person. Continue with [Work in a hosted checkout](../guides/work-in-hosted-checkout.md).
 
-[Current stable release evidence](../sources/current-release.md).
+Current stable release evidence.
 
-# Preparing for the next stable release
+# Review an upgrade
 
-Use [the preparation guide](../releases/next-release.md) for prerelease evaluation and the stable
-publication gate. The current stable record, generated command inventory, and this site's version
-label retain their verified release identity until finalization.
+Use the current release guide for changes, compatibility, and recovery.
+Install the explicit version named there and check the executable identity before updating
+automation or hosted workflows.

@@ -7,7 +7,7 @@ description: >-
   precedence and recovery.
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:52:25.099Z'
+  at: '2026-10-02T20:45:22.678Z'
 ---
 # Scope
 
@@ -217,7 +217,7 @@ explicit `--dir` path to continue bounded work without changing ambient project 
 # Governing evidence
 
 The package identity and stable verification boundary are recorded in
-[the current release evidence](../sources/current-release.md). Bundle precedence, bindings, remote
+the current release evidence. Bundle precedence, bindings, remote
 selection, and private-state exclusion are grounded in the tagged
 [`bundle.ts`](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/cli/src/bundle.ts)
 and
@@ -263,11 +263,11 @@ rather than being treated as the unauthenticated reference server's default bund
 [Hosted CLI access](hosted-cli-access.md) and [Hosted recovery](../troubleshooting/hosted-checkout.md).
 Never infer routing from a marker or reuse another workspace's access.
 
-[Current stable release evidence](../sources/current-release.md).
+Current stable release evidence.
 
-# Prepared initialization target
+# Initialization target
 
-In the [prepared release](../releases/next-release.md), plain `init` without `--dir` honors an
+In the [current release](../releases/current.md), plain `init` without `--dir` honors an
 existing bundle or project binding. With neither, a Git work tree selects its top-level
 `.superbee/`; outside Git it uses the current directory. Inspect the returned physical root before
 writing. Explicit `--dir` still names the chosen target. A binding to a private board refuses bare

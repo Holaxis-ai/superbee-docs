@@ -5,7 +5,7 @@ description: Author one safe responsive View for the local UI and MCP Apps hosts
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:52:23.165Z'
+  at: '2026-10-02T20:45:20.382Z'
 ---
 # Goal
 
@@ -141,16 +141,16 @@ Graph is bounded and does not supply OSS model/definitions. Require explicit act
 propose grant, and supported action kind. The local UI adds confirmed complete-body replacement
 and atomic field/body update; MCP stays scalar-only. Design a scalar-only fallback when the same
 View must run in both hosts. Preserve cross-links during body replacement, handle stale versions,
-and lock proposals after an unknown outcome. See [View contract](../reference/view-contract-and-access.md).
+and lock proposals after an unknown outcome. See View contract.
 
 Hosted checkouts cannot save View artifacts through this CLI. Follow the app/interface instruction
 rather than using a generic operation or direct blob mutation to bypass the refusal.
 
-[Current stable release evidence](../sources/current-release.md).
+Current stable release evidence.
 
-# Prepared View ordering and local delivery
+# View ordering and local delivery
 
-The [prepared release](../releases/next-release.md) adds `query.newest`. Discover it through
+The [current release](../releases/current.md) adds `query.newest`. Discover it through
 `hello.host.capabilities` before using `order: "newest"`; a host without it refuses the option.
 Newest sorting occurs before the reply limit. See [query ordering](../guides/query-links-and-backlinks.md).
 

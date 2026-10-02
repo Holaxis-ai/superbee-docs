@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:06:39.224Z'
+  at: '2026-10-02T20:45:24.376Z'
 ---
 # Outcome
 
@@ -55,8 +55,8 @@ superbee version
 
 Install the persistent CLI when it is absent:
 
-Set `stable_version` from [the verified stable release](../releases/current.md), following
-[the installation guide](../get-started/install-and-setup.md). Then run:
+Set `stable_version` from the verified stable release, following
+the installation guide. Then run:
 
 ```sh
 npm install -g "superbee@${stable_version:?Set stable_version to the version in the verified stable release}"
@@ -215,7 +215,7 @@ superbee <command> --help
 ```
 
 For document or View presentation failures, continue with the
-[presentation recovery guide](../guides/show-documents-and-views.md).
+presentation recovery guide.
 
 # Evidence
 
@@ -247,11 +247,11 @@ retain the shared-board path. Follow the returned sync recovery; `init` is reser
 new local bundle. Unavailable hook launchers are reported as unsupported by setup rather than as a
 ready integration.
 
-[Current stable release evidence](../sources/current-release.md).
+Current stable release evidence.
 
-# Prepared malformed-file recovery
+# Malformed-file recovery
 
-With [the prepared release](../releases/next-release.md), a malformed document can be listed as a
+With the current release, a malformed document can be listed as a
 skipped ID while readable documents remain available. Run `doc read <id>` for the named parse
 error, preserve the file, and repair its YAML. Complete heads/snapshot reads still fail on malformed
 content instead of interpreting the missing record as deletion. Repair the document before using

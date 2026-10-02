@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:07:58.790Z'
+  at: '2026-10-02T20:45:25.174Z'
 ---
 # Purpose
 
@@ -200,54 +200,29 @@ The representative slice is ready to expand when:
 
 # Current stable release coverage
 
-The `codex/docs-0.3.0-draft` branch covers the coupled release-facing page set below.
-[Current release evidence](../sources/current-release.md) owns package verification and bounds
-the stable implementation claims.
-Production hosted acceptance and native Windows execution remain untested.
+Branch `docs/prepare-0.4.0` owns the coupled release update. The proximate goal is to explain the
+verified stable changes while preserving user-owned bundles and trustworthy package identities.
+[Current release evidence](../sources/current-release.md) owns the package handoff;
+[the current source review](../sources/next-release.md) bounds implementation claims and acceptance
+limits. Stable records, archive, release label, runtime pin, and generated CLI inventory are
+reconciled through the owning conductor. Architecture source and admitted diagrams retain their
+independent scope. The existing tooling task and PR remain separately owned.
 
-| Page set | Mode / audience / successful outcome | Disposition and governing evidence |
+The complete stable tree-delta and release-event query selects 43 maintained pages: 32 updated and
+11 retained with a recorded reason in the frozen conductor review.
+
+| Page set | Audience / mode / outcome | Stable disposition |
 | --- | --- | --- |
-| Hosted checkout, transfer, access reference, and recovery | How-to / practitioner and agent / select, edit, reconcile, transfer the intended hosted bundle | New authored procedures and trigger from fixed checkout, auth, operation, sync, publish/export source; installed-package journeys are recorded in release evidence; production host acceptance is untested. |
-| Install, host support, verify host setup, upgrade, setup troubleshooting | Tutorial or how-to / new and existing user / use supported CLI and reconnect integrations | Installation and platform change sections plus hosted setup routing; verify-host procedure unchanged except optional hook capability, which is covered by host support. Native Windows support removal is fixed source evidence. |
-| CLI overview, inventory, configuration, errors | Reference / agent and integrator / select the right command and recover from receipts | Updated command ownership, selection, and errors; inventory generated from the verified installed package. |
-| Kinds, reusable structure, modeling, recipe evolution | Explanation or how-to / bundle author / preserve the model and guide reading order | Numeric Convention order and hosted definition refusal documented. Later hosted-definition writes excluded. |
-| View contract, View authoring, query/links, trust | Reference or how-to / View author and operator / discover capabilities and confirm bounded changes | Local body/atomic proposal support, MCP scalar-only scope, graph bounds and absent OSS model projection documented from pinned protocol and tests. Live production host acceptance is untested. |
-| Git sharing and privacy boundaries | How-to / practitioner / resolve saved conflicts without restoring lost ownership or confusing hosted policy | Recorded inspect/resolve decisions and explicit transfer boundary documented. Remote access principles unchanged. |
-| Wire contract | Reference / integrator / reconcile complete reads and ambiguous document writes | Heads/snapshot/identified outcomes and retention limits documented. Server remains unauthenticated by default. |
-| Contributor quickstart | How-to / contributor / find the governing release workflow | Release source instruction links added; no current-main feature inference. |
-| Architecture at a glance, system context, document mutation, public publication | Explanation / technical reader / understand the independently pinned architecture | No change to the separately pinned source or admitted diagrams. Release interface changes route through authored references; architecture refresh remains independently reviewed. |
-| Bundle engine, View lifecycle, sync/freshness architecture | Explanation / integrator / locate changed contracts | Added release-facing change notes; main narrative and diagrams retain their stated source scope. |
-| What Superbee is, bundles/documents, start here, first workspace, context, assigned work, claims example | Explanation or tutorial / new and active user / preserve or model local work | No change: source delta retains these local journeys and actor/model examples; new hosted workflow is independently linked through navigation and CLI reference. Representative local journeys use the published package. |
-| Artifacts and publication snapshot API, OKF compatibility, show documents/Views | How-to or reference / operator / preserve byte channels and use supported presentation | No change to the documented local/versioned contract; checkout refusals and View proposal extension are documented in the new hosted and View references. The installed package and documentation rendering are checked separately from production host acceptance. |
-| Current release and archive | Reference / existing user / know actual stable identity and recovery | Promoted by the release conductor from verified registry, tag, and packed identity; immutable release history retained. |
+| Install, verify host setup, migration, platform support, CLI overview, setup recovery | New or existing user / tutorial, how-to, reference / install the intended verified package | Explicit stable installation, paging/platform/migration and acceptance limits. |
+| Hosted checkout, transfer, access, recovery | Operator and agent / how-to and reference / change admitted state and recover transfers | Model and root permissions, write bounds, canonical sync bytes, staged/paged transfer and explicit host selection; production acceptance untested. |
+| First workspace, configuration, Git sharing | User and operator / tutorial and reference / create the intended target and recover sharing | Plain Git init selection, malformed-document publication holds, preserved history and YAML recovery; publication consent retained. |
+| Reusable structure, modeling, recipe evolution, Kind reference | Bundle author / explanation and how-to / evolve an admitted model | Convention-only person-scoped hosted model capability and incompatible-instance recovery. |
+| Byte channels, query/links, View reference/authoring, errors, wire | Agent and integrator / reference and how-to / page safely and negotiate capabilities | Page termination/version/channel contract, newest ordering, local View refresh and malformed-list semantics. |
+| Current/archive and generated CLI commands | Existing user / reference / identify the stable release | Generated from verified stable package/source and immutable release history through the conductor. |
+| Architecture and contributor references | Technical reader / explanation and how-to / locate governing contracts | Independent source and diagrams retained; interface changes route through maintained guides/references. |
+| What Superbee is, bundles/documents, start here, context, assigned work, claims example, privacy, publication snapshot, OKF, show documents/Views | User or integrator / explanation, tutorial, reference / preserve existing local journeys | Retained contracts; changed hosted/paging/runtime surfaces covered in the coupled guides and references. |
 
-The release conductor records every affected-page disposition against its captured registry and
-source packet. The tree-delta review retains the independently pinned architecture diagrams.
-
-# Stable preparation from the documented release
-
-Branch `docs/prepare-0.4.0` owns the coupled preparation pages. The proximate goal is to explain
-verified changes from the documented stable source to the published prerelease while preserving
-user-owned bundles and trustworthy release identities. [Preparation evidence](../sources/next-release.md)
-owns the fixed source comparison. Current stable records, site version label, dependency pins,
-generated CLI inventory, archive, and independently pinned architecture/diagrams are retained
-pending stable package verification.
-
-The complete tree-delta plus release-event query selects 43 maintained pages. Dispositions:
-
-| Page set | Audience / mode / outcome | Preparation disposition |
-| --- | --- | --- |
-| Install, verify host setup, migration, platform support, CLI overview, setup recovery | New or existing user / tutorial, how-to, reference / install the intended verified package | Correct moving-tag assumptions, retain stable identity, add prepared paging/platform/migration limits. |
-| Hosted checkout, transfer, access, recovery | Operator and agent / how-to and reference / change only admitted state and recover transfers | Explain model and root permissions, write bounds, canonical sync bytes, staged/paged transfers and explicit host selection. Production hosted acceptance is untested. |
-| First workspace, configuration, Git sharing | User and operator / tutorial and reference / create the intended local target before sharing | Explain plain Git init selection and malformed-document publication holds with non-destructive YAML recovery; explicit local-first tutorial and publication consent remain valid. |
-| Reusable structure, modeling, recipe evolution, Kind reference | Bundle author / explanation and how-to / evolve an admitted hosted model | Add convention-only, person-scoped capability and incompatible-instance recovery. |
-| Byte channels, query/links, View reference/authoring, errors, wire | Agent and integrator / reference and how-to / page safely and negotiate capabilities | Add page termination/version/channel contract, newest query ordering, local View refresh behavior, and malformed-list semantics. |
-| Stable current/archive and generated CLI commands | Existing user / reference / discover verified identity | No promotion: actual stable release/package evidence is required before conductor finalization. |
-| Architecture at a glance, system context, mutation, bundle engine, View lifecycle, sync/freshness | Technical reader / explanation / understand the independently pinned source | No diagram or source-pin change; retain historical scope and route prepared interface differences to references. Stable release citations remain stable. |
-| What Superbee is, bundles/documents, start here, context, assigned work, claims example, privacy, publication snapshot, OKF, show documents/Views, contributor quickstart | New user or integrator / explanation, tutorial, reference / retain working local journeys and boundaries | No behavioral rewrite: the reviewed delta preserves these documented local/OKF/byte/presentation contracts. Existing stable sections cite current stable evidence; prepared capabilities route through the updated guides. |
-
-Installed prerelease probes verify clean identity, Unicode paging, absent-next termination,
-stale-version refusal, complete byte export, malformed listing and Git init. Hosted execution and
-live integration acceptance remain source/test-grounded limitations. After stable publication,
-review any additional source delta, use the existing release conductor, regenerate stable references,
-and run fresh checks before publication. No other active tooling task or PR is claimed here.
+Installed stable-package probes verify clean identity, Unicode paging and absent-next termination,
+changed-page refusal, complete byte export, malformed listing and Git init. Hosted/live integration
+acceptance remains limited to fixed source/tests as recorded in evidence. Publication uses the
+existing repository workflow after exact-SHA review and required checks.

@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:06:39.409Z'
+  at: '2026-10-02T20:45:20.856Z'
 ---
 # Outcome
 
@@ -49,7 +49,7 @@ support. Confirm that it lists your environment before installing the package.
 
 Install the current stable package:
 
-Set `stable_version` from [the verified stable release](../releases/current.md), following
+Set `stable_version` from the verified stable release, following
 [the installation guide](../get-started/install-and-setup.md). Then run:
 
 ```sh
@@ -63,7 +63,7 @@ superbee version
 ```
 
 The version and artifact channel should agree with
-[the current release record](../releases/current.md).
+the current release record.
 
 Now inspect the host integration you use:
 
@@ -248,13 +248,13 @@ superbee doc open <document-id>
 - A `legacy_naming` finding affects View registration. Ordinary documents remain readable while
   the View records are repaired.
 
-[install and set up Superbee](../get-started/install-and-setup.md)
+install and set up Superbee
 
 [understand bundles, documents, and relationships](../concepts/bundles-documents-and-relationships.md)
 
 [find a command](../reference/cli-overview.md)
 
-[current release](../releases/current.md)
+current release
 
 # Evidence
 
@@ -285,21 +285,20 @@ repair. Preserve the previous executable identity and local work before changing
 A hosted move is a separate decision from upgrading the CLI. Use
 [Publish, adopt, or export](move-bundle-between-local-and-hosted.md) for an explicit transfer;
 never treat `init`, a copied checkout marker, or a package reinstall as checkout migration.
-Definition changes remain unsupported in hosted checkouts in this release. Design and validate
-Kinds locally before publication.
+Hosted Kind and convention-only recipe changes require model-edit permission from the host and
+compatibility with existing instances. Review those capabilities before changing the model.
 
 Library integrators upgrading the filesystem API must provide an explicit `FilesystemHostPolicy`
 for a non-POSIX host and retain the backend returned by `initBundle` as `{root, backend}`. Core
 has no npm OS restriction and its non-filesystem backends remain available. See the pinned
 [core migration contract](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/core/README.md).
 
-[Current stable release evidence](../sources/current-release.md).
+Current stable release evidence.
 
-# Preparing a stable upgrade
+# Review the stable upgrade
 
-Review [the preparation guide](../releases/next-release.md) before changing automation or hosted
-model/front-page workflows. It separates changes from the current stable release from the
-metadata-only stable candidate comparison with its published prerelease. Finalization requires the
-actual stable package, source tag, and release receipts; a version label alone does not prove a
-functional rollback or migration. Keep existing bundles and their edition unchanged unless a
-separate reviewed migration is intended.
+Review the current release guide before changing automation or hosted
+model/front-page workflows. It distinguishes changes since the previous stable release from the
+metadata-only comparison with the published prerelease. That source comparison requires no
+functional rollback or bundle migration. Keep existing bundles and their edition unchanged unless
+a separate reviewed migration is intended.

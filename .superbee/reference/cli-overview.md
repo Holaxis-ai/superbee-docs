@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:06:39.045Z'
+  at: '2026-10-02T20:45:22.444Z'
 ---
 # Scope
 
@@ -151,13 +151,13 @@ Generated help provides current option tables. Documentation explains which comm
 its safety constraints, and a verified journey; the installed package's help owns its complete flags
 and defaults.
 
-[install and set up Superbee](../get-started/install-and-setup.md)
+install and set up Superbee
 
 [what Superbee is](../concepts/what-superbee-is.md)
 
 [bundles, documents, and relationships](../concepts/bundles-documents-and-relationships.md)
 
-[current release evidence](../sources/current-release.md)
+current release evidence
 
 # Release contracts
 
@@ -171,14 +171,14 @@ and defaults.
 | Optional session sync | `hook install --turn-end-sync` | Sync at turn end on Claude Code/Codex after agreement; Git boards also require `--git-boards`. |
 
 Use [Hosted CLI access and operations](hosted-cli-access.md) for selection and capability constraints.
-The [generated command inventory](cli-commands.md) is captured from the installed 0.3.0 package.
+The [generated command inventory](cli-commands.md) is captured from the verified installed stable package.
 
-[Current stable release evidence](../sources/current-release.md).
+Current stable release evidence.
 
-# Prepared paged-read contract
+# Paged-read contract
 
-The [prepared release](../releases/next-release.md) adds a bounded page channel to the published
-prerelease's `doc read` record:
+The current release provides a bounded page channel in the
+`doc read` record:
 
 ```sh
 superbee doc read <id> --offset 0 --json
@@ -196,5 +196,5 @@ of combining versions. A page is unsuitable as a replacement body. For editing, 
 body with `--body-out`, then use the receipt's version for `doc update --body-file`.
 Paging flags cannot combine with `--out`, `--body-out`, `--rendered-out`, or `--field`.
 
-The generated inventory above remains tied to the current stable package. The preparation syntax
-and bounds are verified separately against [preparation evidence](../sources/next-release.md).
+The generated inventory, page syntax, and bounds are verified against the same current stable
+package in release evidence.

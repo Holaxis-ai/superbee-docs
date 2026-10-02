@@ -5,7 +5,7 @@ description: 'Stable CLI failure codes, exit statuses, output channels, and retr
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:07:58.625Z'
+  at: '2026-10-02T20:45:22.211Z'
 ---
 # Scope
 
@@ -142,16 +142,16 @@ requires all rows committed. Preserve partial outcomes; a failed command or miss
 does not mean no write happened. See [Hosted recovery](../troubleshooting/hosted-checkout.md).
 
 
-# Prepared paging and hosted receipts
+# Paging and hosted receipts
 
-The [prepared release](../releases/next-release.md) returns `CONFLICT` with `reason: version_conflict` (exit 5) when a page's
+The [current release](../releases/current.md) returns `CONFLICT` with `reason: version_conflict` (exit 5) when a page's
 `--expected-version` no longer matches. Restart the paged read; never combine versions.
 Paging combined with a complete byte/field channel returns `USAGE` (exit 2).
 Hosted `ambiguous_host`, model compatibility, front-page conflicts, write-size holds, and staged
-transfer outcomes retain their owning structured receipts. See [hosted recovery](../troubleshooting/hosted-checkout.md).
+transfer outcomes retain their owning structured receipts. See hosted recovery.
 A skipped malformed listing is partial visibility, not evidence of a deletion.
 
-# Prepared Git frontmatter holds
+# Git frontmatter holds
 
 Outgoing dedicated-board sync with malformed document frontmatter returns a held receipt and
 `CONFLICT` (exit 5). `held_documents` names IDs, paths, reasons, and details; `held_help` gives the

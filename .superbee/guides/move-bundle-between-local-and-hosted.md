@@ -4,7 +4,7 @@ title: Move a bundle between local and hosted
 description: 'Preview hosted publication, adopt a moved checkout, or export a hosted bundle.'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:57:22.207Z'
+  at: '2026-10-02T20:45:21.323Z'
 superbee_updated_by: 'process:release-docs-preparation'
 ---
 # Release applicability
@@ -95,9 +95,9 @@ Verify the resulting target with `bundle locate`, `home`, and `status`. For a ch
 
 [Choose privacy and bundle boundaries](choose-privacy-and-bundle-boundaries.md)
 
-# Prepared large-bundle transfer
+# Large-bundle transfer
 
-The [prepared release](../releases/next-release.md) selects staged creation when publication exceeds
+The [current release](../releases/current.md) selects staged creation when publication exceeds
 one request's bounds. Preview reports the transport, limits, blockers, destination, and the folder's
 post-publication ownership. Staged creation admits at most 10,000 documents, 1,000 reserved files,
 1,000 other files of 16 MiB each, and 64 MiB of current files. Optional history admits up to 5,000
@@ -117,5 +117,5 @@ back to its single-archive contract.
 
 For a new hosted write with more than one stored or remembered host candidate, supply the intended `--host`.
 `ambiguous_host` is a selection refusal; the last sign-in no longer chooses among those hosts.
-A bound checkout retains its own host. Use [preparation evidence](../sources/next-release.md) for
+A bound checkout retains its own host. Use release evidence for
 fixed implementation and verification limits.

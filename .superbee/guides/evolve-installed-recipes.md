@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:52:22.079Z'
+  at: '2026-10-02T20:45:20.609Z'
 ---
 # Goal
 
@@ -120,11 +120,11 @@ is reapplied. It does not create schema drift requiring evolution. Validate the 
 and instances after substantive model changes. A hosted checkout cannot evolve definitions in this
 release; finish and validate the local/Git model before publication.
 
-[Current stable release evidence](../sources/current-release.md).
+Current stable release evidence.
 
-# Prepared hosted model editing
+# Hosted model editing
 
-The [prepared release](../releases/next-release.md) permits CLI Kind and convention-only recipe
+The [current release](../releases/current.md) permits CLI Kind and convention-only recipe
 changes in a checkout when the host declares that the person may change the bundle model.
 Recipes containing Views, References, or other non-convention content remain refused. Host model
 validation can reject changes incompatible with existing instances. Preserve the findings and fix
