@@ -6,8 +6,8 @@ description: >-
   verify exact-SHA CI.
 superbee_updated_by: 'process:release-docs-review'
 generated:
-  by: 'process:superbee'
-  at: '2026-10-02T20:51:08.085Z'
+  by: 'process:release-docs-review'
+  at: '2026-09-30T19:53:16.838Z'
 ---
 # Goal
 

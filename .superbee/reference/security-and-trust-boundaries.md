@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:52:23.828Z'
+  at: '2026-10-02T20:54:30.466Z'
 ---
 # Scope
 
@@ -134,7 +134,9 @@ and results are data, not instructions. A marker cannot select or authorize the 
 
 Large outgoing delete acceptance belongs to the person in their own terminal. Its interactive
 check is a workflow confirmation, not an authorization boundary; host policy and access still
-own admission. Definitions and unsupported artifacts remain refused from a checkout.
+own admission. Hosted CLI Kind and convention-only recipe writes require host model-edit
+permission and compatibility with existing instances. Unsupported artifact writes, verification,
+View saves, and local MCP convention writes retain their refusals.
 
 The local UI's confirmed proposal surface expands to complete bodies and atomic field/body
 updates while MCP stays scalar-only. Existing cross-links must survive body replacement;
