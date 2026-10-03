@@ -6,7 +6,7 @@ description: >-
   boundaries.
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:23.129Z'
+  at: '2026-10-03T15:06:42.505Z'
 superbee_updated_by: 'process:release-docs-preparation'
 ---
 # Release applicability
@@ -34,6 +34,37 @@ A hosted checkout is a local folder bound in private state. Its marker cannot se
 Workspace-qualified references resolve collisions; use the returned reference and folder.
 `bundle locate`, `home`, `status`, and session orientation expose whether a folder's home is
 local, Git, hosted, or an unbound checkout copy.
+
+# First hosted run and sign-in state
+
+On a machine with no selected host or saved sign-in, `superbee whoami --json` succeeds with
+`host: null`, `signed_in: false`, and `status: not_signed_in`. `superbee logout --json` also
+succeeds and reports `signed_out: false`. These reads do not create private state.
+
+An otherwise valid hosted command that needs a host, such as `catalog list --hosted`, returns
+`AUTH_REQUIRED` (exit 4) with `details.status: not_signed_in` and `details.sign_in_command` when
+no host is available. Confirm the intended service before running that command: its public-host
+example can be replaced with the person's chosen `--host <url>`. The CLI does not silently select
+a host. `login` itself still needs `--host`, `SUPERBEE_HOST`, or a remembered sign-in host;
+missing login selection is `USAGE` (exit 2). For bundle commands, `SUPERBEE_HOST` or
+`SUPERBEE_ACCESS_TOKEN` alone does not select a host: a missing selection remains `USAGE`, with
+`reason: no_host`, and requires an explicit `--host`.
+
+Device sign-in without `--wait` starts or resumes the browser-confirmation flow and returns
+`AUTH_REQUIRED` (exit 4), `details.status: waiting_for_confirmation`, the sign-in URL, user code,
+and resume command. Relay those values, wait for the person, then repeat `details.resume`.
+`--wait` polls within its timeout instead. An already signed-in login reports the session and
+starts no new sign-in.
+
+`whoami` can report an unexpired pending sign-in before a default host has been recorded. Its
+`pending_sign_ins` rows name each host, URL, code, and expiry, with host-specific commands in
+`help`. Resume or cancel the intended host explicitly; `logout --host <url>` cancels that host's
+pending sign-in. A first-run logout without a selected host does not choose a pending host.
+
+A private-state write refusal is `RUNTIME` (exit 1) with `reason: state_dir_not_writable`.
+Follow [setup recovery](../troubleshooting/setup-and-bundle-resolution.md) for the returned path
+and permission remedy. [Sign-in recovery](../troubleshooting/hosted-checkout.md) distinguishes
+not signed in, waiting for confirmation, and other access failures.
 
 # Generic hosted reads
 

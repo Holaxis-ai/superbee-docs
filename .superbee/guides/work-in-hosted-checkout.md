@@ -6,7 +6,7 @@ description: >-
   conflicts.
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:21.967Z'
+  at: '2026-10-03T15:02:08.123Z'
 superbee_updated_by: 'process:release-docs-preparation'
 ---
 # Release applicability
@@ -30,10 +30,12 @@ superbee setup hosted --url <hosted-url>
 ```
 
 This explicit command signs in and records the default hosted workspace. Bare `superbee setup`
-continues to inspect AI host integrations read-only. When a hosted command returns `AUTH_REQUIRED`
-(exit 4), relay `details.sign_in_url` and `details.user_code` exactly, wait for the person to confirm
-in their browser, and retry the command named by `details.resume`. Never request passwords or
-credentials from the person. If the receipt says `choose_workspace`, ask which listed workspace
+continues to inspect AI host integrations read-only. For `AUTH_REQUIRED` (exit 4), inspect
+`details.status`. `not_signed_in` supplies `details.sign_in_command`; confirm the intended host
+and start sign-in there. `waiting_for_confirmation` supplies `details.sign_in_url`,
+`details.user_code`, and `details.resume`; relay the URL and code, wait for the person's browser
+confirmation, then repeat the resume command. Other authentication receipts retain their returned help and access
+recovery. Never request passwords or credentials from the person. If the receipt says `choose_workspace`, ask which listed workspace
 is intended and run its returned command. `no_workspace` requires an invitation or workspace
 creation in the Superbee app.
 
@@ -44,7 +46,9 @@ superbee whoami
 superbee catalog list --hosted
 ```
 
-`whoami` describes local session state and unverified token claims, never a token. The host confirms
+`whoami` describes local session state and unverified token claims, never a token. Before any host
+has been selected, it succeeds with `signed_in: false` and `status: not_signed_in`. A pending
+first sign-in appears in `pending_sign_ins` with its host-specific help. The host confirms
 identity on hosted commands. `catalog list --hosted` reads live across accessible workspaces;
 `catalog list --local` lists only local registrations without a hosted read. Plain catalog listing
 also reports reachable hosted bundles that have no folder here and never starts sign-in.

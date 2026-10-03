@@ -6,7 +6,7 @@ description: >-
   transfers.
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:24.102Z'
+  at: '2026-10-03T15:02:09.156Z'
 superbee_updated_by: 'process:release-docs-preparation'
 ---
 # Release applicability
@@ -23,7 +23,12 @@ context. Keep local edits until the receipt establishes their disposition.
 
 | Receipt or symptom | Recovery |
 | --- | --- |
-| `AUTH_REQUIRED` / exit 4 | Relay the returned sign-in link and user code; wait for the person's browser confirmation, then repeat `details.resume`. |
+| `AUTH_REQUIRED`, `status: not_signed_in` / exit 4 | Confirm the intended service and run `details.sign_in_command`, using its URL with `--host` when different from the example. |
+| `AUTH_REQUIRED`, `status: waiting_for_confirmation` / exit 4 | Relay `details.sign_in_url` and `details.user_code`; wait for browser confirmation, then repeat `details.resume`. |
+| `AUTH_REQUIRED` without either status above | Read the returned host, details, and help; use the owning sign-in or access recovery before retrying. |
+| `whoami` reports `waiting_for_confirmation` with `pending_sign_ins` | Resume the intended row's host-specific command in `help`. To cancel it, use `logout --host <url>`; a hostless first-run logout does not choose a pending host. |
+| `RUNTIME`, `reason: state_dir_not_writable` / exit 1 | Allow the required write to the private-state path named in the receipt, then repeat the same command. See setup recovery. |
+| `USAGE`, `reason: no_host` with a host or token environment variable | Pass the intended `--host`; environment credentials do not select a bundle's host. |
 | Missing published CLI client identity | Ask the host operator to provide supported CLI sign-in; do not invent credentials or client IDs. |
 | `choose_workspace` / `no_workspace` | Ask the person which returned workspace to select, or have them obtain access in the app. |
 | `ambiguous_bundle` | Choose the intended workspace. Use its catalog reference; an existing folder can be adopted with confirmed host/workspace only when origin proof succeeds. |

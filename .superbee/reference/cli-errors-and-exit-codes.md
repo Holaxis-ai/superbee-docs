@@ -5,7 +5,7 @@ description: 'Stable CLI failure codes, exit statuses, output channels, and retr
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:22.211Z'
+  at: '2026-10-03T15:02:08.465Z'
 ---
 # Scope
 
@@ -40,6 +40,9 @@ Some failures carry details that let an agent correct itself without parsing the
 | --- | --- | --- |
 | A non-conforming actor on an OKF v0.2 bundle | `USAGE` | `details.actor` holds the rejected value; `help` gives a corrected `--actor` or `SUPERBEE_ACTOR` value. |
 | A refused `doc field` source or set action | `USAGE` | `details.reason` (for example `ambiguous-source`, `source-not-found`, or `unsupported-set-field`), `details.field`, and, when relevant, the selector, a recommended selector, candidate sources, or supported fields. |
+| A first hosted command with no selected host or saved session | `AUTH_REQUIRED`, exit 4 | `details.status: not_signed_in`, `details.reason: no_host`, and `details.sign_in_command`. |
+| Device sign-in awaiting browser confirmation | `AUTH_REQUIRED`, exit 4 | `details.status: waiting_for_confirmation`, `details.sign_in_url`, `details.user_code`, and `details.resume`. |
+| A refused write under Superbee's private-state root | `RUNTIME`, exit 1 | `details.reason: state_dir_not_writable`, `details.path`, `details.errno`, and, when available, `details.syscall`; `help` names the permission remedy. |
 | A failed sharing preflight, board creation, or board update | Unchanged sync error code | `details.sharing` reports the operation, repository and board state, required authority, and whether local work was preserved or committed. |
 
 The `details.sharing` fields are:
@@ -127,7 +130,9 @@ and sharing details are defined in
 
 | Hosted condition | Machine receipt / code | Response |
 | --- | --- | --- |
-| Sign-in needed | `AUTH_REQUIRED`, exit 4; `details.sign_in_url`, `details.user_code`, `details.resume` | Relay exact link/code, wait for browser confirmation, repeat resume. |
+| First sign-in needed | `AUTH_REQUIRED`, exit 4; `status: not_signed_in`, `details.sign_in_command` | Confirm the intended host and start sign-in with the returned command. |
+| Browser confirmation pending | `AUTH_REQUIRED`, exit 4; `status: waiting_for_confirmation`, URL, code, resume | Relay the returned URL/code, wait for browser confirmation, then repeat resume. |
+| Private-state write refused | `RUNTIME`, exit 1; `state_dir_not_writable` | Allow the required write to the named path, then retry the same command. |
 | Human acceptance unavailable | `FORBIDDEN`, exit 2; `needs_person_at_terminal` | Give the person the held-set acceptance command. Never simulate their terminal. |
 | Generic read belongs to folder | `USAGE`; `folder_answers` | Use the named typed verb to include unsent edits. |
 | Host operation not offered | `NOT_IMPLEMENTED` | Use advertised capabilities; local/Git bundles have no host operations. |
@@ -136,6 +141,12 @@ and sharing details are defined in
 | Sync lock | `sync_busy` or `lock_orphaned` | Wait for busy locks. Only the orphaned receipt permits removal after confirming the process is gone. |
 | Host creation outcome uncertain | `TRANSIENT`; `write_outcome_unknown` | Repeat the same intent to finish or reconcile it. |
 | Export interrupted | `TRANSIENT`; `export_incomplete` | Retry the same destination. |
+
+An initial `whoami` or `logout` with no selected host succeeds (exit 0) and reports
+`status: not_signed_in`; inspect `signed_in` or `signed_out`. `login` still needs a selected
+host. A bundle command with only `SUPERBEE_HOST` or `SUPERBEE_ACCESS_TOKEN`, and no selected
+host, returns `USAGE` (exit 2) with `reason: no_host`; pass `--host`. These cases are distinct
+from a device sign-in waiting for the person. See [hosted access](hosted-cli-access.md).
 
 A sync receipt can contain committed, conflict, held, refused, unknown, and paused rows. Exit 0
 requires all rows committed. Preserve partial outcomes; a failed command or missing acknowledgement

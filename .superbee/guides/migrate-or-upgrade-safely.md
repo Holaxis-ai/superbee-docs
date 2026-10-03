@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:20.856Z'
+  at: '2026-10-03T15:02:07.764Z'
 ---
 # Outcome
 
@@ -297,8 +297,19 @@ Current stable release evidence.
 
 # Review the stable upgrade
 
-Review the current release guide before changing automation or hosted
-model/front-page workflows. It distinguishes changes since the previous stable release from the
-metadata-only comparison with the published prerelease. That source comparison requires no
-functional rollback or bundle migration. Keep existing bundles and their edition unchanged unless
-a separate reviewed migration is intended.
+Review the current release guide before changing automation. A first hosted command with no
+selected host or saved session now returns `AUTH_REQUIRED` (exit 4) with
+`details.status: not_signed_in`, rather than `USAGE` (exit 2). Inspect the status and run the
+returned sign-in command for the intended host. `waiting_for_confirmation` means an existing
+browser-confirmation flow is waiting for the person; relay its URL and code before retrying.
+`whoami` and `logout` succeed without a selected host and report that nothing is signed in.
+A bundle command given only a host or token environment variable still needs `--host`.
+
+A refused private-state write now returns `RUNTIME` (exit 1) with
+`reason: state_dir_not_writable` and the path/permission remedy. Treat these structured details
+as recovery guidance instead of parsing the message. See [hosted access](../reference/hosted-cli-access.md)
+and [setup recovery](../troubleshooting/setup-and-bundle-resolution.md).
+
+This patch changes no bundle format, edition, or migration requirement. Keep existing bundles
+and their edition unchanged unless a separate reviewed migration is intended. The comparison
+with the published prerelease is metadata-only; package and artifact identities still differ.

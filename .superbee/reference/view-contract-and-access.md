@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:23.642Z'
+  at: '2026-10-03T15:02:08.811Z'
 ---
 # Scope and supported version
 
@@ -191,3 +191,15 @@ renavigating the View's own frame can leave it blank. `window.parent` is the int
 The checked delivery receipt establishes byte delivery, not visible rendering or authorization.
 Changed bytes and access retain their approval requirements. These are local UI changes; an
 embedding host's advertised capabilities still determine its own supported surface.
+
+# Same-page Markdown fragment metadata
+
+The current package's Markdown renderer admits a fragment-only target after percent-decoding
+when it has the anchor-ID shape `[A-Za-z0-9_-][A-Za-z0-9_.:-]*`, at most 200 decoded characters,
+and at most 601 raw characters including `#`. It emits `data-aslite-fragment` on an inert span,
+never a raw `href`. A host adapter may bind that metadata to a heading it already knows exists.
+Malformed encodings, disallowed characters, and oversized targets receive no fragment metadata.
+This adds no executable HTML, image, or arbitrary-URL capability to document rendering.
+
+[Current source review](../sources/next-release.md) links the renderer and its fragment tests.
+Adapter-specific live rendering is a separate verification boundary.

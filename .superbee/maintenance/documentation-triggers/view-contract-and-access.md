@@ -2,13 +2,19 @@
 type: Documentation Trigger
 title: View contract and access change trigger
 description: Operational source and product-event triggers for the View contract reference.
-superbee_updated_by: openai/codex
+superbee_updated_by: 'process:release-docs-preparation'
+generated:
+  by: 'process:release-docs-preparation'
+  at: '2026-10-03T14:55:22.201Z'
 ---
 # Affected pages
 
 [View contract and access](../../reference/view-contract-and-access.md)
 
 # Source paths
+
+- `packages/markdown-renderer/src/**`
+- `packages/markdown-renderer/test/**`
 
 - `packages/core/src/page.ts`
 - `packages/view-runtime/src/authorization.ts`

@@ -1,43 +1,42 @@
 ---
 type: Source
-title: Superbee 0.4.0 release evidence
+title: Superbee 0.4.1 release evidence
 description: >-
   Immutable package, source, compatibility, and verification evidence for
-  Superbee 0.4.0.
-resource: 'https://registry.npmjs.org/superbee/-/superbee-0.4.0.tgz'
-version: 0.4.0
+  Superbee 0.4.1.
+resource: 'https://registry.npmjs.org/superbee/-/superbee-0.4.1.tgz'
+version: 0.4.1
 channel: latest
-published_at: '2026-10-02'
+published_at: '2026-10-03'
 superbee_updated_by: release-docs-automation
 generated:
   by: 'process:superbee'
-  at: '2026-10-02T20:41:06.468Z'
+  at: '2026-10-03T14:59:49.222Z'
 ---
 # Evidence identity
 
 | Field | Verified value |
 | --- | --- |
-| npm package | `superbee@0.4.0` |
+| npm package | `superbee@0.4.1` |
 | npm tag | `latest` |
-| npm integrity | `sha512-1mFPE6gko5gCAslUmSckUm61J4hDbdKJ5L8cZ7ItyRnYBhxd8UwH5UlPfBAcJkxWKZBzJNL5DwIOSeejb0kMFA==` |
-| npm tarball | `https://registry.npmjs.org/superbee/-/superbee-0.4.0.tgz` |
-| source tag | `v0.4.0` |
-| source commit | `b2911c7f26c60d6648ad2d53a1962259cb8b3a08` |
+| npm integrity | `sha512-lfX3zmJLLgEnf4DM8ScwktBnDZ/b08K/kRImq33BcvJ5zI0aNuiq3riC+mDRDeOBu6Fdr+ZubK3SyaNw8JNr9w==` |
+| npm tarball | `https://registry.npmjs.org/superbee/-/superbee-0.4.1.tgz` |
+| source tag | `v0.4.1` |
+| source commit | `98669939db2f0549375cd43efa81c729088c309c` |
 | Node requirement | `>=20` |
-| supported platforms | `macOS (darwin)`, `Linux (linux); includes WSL2` |
+| supported platforms | `Node.js 20 or newer on macOS (darwin) and Linux.`, `WSL2 follows the supported Linux path; native Windows npm installation and execution remain refused.` |
 
 # Public authorities
 
-- Package: https://www.npmjs.com/package/superbee/v/0.4.0
-- Source: https://github.com/Holaxis-ai/superbee/tree/v0.4.0
+- Package: https://www.npmjs.com/package/superbee/v/0.4.1
+- Source: https://github.com/Holaxis-ai/superbee/tree/v0.4.1
 
 # Verification performed
 
-- Public npm latest is 0.4.0. The non-draft, non-prerelease GitHub v0.4.0 release and dereferenced annotated tag bind b2911c7f26c60d6648ad2d53a1962259cb8b3a08. Release workflow 37056974718 completed successfully at that source.
-- The downloaded npm tarball matches captured SHA-512 integrity and GitHub asset SHA-256 72a3142ecad138aa26aabb006e36be6a544e90899d60c996c271baa9ba3700c3 and size 2009612 bytes. Lifecycle-disabled isolated installation reports superbee 0.4.0, npm-package channel, clean stable source and executable SHA-256 d23736375aadf4bfb6206a1aec0e1206371883bfcd69e62c54ad95d7f523d5eb.
-- Installed stable-package probes on macOS with Node.js 26.8.2 verify Unicode body paging and absent-next termination, changed-page CONFLICT/5, complete body export, incompatible paging/byte-channel USAGE/2, named malformed-file listing, plain Git init target without board creation, and shipped transfer/checkout help.
-- The actual 0.3.0 to 0.4.0 tree delta and release events select 43 maintained pages. Fixed-source behavior and test links are in the [current release source review](next-release.md). Later main changes and unmerged feature discussions are excluded; independently pinned architecture diagrams retain their declared source scope.
-- Production hosted OAuth/writes and transfer, production capability acceptance, live AI-host restart, native Windows, Linux acceptance, and exhaustive View host rendering were not executed. These bounded hosted/runtime claims rest on the fixed release source and committed tests; installed help and local probes establish only their stated checks.
+- Public npm 0.4.1 metadata, the non-prerelease GitHub v0.4.1 release, and its dereferenced tag agree on clean source 98669939db2f0549375cd43efa81c729088c309c. The downloaded tarball matches npm SHA-512 integrity and the GitHub asset SHA-256/size.
+- An isolated lifecycle-disabled package install reports version 0.4.1, npm-package channel, and executable sha256:38c0671a80a2e69a807d6364447597b805f61a8180614d5902a58022d45ee0d2. Disposable macOS probes on Node.js 26.8.2 verified first-run whoami/logout, AUTH_REQUIRED not_signed_in, login and environment-selection USAGE refusals, read-only state preservation, private-state EACCES recovery, and shipped sign-in help.
+- Waiting-for-confirmation and fragment-admission claims are grounded in the exact released source and committed tests linked from the current source review. The complete 0.4.0-to-0.4.1 tree delta and declared release events route every affected page to an updated or retained disposition.
+- Production OAuth, hosted writes/transfers, live AI-host restart, Linux/native Windows execution, and live reader-adapter fragment activation were not performed. Architecture source and diagram pins remain separately maintained.
 
 # Publication boundary
 

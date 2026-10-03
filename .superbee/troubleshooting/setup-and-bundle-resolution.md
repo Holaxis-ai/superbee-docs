@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:24.376Z'
+  at: '2026-10-03T15:02:09.329Z'
 ---
 # Outcome
 
@@ -256,3 +256,21 @@ skipped ID while readable documents remain available. Run `doc read <id>` for th
 error, preserve the file, and repair its YAML. Complete heads/snapshot reads still fail on malformed
 content instead of interpreting the missing record as deletion. Repair the document before using
 that bundle as a complete synchronization source.
+
+# Private-state write refusal
+
+`RUNTIME` (exit 1) with `details.reason: state_dir_not_writable` means a write to Superbee's
+private operational state was refused. The receipt names `details.path`, the permission errno,
+and, when known, the syscall. On macOS and Linux the canonical path is `~/.superbee-state`.
+An agent sandbox that permits only workspace writes can cause this refusal even when the
+bundle itself is writable.
+
+Allow the required write to the receipt's path through the sandbox or execution-permission
+settings, then repeat the same command. Superbee has no state-directory override; copying
+credentials or redirecting private state into a bundle is not a recovery procedure. An existing
+private root already at mode `0700` no longer receives a redundant permission write; needed
+state changes and repairs still require write access.
+
+For hosted `AUTH_REQUIRED` (exit 4), distinguish `not_signed_in` from
+`waiting_for_confirmation` before deciding whether to start sign-in or relay an existing
+browser-confirmation link. See [hosted recovery](hosted-checkout.md).

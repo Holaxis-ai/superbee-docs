@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:25.174Z'
+  at: '2026-10-03T15:08:44.959Z'
 ---
 # Purpose
 
@@ -198,13 +198,12 @@ The representative slice is ready to expand when:
 
 [site experience contract](../design/site-experience-contract.md)
 
-# Current stable release coverage
+# 0.4.0 coverage audit
 
-Branch `docs/prepare-0.4.0` owns the coupled release update. The proximate goal is to explain the
+Branch `docs/prepare-0.4.0` delivered the coupled release update. The proximate goal is to explain the
 verified stable changes while preserving user-owned bundles and trustworthy package identities.
-[Current release evidence](../sources/current-release.md) owns the package handoff;
-[the current source review](../sources/next-release.md) bounds implementation claims and acceptance
-limits. Stable records, archive, release label, runtime pin, and generated CLI inventory are
+[The release archive](../releases/release-notes.md) preserves the immutable release/evidence
+records for that delivery, including its package handoff, changes, and acceptance limits. Stable records, archive, release label, runtime pin, and generated CLI inventory are
 reconciled through the owning conductor. Architecture source and admitted diagrams retain their
 independent scope. The existing tooling task and PR remain separately owned.
 
@@ -226,3 +225,32 @@ Installed stable-package probes verify clean identity, Unicode paging and absent
 changed-page refusal, complete byte export, malformed listing and Git init. Hosted/live integration
 acceptance remains limited to fixed source/tests as recorded in evidence. Publication uses the
 existing repository workflow after exact-SHA review and required checks.
+
+# Current 0.4.1 release coverage
+
+Branch `docs/prepare-0.4.1` owns this bounded patch documentation update. Its proximate goal is to
+help new hosted users and agents choose the intended host, recognize sign-in state, recover a
+private-state permission refusal, and understand the limits of same-page Markdown links.
+The completed 0.4.0 documentation remains historical. The existing finalization-tooling proposal
+is separately owned and unchanged.
+
+[Current package evidence](../sources/current-release.md) and
+[the current source review](../sources/next-release.md) bind the published package and released
+tree comparison. The owning conductor reconciles immutable history, current/archive records,
+release label, runtime pin, and generated CLI help. The complete source/event review selects 26
+pages: 11 update dispositions, including idempotent CLI-inventory regeneration, and 15 retained
+with concrete reasons. The upgrade guide is additionally updated for the changed automation contract. Two existing renderer-page trigger
+records now include the Markdown renderer's source and tests.
+
+| Scope | Reader outcome / content mode | Disposition |
+| --- | --- | --- |
+| Installation, hosted checkout/access/recovery, CLI errors, setup recovery, upgrade | User or agent / tutorial, how-to, reference / select the intended service and recover the actual receipt | Explain first-run status, the two sign-in states, explicit-host exceptions and private-state permission remedy. |
+| Document presentation and View contract reference | User or integrator / how-to, reference / understand fragment navigation and its limits | Document inert validated fragment metadata and the host adapter's heading check; no live rendering guarantee. |
+| Current release, archive, generated CLI commands | Existing user / reference / identify the stable package and changed help | Reconcile through the existing conductor using published package/source identities. |
+| Architecture, contributor, platform, OKF, local modeling, context, Git and transfer pages | Existing reader / existing content mode / retain verified unchanged journeys | Retain source and diagram pins, public-platform limits, explicit-host transfer examples and local contracts. Contributor quickstart stays outside the separately owned tooling proposal. |
+
+Disposable macOS package probes verify first-run status, host-selection refusals, state-write
+recovery and help. Waiting confirmation and renderer admission are source/test-grounded; live
+OAuth, host restart, hosted writes/transfers and adapter activation are outside this acceptance.
+Repository checks and independent exact-SHA review determine readiness for handoff. Publication
+remains a separate authorized step through the existing workflow.

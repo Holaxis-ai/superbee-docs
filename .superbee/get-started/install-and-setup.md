@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:19.896Z'
+  at: '2026-10-03T15:02:07.599Z'
 ---
 # Outcome
 
@@ -118,9 +118,11 @@ has no first-party native Windows support promise. These changes do not migrate 
 
 Persistent AI host setup and hosted account setup are distinct. After ordinary
 host setup, users choosing hosted storage can run `superbee setup hosted --url <hosted-url>`.
-This explicit command starts sign-in and records the hosted workspace. Relay its returned browser
-link, wait for confirmation, and repeat its resume command; select among workspaces with the
-person. Continue with [Work in a hosted checkout](../guides/work-in-hosted-checkout.md).
+This explicit command starts sign-in and records the hosted workspace. A receipt with
+`details.status: waiting_for_confirmation` is a pause for browser confirmation: relay its
+returned link and code, then repeat `details.resume` after the person confirms. A
+`not_signed_in` receipt instead names the sign-in command. Select the intended service and any
+workspace with the person; see [hosted recovery](../troubleshooting/hosted-checkout.md). Continue with [Work in a hosted checkout](../guides/work-in-hosted-checkout.md).
 
 Current stable release evidence.
 
