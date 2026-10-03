@@ -6,7 +6,7 @@ description: >-
   verification, and bounded acceptance evidence.
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-03T15:06:42.676Z'
+  at: '2026-10-03T15:24:43.074Z'
 superbee_updated_by: 'process:release-docs-preparation'
 ---
 # Current stable source review
@@ -41,9 +41,12 @@ release metadata, and shipped Skill/reference changes were reviewed for their im
 expanding the documented feature set.
 
 On a first run, `whoami` and `logout` succeed without selecting a host or creating private state.
-A host-dependent command with no selected host or saved session returns `AUTH_REQUIRED` (exit 4)
-and `not_signed_in`, with a sign-in command. Bundle commands given only `SUPERBEE_HOST` or
-`SUPERBEE_ACCESS_TOKEN` retain `USAGE` and require `--host`. Login itself still needs host selection.
+With no selected host or saved session, an otherwise valid bundle operation that attempts hosted
+access, such as `catalog list --hosted`, returns `AUTH_REQUIRED` (exit 4) with
+`details.status: not_signed_in` and a sign-in command. Bundle commands given only `SUPERBEE_HOST` or
+`SUPERBEE_ACCESS_TOKEN` retain `USAGE` and require `--host`. Login without host selection
+remains `USAGE`. Publication preview without `--yes` can succeed with `ready: false` and
+`reason: no_host`; it attempts no hosted write.
 Device sign-in reports `waiting_for_confirmation`, its URL/code and resume command; `whoami` can
 list pending flows before a default host exists. Refused state writes name the private path and
 permission remedy. An existing `0700` private root avoids a redundant permission write.

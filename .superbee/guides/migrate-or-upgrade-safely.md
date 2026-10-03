@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:release-docs-preparation'
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-03T15:02:07.764Z'
+  at: '2026-10-03T15:24:42.366Z'
 ---
 # Outcome
 
@@ -297,12 +297,15 @@ Current stable release evidence.
 
 # Review the stable upgrade
 
-Review the current release guide before changing automation. A first hosted command with no
-selected host or saved session now returns `AUTH_REQUIRED` (exit 4) with
-`details.status: not_signed_in`, rather than `USAGE` (exit 2). Inspect the status and run the
-returned sign-in command for the intended host. `waiting_for_confirmation` means an existing
+Review the current release guide before changing automation. An otherwise valid bundle operation
+that attempts a hosted read or write, such as `catalog list --hosted`, now returns `AUTH_REQUIRED`
+(exit 4) with `details.status: not_signed_in` when no host or saved session is selected.
+Inspect the status and run the returned sign-in command for the intended host.
+`waiting_for_confirmation` means an existing
 browser-confirmation flow is waiting for the person; relay its URL and code before retrying.
 `whoami` and `logout` succeed without a selected host and report that nothing is signed in.
+`login` without a host remains `USAGE` (exit 2). Publication preview without `--yes` can
+succeed (exit 0) while reporting `ready: false` and `reason: no_host`; it performs no hosted write.
 A bundle command given only a host or token environment variable still needs `--host`.
 
 A refused private-state write now returns `RUNTIME` (exit 1) with

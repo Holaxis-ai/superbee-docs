@@ -6,7 +6,7 @@ description: >-
   boundaries.
 generated:
   by: 'process:release-docs-preparation'
-  at: '2026-10-03T15:06:42.505Z'
+  at: '2026-10-03T15:24:42.725Z'
 superbee_updated_by: 'process:release-docs-preparation'
 ---
 # Release applicability
@@ -41,14 +41,15 @@ On a machine with no selected host or saved sign-in, `superbee whoami --json` su
 `host: null`, `signed_in: false`, and `status: not_signed_in`. `superbee logout --json` also
 succeeds and reports `signed_out: false`. These reads do not create private state.
 
-An otherwise valid hosted command that needs a host, such as `catalog list --hosted`, returns
-`AUTH_REQUIRED` (exit 4) with `details.status: not_signed_in` and `details.sign_in_command` when
+An otherwise valid bundle operation that attempts hosted access, such as
+`catalog list --hosted`, returns `AUTH_REQUIRED` (exit 4) with `details.status: not_signed_in` and `details.sign_in_command` when
 no host is available. Confirm the intended service before running that command: its public-host
 example can be replaced with the person's chosen `--host <url>`. The CLI does not silently select
 a host. `login` itself still needs `--host`, `SUPERBEE_HOST`, or a remembered sign-in host;
 missing login selection is `USAGE` (exit 2). For bundle commands, `SUPERBEE_HOST` or
 `SUPERBEE_ACCESS_TOKEN` alone does not select a host: a missing selection remains `USAGE`, with
-`reason: no_host`, and requires an explicit `--host`.
+`reason: no_host`, and requires an explicit `--host`. A publication preview without `--yes`
+can succeed (exit 0) with `ready: false` and `reason: no_host`; it attempts no hosted write.
 
 Device sign-in without `--wait` starts or resumes the browser-confirmation flow and returns
 `AUTH_REQUIRED` (exit 4), `details.status: waiting_for_confirmation`, the sign-in URL, user code,
