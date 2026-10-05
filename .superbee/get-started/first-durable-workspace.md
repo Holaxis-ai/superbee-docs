@@ -7,12 +7,13 @@ description: >-
 superbee_updated_by: openai/codex
 generated:
   by: openai/codex
-  at: '2026-10-05T03:13:54.869Z'
+  at: '2026-10-05T03:18:32.400Z'
 ---
 # Outcome
 
-Ask an agent to turn a short workshop brief into three linked task records and an inspectable plan.
-Then ask a second question that uses those records. You see a bundle's structure, relationships,
+Create a local Superbee workspace inside a project, then use an agent to turn a short workshop
+brief into three linked task records and an inspectable plan. Ask a second question that uses
+those records. You see a bundle's structure, relationships,
 queries and human presentation working together before designing a model of your own.
 
 This exercise chooses **work-tracking because it is a built-in recipe**. Its existing Task
@@ -205,7 +206,8 @@ publishes `board` into an existing remote repository; Superbee does not create t
 A denial, timeout, SSH failure, or unclear probe leaves both facts unknown, so stop and diagnose
 access. If `origin/board` exists, join with `superbee sync --pull-only` instead of establishing
 another board. A confirmed absent board requires consent, repository-specific Write access and
-branch-create policy clearance before establishment.
+branch-create policy clearance before establishment. Repository creation permission is irrelevant
+to establishing a board in that existing repository.
 
 Follow [Share and synchronize a Git-backed bundle](../guides/share-and-synchronize-git-bundle.md)
 for the complete handoff and recovery procedure.
