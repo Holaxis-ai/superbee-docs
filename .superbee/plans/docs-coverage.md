@@ -6,8 +6,8 @@ description: >-
   public documentation.
 superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-03T15:08:44.959Z'
+  by: openai/codex
+  at: '2026-10-05T02:43:08.551Z'
 ---
 # Purpose
 
@@ -255,11 +255,20 @@ OAuth, host restart, hosted writes/transfers and adapter activation are outside 
 Repository checks and independent exact-SHA review determine readiness for handoff. Publication
 remains a separate authorized step through the existing workflow.
 
-# First-workspace continuity journey
+# First useful workspace and advanced progression
 
-The first-workspace tutorial demonstrates retained report-format reasoning, a changed JSON source,
-and a fresh-session source check. Its successful outcome is the current row count plus a checked
-explanation of whether the saved decision still applies. Use the stable package named by current
-release evidence. This exercise does not establish accuracy or token savings.
+The first-workspace tutorial uses work-tracking because it is a built-in recipe: a fixed fictional
+workshop brief becomes three related Tasks and a visible saved Plan, then supports a follow-up
+ownership/dependency question. It demonstrates generic structured records, links, queries and human
+inspection through one familiar example, with create-only rerun safety. It does not claim a live
+board, automatic scheduling, collaboration, accuracy or token savings.
+
+The advanced progression defines a domain's kinds and relationships, uses them in a bundle, then
+packages stable definitions as a reusable recipe. The proposed bounded domain is a three-package
+inventory from fictional manifests, with version/license snapshots and dependency relationships.
+Existing modeling guidance supplies the supported lifecycle; the complete advanced tutorial is
+separate scoped work. Use current release evidence and its actual package inventory for both.
 
 [First durable workspace](../get-started/first-durable-workspace.md)
+
+[Model recurring domain concepts](../guides/model-recurring-domain-concepts.md)

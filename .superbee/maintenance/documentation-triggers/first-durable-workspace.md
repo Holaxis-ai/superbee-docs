@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: openai/codex
 generated:
   by: openai/codex
-  at: '2026-10-05T01:50:49.453Z'
+  at: '2026-10-05T02:43:08.977Z'
 ---
 # Affected pages
 
@@ -15,13 +15,18 @@ generated:
 
 # Source paths
 
+- `packages/cli/src/recipes.ts`
+
 - `README.md`
 - `packages/cli/SKILL.md`
 - `packages/cli/src/commands/init.ts`
 - `packages/cli/src/commands/doc/open.ts`
+- `packages/cli/src/commands/promote.ts`
 - `packages/cli/src/commands/doc/read.ts`
-- `packages/cli/src/commands/doc/update.ts`
-- `examples/references/knowledge-and-authoring.md`
+- `packages/cli/src/commands/new.ts`
+- `packages/cli/src/commands/list.ts`
+- `packages/cli/src/commands/link.ts`
+- `packages/cli/src/commands/recipe.ts`
 - `packages/cli/src/commands/sync/establish.ts`
 - `packages/cli/src/commands/sync/orchestrate.ts`
 - `packages/cli/src/bundle.ts`
@@ -45,8 +50,10 @@ generated:
 
 # Review action
 
-Run the first-workspace journey from a disposable directory, including source change, fresh-session
-retrieval, current-fact checking, and the complete-body versioned edit. Recheck the repository-before-board
+Run the first-workspace journey from a disposable directory with the built-in work-tracking recipe.
+Verify the supplied fields, create-only Tasks/Plan, dependencies and backlinks, the follow-up query,
+and actual document display. Repeat creation to confirm saved records survive. Recheck the advanced
+model/recipe progression against installed help. Recheck the repository-before-board
 handoff when initialization, establishment, Skill, help, permission guidance, or recovery behavior
 changes. Keep the tutorial local by default and route detailed sharing work to the sharing guide.
 

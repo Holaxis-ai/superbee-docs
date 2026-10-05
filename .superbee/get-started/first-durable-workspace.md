@@ -2,212 +2,230 @@
 type: Guide
 title: Create your first durable workspace
 description: >-
-  Preserve report-format reasoning, recheck changed input in a fresh session,
-  and update the saved decision safely.
+  Use a built-in recipe to turn a workshop brief into related records, a saved
+  plan and a reusable follow-up answer.
 superbee_updated_by: openai/codex
 generated:
   by: openai/codex
-  at: '2026-10-05T02:00:47.733Z'
+  at: '2026-10-05T02:47:45.398Z'
 ---
 # Outcome
 
-Use an agent to preserve why a small reporting project chose CSV, then continue the work in a new
-session after the input changes. You finish with an inspectable decision and a later answer that
-uses the saved reasoning while checking the current source.
+Ask an agent to turn a short workshop brief into three linked task records and an inspectable plan.
+Then ask a second question that uses those records. You see a bundle's structure, relationships,
+queries and human presentation working together before designing a model of your own.
 
-This tutorial uses the [current stable release recorded by these docs](../sources/current-release.md).
-It demonstrates continuity and source checking; it does not measure accuracy or token savings.
+This exercise chooses **work-tracking because it is a built-in recipe**. Its existing Task
+convention removes setup and modeling decisions from the first result. Tasks are one example of
+Superbee's generic capabilities; another bundle can model research, packages, places, experiments
+or a different domain with its own conventions.
+
+The [current release evidence](../sources/current-release.md) names the stable package used here.
+It demonstrates a local workflow with invented roles and facts, not accuracy or token savings.
 
 # Before you start
 
 - Complete [Install and set up Superbee](install-and-setup.md).
 - Use Codex or Claude Code with the Superbee Skill installed, or use the CLI checkpoints below.
-- Open an empty test project and keep this exercise local.
+- Choose an empty test project and keep this exercise local.
 
-Run `superbee home`. If it already selects a bundle, use that workspace or choose an empty test
-project. Do not initialize a second bundle. A catalog entry elsewhere is not this project's context.
+Run `superbee home`. Initial creation requires a confirmed empty project. If a bundle already
+resolves, inspect it and choose a fresh test project. If you are resuming this tutorial, read its
+existing records and continue with the follow-up question instead of recreating them.
 
-# 1. Give the agent a small, concrete project
+# 1. Give the agent the workshop brief
 
-Save this file as `report-input.json` in the test project's root, outside any bundle:
+Use this complete fictional brief:
 
-```json
-{
-  "rows": 120,
-  "delivery": "spreadsheet",
-  "tables": 1
-}
-```
-
-It represents a weekly report that a colleague wants to inspect in a spreadsheet. The initial
-decision is to produce CSV because the deliverable is a simple table and the recipient can inspect
-it directly. The file is the authority for the current row count and input shape; the decision's
-reason belongs in durable context.
+| Work | Owner | Initial state | Completion condition | Prerequisite |
+| --- | --- | --- | --- | --- |
+| Agree the session outline | facilitator | in_progress | Outline names the learning goal, three topics and a short exercise. | None |
+| Draft the participant handout | writer | blocked | Handout follows the agreed outline and includes the exercise instructions. | Outline |
+| Rehearse the session | facilitator | todo | Facilitator can run the session using the completed handout. | Handout |
 
 Ask your agent:
 
-> Create a local Superbee workspace in this empty project. Preserve our decision to deliver the
-> weekly report as CSV because the recipient needs a spreadsheet and the input is one simple
-> table. Cite report-input.json and distinguish its observed values from current state. Revisit the
-> decision if the delivery requirement or table structure changes. Use supported Superbee commands
-> for writes, keep it local, and show me the saved decision.
+> In this empty test project, create a local Superbee bundle using the built-in work-tracking
+> recipe. Capture these three tasks with their stated owners, states, completion conditions and
+> dependencies. Use task IDs outline, handout and rehearse. Create a saved plan with links to the
+> task records, explain the intended order, and show me the plan. Keep it local. Preserve existing
+> records if this exercise has already been started.
 
-The agent should inspect the project before creating anything. The equivalent local initialization
-is:
+The agent should inspect the project and discover the installed recipe and its Task vocabulary.
+The CLI checkpoints are:
 
 ```sh
-superbee init --create-only --dir .superbee
+superbee recipes
+superbee init --create-only --recipe work-tracking --dir .superbee
+superbee kinds
+superbee new Task --help
 ```
 
-This creates an OKF v0.2 bundle with the default Context Note recipe. It refuses an occupied,
-nested, bound, symlinked, or concurrently claimed target. Nothing is shared by initialization.
+The explicit create-only command refuses an occupied, nested, bound, symlinked or concurrently
+claimed target. Initialization creates an OKF v0.2 local bundle and applies work-tracking's Task
+convention. It does not share the bundle.
 
-# 2. Inspect what became durable
+# 2. Inspect the three related records
 
-A plain Decision document is sufficient; this example does not need a new Kind. Save this body in
-a temporary file outside the bundle, for example `/tmp/report-decision.md`:
+These checkpoints create the supplied records with one-line completion conditions:
+
+```sh
+superbee new Task outline \
+  --title "Agree the session outline" \
+  --progress_status in_progress --assignee facilitator \
+  --body "Complete when the outline names the learning goal, three topics and a short exercise." \
+  --actor openai/codex
+superbee new Task handout \
+  --title "Draft the participant handout" \
+  --progress_status blocked --assignee writer \
+  --body "Complete when the handout follows the agreed outline and includes the exercise instructions." \
+  --link "depends on=tasks/outline" --actor openai/codex
+superbee new Task rehearse \
+  --title "Rehearse the session" \
+  --progress_status todo --assignee facilitator \
+  --body "Complete when the facilitator can run the session using the completed handout." \
+  --link "depends on=tasks/handout" --actor openai/codex
+superbee doc read tasks/handout
+superbee link show tasks/handout --text "depends on"
+superbee status
+```
+
+Use the agent's actual actor identity. OKF v0.2 accepts `human:<id>`, `process:<id>` or
+`<producer>/<version>`, such as `openai/codex` or `anthropic/claude`. The fictional owner names are
+advisory assignments; they are not authenticated accounts or permission grants.
+
+`new` is strict and create-only. If an ID already exists, it refuses with a conflict; read that
+record or choose a fresh exercise project. It does not replace earlier work. Each Task lives under
+`tasks/`, follows the installed convention and carries its completion condition in ordinary
+Markdown. The handout's outbound dependency reaches the outline; its derived backlink identifies
+rehearsal as dependent work.
+
+The supplied states and dependencies are authored facts. Superbee does not automatically schedule
+the tasks, infer that rehearsal is blocked, or advance a state when a prerequisite finishes.
+
+# 3. Show the useful result
+
+The agent should show a concise plan that links to the same task records. For the direct
+checkpoint, save this complete initial document outside the bundle, for example as
+`/tmp/workshop-plan.md`:
 
 ```md
-# Decision
+---
+type: Plan
+title: Prepare a short community workshop
+generated:
+  by: openai/codex
+---
+# Workshop plan
 
-Deliver the weekly report as CSV so the recipient can inspect it in a spreadsheet.
+Agree the outline, then draft the handout, then rehearse.
 
-# Basis and applicability
+The facilitator owns the outline and rehearsal; the writer owns the handout.
+The handout is marked blocked while the outline is in progress.
 
-The initial report-input.json has 120 rows, delivery "spreadsheet", and one table.
-Those are observations of the supplied fixture, not a promise about later input.
-The current file remains the authority for row count and input shape.
-
-Revisit this decision if the delivery requirement or table structure changes.
+This is a saved overview of the fictional brief. Inspect the linked task records for
+states and dependencies. This overview does not automatically refresh or schedule work.
 ```
 
-The CLI checkpoint is:
+Match `generated.by` to your actual actor. Create and display the plan:
 
 ```sh
-superbee doc write decisions/report-format \
-  --type Decision \
-  --title "Deliver the report as CSV" \
-  --body-file /tmp/report-decision.md \
-  --actor openai/codex
-superbee doc read decisions/report-format
-superbee status
-superbee doc open decisions/report-format
+superbee promote /tmp/workshop-plan.md --doc-key plans/workshop.md --strict
+superbee link add plans/workshop tasks/outline --text "Agree the outline" --actor openai/codex
+superbee link add plans/workshop tasks/handout --text "Draft the handout" --actor openai/codex
+superbee link add plans/workshop tasks/rehearse --text "Rehearse" --actor openai/codex
+superbee doc read plans/workshop
+superbee doc open plans/workshop --actor openai/codex
 ```
 
-Use the agent's actual actor identity. OKF v0.2 accepts `human:<id>`, `process:<id>`, or
-`<producer>/<version>`, such as `openai/codex` or `anthropic/claude`. The receipt identifies the saved
-document. In an MCP Apps host, the agent can use Superbee's document-display tool instead of opening
-the local reader.
+Omitting `--expected-version` makes this promotion expect-absent creation. An existing plan is
+preserved and the command refuses; read that plan instead of repeating the creation steps.
+After successful creation, `link add` adds the three record links to the plan. Re-adding the same
+target and exact display text is a no-op.
+Remove the temporary file after checking the saved result.
 
-Check that the decision contains the reason and its applicability, and that `status` reports no
-malformed document or Kind warning caused by the exercise. A clean status checks structure; compare
-the stated observations with `report-input.json` yourself to check their truth.
+Read the plan in Superbee's document reader and follow a task link. Inspect the task's completion
+condition and dependencies. In an MCP Apps host, the agent can use the document-display tool
+instead. This is an ordinary rendered document; it is not an interactive View or a live board.
+See [Show documents and Views](../guides/show-documents-and-views.md) for those presentation paths.
 
-# 3. Change the source and start a fresh session
+# 4. Ask a second question
 
-Replace the project file `report-input.json` with:
+Ask the agent:
 
-```json
-{
-  "rows": 750,
-  "delivery": "spreadsheet",
-  "tables": 1
-}
-```
+> What work is assigned to the facilitator, and what must finish before rehearsal? Use the
+> existing task records and their dependency links. Show the records supporting your answer.
 
-Start a new agent session in the same project. Do not paste the earlier conversation. Ask:
-
-> Continue the weekly report project. Find our saved format decision, check report-input.json, and
-> tell me the current row count and whether the decision's stated assumptions still hold. Do not
-> treat the saved observations as current facts. Show the decision you used.
-
-The observable result is **750 current rows**, with the earlier 120-row observation identified as
-historical. The spreadsheet delivery and one-table assumptions still hold. The saved rationale is
-available without the first conversation, and the current facts come from the current file.
-
-CLI checkpoints for discovery and retrieval are:
+The equivalent discovery checkpoints are:
 
 ```sh
-superbee home
-superbee list --type Decision
-superbee doc read decisions/report-format
+superbee list --type Task --field assignee=facilitator
+superbee link show tasks/rehearse --text "depends on"
+superbee link show tasks/handout --text "depends on"
 ```
 
-The agent still needs to read `report-input.json` with its host's ordinary file-reading capability.
-Superbee does not automatically track that file or invalidate conclusions when it changes. If the
-agent returns 120 as current, ask it to compare the claim with the source and correct its answer.
-An agent that cannot read the source must report that limitation.
+The answer is **outline and rehearsal belong to the facilitator**. The handout must finish before
+rehearsal, and the outline precedes the handout. The agent can answer from the structured records
+and relationships without creating another plan. A later session can inspect this same local
+bundle. Actual multi-person sharing requires a separate authorized workflow.
 
-# 4. Keep the useful reasoning and update it safely
-
-Ask the agent to add the new observation to the decision while retaining the initial basis:
-
-> Update the saved decision to record that the latest report-input.json has 750 rows and that the
-> delivery and table assumptions still hold. Preserve the original observation as history. Export
-> the complete body to a temporary file outside the bundle, edit that file, and apply the change
-> with the version from the same read and your actor. Then read back and show the result.
-
-For the direct edit cycle and conflict recovery, follow
+Learn more in [Query, links, and backlinks](../guides/query-links-and-backlinks.md). For a focused
+continuity workflow, see [preserve context between sessions](../guides/preserve-context-between-sessions.md).
+When that workflow needs a later edit, follow
 [Updating an existing handoff](../guides/preserve-context-between-sessions.md#updating-an-existing-handoff).
-`doc update` replaces a supplied body in full; it is not a line patch. Never use a truncated preview
-as the replacement or prepend YAML frontmatter to a body-only export. Routine agent document writes
-should use supported Superbee mutations. Read-only Markdown inspection remains useful.
 
-Remove your temporary body file after checking the saved result. For a concise session handoff,
-use [Preserve context between sessions](../guides/preserve-context-between-sessions.md).
+# Next: model your own domain and reuse it
 
-# What the example establishes
+The first exercise borrows a built-in model so you can see a useful result quickly. The advanced
+progression is to choose a domain, define its kinds and relationships, use them in a bundle, then
+package the definitions for another bundle.
 
-- The decision and its rationale survive the first session as user-owned Markdown.
-- A later participant can discover and inspect that rationale.
-- Current input is checked separately from saved observations.
-- Source changes prompt a review of the conclusion's assumptions.
+A concrete next journey is a small package inventory from three supplied fictional manifests:
+capture package/version/license snapshots, define a Package kind and `depends on` relationships,
+query the inventory and show its records. The domain's conventions determine what to capture;
+dated observations and relationships can remain part of that model.
 
-This is a small continuity exercise. It does not show that a knowledge bundle improves every task,
-that saved reasoning is always correct, or that an agent will always follow the workflow. Use
-[recurring domain modeling](../guides/model-recurring-domain-concepts.md) when repeated records earn
-shared structure, and [show documents and Views](../guides/show-documents-and-views.md) when people
-need a richer presentation.
+Follow [Model recurring domain concepts](../guides/model-recurring-domain-concepts.md) for the
+supported sequence. Begin with representative records in the intended local bundle. Inspect a
+read-only `kind draft` proposal and apply only the exact accepted plan command, or author reviewed
+definitions in an external recipe folder and apply them with `recipe add <path>`.
+
+Once the model is stable, a recipe folder contains a `recipe.md` manifest and `conventions/`
+definitions. Keep project instances out of a definitions-only recipe. Apply that folder to another
+bundle with `recipe add <path>`, or select it while creating a confirmed new bundle with
+`init --create-only --recipe <path> --dir <new-bundle>`. Recipe application does not publish a site.
+This advanced journey is separate from the first exercise; you do not need to build it now.
 
 # Keep this exercise local
 
-Sharing is a separate decision. `superbee sync --establish` publishes a board into an existing
-remote repository; it does not create that repository. Do not run it for this tutorial. Before
-sharing, confirm the intended repository, whether `origin/board` already exists, participants,
-privacy and repository-specific permission. An unknown or denied remote state is not absence.
-Follow [Share and synchronize a Git-backed bundle](../guides/share-and-synchronize-git-bundle.md) for
-the complete handoff and recovery procedure.
+Sharing is a separate decision. Before publishing a Git board, confirm the intended existing
+repository, whether `origin/board` already exists, participants, privacy and repository-specific
+permission. An unknown or denied remote state is not absence. Do not run `sync --establish` for
+this tutorial. Follow [Share and synchronize a Git-backed bundle](../guides/share-and-synchronize-git-bundle.md)
+for the complete handoff and recovery procedure.
 
-Use `superbee ui --status` to inspect a local reader and `superbee ui --stop` with the same bundle
-and actor to stop it when finished. Keep the test project for another exercise or remove it through
-your usual file workflow after inspecting its contents.
+Use `superbee ui --status` to inspect the reader. Stop only this exercise's reader with the same
+bundle and actor used to launch it:
+
+```sh
+superbee ui --stop --actor openai/codex
+```
+
+Keep the test project or remove it through your usual file workflow after inspecting its contents.
+See [Bundle concepts](../concepts/bundles-documents-and-relationships.md),
+[What Superbee is](../concepts/what-superbee-is.md), the
+[System context](../architecture/superbee-system-context.md) and the
+[CLI overview](../reference/cli-overview.md) for orientation and command discovery.
 
 # If a checkpoint fails
 
-- Creation refused: run `superbee home`; use the existing workspace or a fresh test project.
-- Actor refused: use one of the accepted OKF actor shapes from the error.
-- Saved claim disagrees with source: correct or qualify it; format validation is not fact checking.
-- Version conflict during update: read the complete current body and reconcile the change; do not
-  retry blindly with a new token.
+- Initial creation refused: inspect the selected workspace and choose a fresh test project.
+- Task or plan already exists: read it and continue the exercise without replacing it.
+- Field or state refused: inspect `kinds` and `new Task --help`; use the installed recipe's fields.
+- Actor refused: use the accepted OKF actor shape named by the error.
+- Reader cannot start: follow [document display recovery](../guides/show-documents-and-views.md#recover-from-common-failures).
 
 Plain `superbee init` inside Git selects its top-level `.superbee/` when no existing bundle or
 binding selects another target; outside Git, its default is the current directory. This tutorial
-uses the explicit local `--create-only --dir .superbee` path.
-
-# Evidence and next steps
-
-The [current release evidence](../sources/current-release.md) names the applicable package and
-source. Its `init`, `doc write`, `doc read`, `doc update`, `list`, and `status` help govern the command
-checkpoints. The source-selection exercise uses the complete JSON fixture printed above.
-
-[understand bundles and relationships](../concepts/bundles-documents-and-relationships.md)
-
-[preserve context between sessions](../guides/preserve-context-between-sessions.md)
-
-[find a command](../reference/cli-overview.md)
-
-[learn what Superbee is](../concepts/what-superbee-is.md)
-
-[inspect the system context](../architecture/superbee-system-context.md)
-
-[current release](../releases/current.md)
+uses an explicit local create-only path. The [current release](../releases/current.md) and its
+evidence govern the command checkpoints.

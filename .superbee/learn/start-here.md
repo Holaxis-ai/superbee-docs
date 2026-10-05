@@ -5,7 +5,7 @@ description: A concise orientation to Superbee and the growing public documentat
 superbee_updated_by: openai/codex
 generated:
   by: openai/codex
-  at: '2026-10-05T01:50:48.528Z'
+  at: '2026-10-05T02:43:08.096Z'
 ---
 # Superbee in one minute
 
@@ -29,7 +29,8 @@ knowledge, or make consequential product decisions for you.
 Choose the path that matches what you need:
 
 - **Evaluate the product:** [try the first-workspace journey](../get-started/first-durable-workspace.md):
-  preserve a report-format decision, change the input, and continue in a fresh agent session.
+  turn a workshop brief into linked records and a visible plan with the built-in work-tracking recipe.
+  Then explore modeling your own domain and reusing its recipe.
   Then learn [what Superbee is](../concepts/what-superbee-is.md) and inspect
   the [system context](../architecture/superbee-system-context.md).
 - **Start using it:** [install and set up Superbee](../get-started/install-and-setup.md), then
