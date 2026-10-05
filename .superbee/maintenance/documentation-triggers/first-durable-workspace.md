@@ -5,6 +5,9 @@ description: >-
   Operational change triggers for the First durable workspace documentation
   page.
 superbee_updated_by: openai/codex
+generated:
+  by: openai/codex
+  at: '2026-10-05T01:50:49.453Z'
 ---
 # Affected pages
 
@@ -16,6 +19,9 @@ superbee_updated_by: openai/codex
 - `packages/cli/SKILL.md`
 - `packages/cli/src/commands/init.ts`
 - `packages/cli/src/commands/doc/open.ts`
+- `packages/cli/src/commands/doc/read.ts`
+- `packages/cli/src/commands/doc/update.ts`
+- `examples/references/knowledge-and-authoring.md`
 - `packages/cli/src/commands/sync/establish.ts`
 - `packages/cli/src/commands/sync/orchestrate.ts`
 - `packages/cli/src/bundle.ts`
@@ -39,7 +45,8 @@ superbee_updated_by: openai/codex
 
 # Review action
 
-Run the first-workspace journey from a disposable directory. Recheck the repository-before-board
+Run the first-workspace journey from a disposable directory, including source change, fresh-session
+retrieval, current-fact checking, and the complete-body versioned edit. Recheck the repository-before-board
 handoff when initialization, establishment, Skill, help, permission guidance, or recovery behavior
 changes. Keep the tutorial local by default and route detailed sharing work to the sharing guide.
 

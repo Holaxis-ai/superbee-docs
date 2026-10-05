@@ -2,160 +2,212 @@
 type: Guide
 title: Create your first durable workspace
 description: >-
-  Create a local bundle, preserve one decision, verify it, and open it for a
-  human.
-superbee_updated_by: 'process:release-docs-preparation'
+  Preserve report-format reasoning, recheck changed input in a fresh session,
+  and update the saved decision safely.
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:19.658Z'
+  by: openai/codex
+  at: '2026-10-05T02:00:47.733Z'
 ---
 # Outcome
 
-Create a local Superbee workspace inside a project, preserve one real decision, and open the saved
-document in Superbee's Markdown reader. The result survives the agent session and remains ordinary,
-user-owned Markdown.
+Use an agent to preserve why a small reporting project chose CSV, then continue the work in a new
+session after the input changes. You finish with an inspectable decision and a later answer that
+uses the saved reasoning while checking the current source.
 
-This tutorial is verified against the current stable release recorded in
-[the current release evidence](../sources/current-release.md).
+This tutorial uses the [current stable release recorded by these docs](../sources/current-release.md).
+It demonstrates continuity and source checking; it does not measure accuracy or token savings.
 
 # Before you start
 
 - Complete [Install and set up Superbee](install-and-setup.md).
-- Open an empty test project or a project that does not already resolve a Superbee or legacy
-  AgentState bundle.
-- Decide that this workspace should remain local for now.
+- Use Codex or Claude Code with the Superbee Skill installed, or use the CLI checkpoints below.
+- Open an empty test project and keep this exercise local.
 
-If `superbee home` already finds a bundle, stop and use that workspace. Do not initialize another.
-A catalog entry elsewhere is not permission to use that bundle as this project's context.
+Run `superbee home`. If it already selects a bundle, use that workspace or choose an empty test
+project. Do not initialize a second bundle. A catalog entry elsewhere is not this project's context.
 
-# 1. Create the local workspace
+# 1. Give the agent a small, concrete project
 
-From the project root, run:
+Save this file as `report-input.json` in the test project's root, outside any bundle:
+
+```json
+{
+  "rows": 120,
+  "delivery": "spreadsheet",
+  "tables": 1
+}
+```
+
+It represents a weekly report that a colleague wants to inspect in a spreadsheet. The initial
+decision is to produce CSV because the deliverable is a simple table and the recipient can inspect
+it directly. The file is the authority for the current row count and input shape; the decision's
+reason belongs in durable context.
+
+Ask your agent:
+
+> Create a local Superbee workspace in this empty project. Preserve our decision to deliver the
+> weekly report as CSV because the recipient needs a spreadsheet and the input is one simple
+> table. Cite report-input.json and distinguish its observed values from current state. Revisit the
+> decision if the delivery requirement or table structure changes. Use supported Superbee commands
+> for writes, keep it local, and show me the saved decision.
+
+The agent should inspect the project before creating anything. The equivalent local initialization
+is:
 
 ```sh
 superbee init --create-only --dir .superbee
 ```
 
-`--create-only` refuses an occupied, nested, bound, symlinked, or concurrently claimed target rather
-than opening or changing it. A successful default initialization creates an OKF v0.2 bundle and
-adds the built-in context-notes recipe. The conventional `.superbee/` directory is then discovered
-from anywhere below the project root.
+This creates an OKF v0.2 bundle with the default Context Note recipe. It refuses an occupied,
+nested, bound, symlinked, or concurrently claimed target. Nothing is shared by initialization.
 
-Initialization is local. Nothing is published or synchronized by this command.
+# 2. Inspect what became durable
 
-# 2. Preserve one decision
+A plain Decision document is sufficient; this example does not need a new Kind. Save this body in
+a temporary file outside the bundle, for example `/tmp/report-decision.md`:
 
-Ask your agent:
+```md
+# Decision
 
-> Preserve this decision in the current Superbee workspace: keep the workspace local until we
-> explicitly decide to share it. Then show me the saved document.
+Deliver the weekly report as CSV so the recipient can inspect it in a spreadsheet.
 
-The agent can create a plain typed document without first inventing a schema. An equivalent CLI
-write is:
+# Basis and applicability
+
+The initial report-input.json has 120 rows, delivery "spreadsheet", and one table.
+Those are observations of the supplied fixture, not a promise about later input.
+The current file remains the authority for row count and input shape.
+
+Revisit this decision if the delivery requirement or table structure changes.
+```
+
+The CLI checkpoint is:
 
 ```sh
-superbee doc write decisions/keep-local \
+superbee doc write decisions/report-format \
   --type Decision \
-  --title "Keep this workspace local" \
-  --body "Do not publish or synchronize this bundle without an explicit decision."
-```
-
-Superbee attributes writes when the agent supplies its actor identity with `--actor` or
-`SUPERBEE_ACTOR`. This OKF v0.2 workspace accepts `human:<id>`, `process:<id>`, or
-`<producer>/<version>`, such as `anthropic/claude`. Other spellings are refused before anything is
-written, and the error suggests a corrected one. Repeating an identical write returns a no-op and
-creates no duplicate.
-
-# 3. Verify the saved result
-
-Read the document:
-
-```sh
-superbee doc read decisions/keep-local
-```
-
-Check the workspace:
-
-```sh
+  --title "Deliver the report as CSV" \
+  --body-file /tmp/report-decision.md \
+  --actor openai/codex
+superbee doc read decisions/report-format
 superbee status
+superbee doc open decisions/report-format
 ```
 
-For the verified path, status reports zero malformed documents, unresolved links, Kind warnings,
-and conformance debt.
+Use the agent's actual actor identity. OKF v0.2 accepts `human:<id>`, `process:<id>`, or
+`<producer>/<version>`, such as `openai/codex` or `anthropic/claude`. The receipt identifies the saved
+document. In an MCP Apps host, the agent can use Superbee's document-display tool instead of opening
+the local reader.
 
-Now display the document to a human:
+Check that the decision contains the reason and its applicability, and that `status` reports no
+malformed document or Kind warning caused by the exercise. A clean status checks structure; compare
+the stated observations with `report-input.json` yourself to check their truth.
+
+# 3. Change the source and start a fresh session
+
+Replace the project file `report-input.json` with:
+
+```json
+{
+  "rows": 750,
+  "delivery": "spreadsheet",
+  "tables": 1
+}
+```
+
+Start a new agent session in the same project. Do not paste the earlier conversation. Ask:
+
+> Continue the weekly report project. Find our saved format decision, check report-input.json, and
+> tell me the current row count and whether the decision's stated assumptions still hold. Do not
+> treat the saved observations as current facts. Show the decision you used.
+
+The observable result is **750 current rows**, with the earlier 120-row observation identified as
+historical. The spreadsheet delivery and one-table assumptions still hold. The saved rationale is
+available without the first conversation, and the current facts come from the current file.
+
+CLI checkpoints for discovery and retrieval are:
 
 ```sh
-superbee doc open decisions/keep-local
+superbee home
+superbee list --type Decision
+superbee doc read decisions/report-format
 ```
 
-`doc open` verifies the ID, starts or reuses a managed local UI, and opens the document through
-the shared bounded Markdown renderer. The command returns while the reader remains available.
-Use `superbee ui --status` to inspect it and `superbee ui --stop` with the same bundle and actor
-to stop it when finished. In an MCP Apps host, the agent may instead invoke Superbee's document-display tool
-so the same content appears inside the conversation.
+The agent still needs to read `report-input.json` with its host's ordinary file-reading capability.
+Superbee does not automatically track that file or invalidate conclusions when it changes. If the
+agent returns 120 as current, ask it to compare the claim with the source and correct its answer.
+An agent that cannot read the source must report that limitation.
 
-# What now persists
+# 4. Keep the useful reasoning and update it safely
 
-The `.superbee/` folder now contains:
+Ask the agent to add the new observation to the decision while retaining the initial basis:
 
-- an OKF bundle declaration;
-- the context-note convention installed by the default recipe; and
-- `decisions/keep-local.md`, an ordinary typed Markdown document.
+> Update the saved decision to record that the latest report-input.json has 750 rows and that the
+> delivery and table assumptions still hold. Preserve the original observation as history. Export
+> the complete body to a temporary file outside the bundle, edit that file, and apply the change
+> with the version from the same read and your actor. Then read back and show the result.
 
-A later agent can discover and read that decision without reconstructing it from chat. Any Markdown
-tool can inspect the file even without Superbee.
+For the direct edit cycle and conflict recovery, follow
+[Updating an existing handoff](../guides/preserve-context-between-sessions.md#updating-an-existing-handoff).
+`doc update` replaces a supplied body in full; it is not a line patch. Never use a truncated preview
+as the replacement or prepend YAML frontmatter to a body-only export. Routine agent document writes
+should use supported Superbee mutations. Read-only Markdown inspection remains useful.
 
-# Do not share it accidentally
+Remove your temporary body file after checking the saved result. For a concise session handoff,
+use [Preserve context between sessions](../guides/preserve-context-between-sessions.md).
 
-This tutorial stops with a local workspace. `superbee sync --establish` is a separate explicit act
-that publishes `board` into an existing remote repository. It does not create the GitHub repository.
-Do not run it until the user has chosen the participants, privacy boundary, and exact repository.
+# What the example establishes
 
-Before handing off to sharing:
+- The decision and its rationale survive the first session as user-owned Markdown.
+- A later participant can discover and inspect that rationale.
+- Current input is checked separately from saved observations.
+- Source changes prompt a review of the conclusion's assumptions.
 
-1. Confirm that the project is in the intended local Git repository. If it is not, keep using the
-   bundle locally or complete the local Git setup. GitHub has not been checked yet.
-2. Inspect `git remote -v`. If `origin` is missing, connect the exact existing remote repository. If
-   an authorized GitHub view confirms that the repository is absent, a personal owner,
-   organization owner, or member allowed by organization policy must create it outside Superbee
-   first. An outside collaborator does not gain organization repository-creation authority from
-   repository access.
-3. Verify the repository and `origin/board` separately. A denial, timeout, SSH failure, or
-   "Repository not found" response leaves both facts unknown. Do not create a replacement or try
-   establishment while the remote state is unresolved.
-4. If `origin/board` exists, join with `superbee sync --pull-only`. If the repository exists and
-   `board` is confirmed absent, establishment needs explicit publication approval,
-   repository-specific push capability, and policy that permits creating `board`. Repository
-   creation permission is irrelevant for that existing repository.
+This is a small continuity exercise. It does not show that a knowledge bundle improves every task,
+that saved reasoning is always correct, or that an agent will always follow the workflow. Use
+[recurring domain modeling](../guides/model-recurring-domain-concepts.md) when repeated records earn
+shared structure, and [show documents and Views](../guides/show-documents-and-views.md) when people
+need a richer presentation.
 
-Continue with [Share and synchronize a Git-backed bundle](../guides/share-and-synchronize-git-bundle.md)
-for the complete state matrix, least-privilege owner, member, and outside-collaborator handoffs, and
-denied-operation recovery.
+# Keep this exercise local
 
-# If creation is refused
+Sharing is a separate decision. `superbee sync --establish` publishes a board into an existing
+remote repository; it does not create that repository. Do not run it for this tutorial. Before
+sharing, confirm the intended repository, whether `origin/board` already exists, participants,
+privacy and repository-specific permission. An unknown or denied remote state is not absence.
+Follow [Share and synchronize a Git-backed bundle](../guides/share-and-synchronize-git-bundle.md) for
+the complete handoff and recovery procedure.
 
-- Run `superbee home` to see whether the project already resolves a workspace.
-- If a valid workspace already exists, use it.
-- If both `.superbee/` and `.agentstate-lite/` exist at the same project level, move the workspace
-  you do not intend to use outside the project; Superbee refuses to guess.
-- Use `superbee recipe add <recipe>` to add capability to an existing workspace. Do not rerun init
-  to force a recipe into it.
+Use `superbee ui --status` to inspect a local reader and `superbee ui --stop` with the same bundle
+and actor to stop it when finished. Keep the test project for another exercise or remove it through
+your usual file workflow after inspecting its contents.
 
-current release evidence
+# If a checkpoint fails
 
-[learn what Superbee is](../concepts/what-superbee-is.md)
+- Creation refused: run `superbee home`; use the existing workspace or a fresh test project.
+- Actor refused: use one of the accepted OKF actor shapes from the error.
+- Saved claim disagrees with source: correct or qualify it; format validation is not fact checking.
+- Version conflict during update: read the complete current body and reconcile the change; do not
+  retry blindly with a new token.
 
-[understand bundles, documents, and relationships](../concepts/bundles-documents-and-relationships.md)
+Plain `superbee init` inside Git selects its top-level `.superbee/` when no existing bundle or
+binding selects another target; outside Git, its default is the current directory. This tutorial
+uses the explicit local `--create-only --dir .superbee` path.
+
+# Evidence and next steps
+
+The [current release evidence](../sources/current-release.md) names the applicable package and
+source. Its `init`, `doc write`, `doc read`, `doc update`, `list`, and `status` help govern the command
+checkpoints. The source-selection exercise uses the complete JSON fixture printed above.
+
+[understand bundles and relationships](../concepts/bundles-documents-and-relationships.md)
+
+[preserve context between sessions](../guides/preserve-context-between-sessions.md)
 
 [find a command](../reference/cli-overview.md)
 
+[learn what Superbee is](../concepts/what-superbee-is.md)
+
 [inspect the system context](../architecture/superbee-system-context.md)
 
-# Plain-init behavior in Git
-
-The [current release](../releases/current.md) makes plain `superbee init` inside a Git work
-tree select its top-level `.superbee/` when no existing bundle or project binding selects another
-target. Outside Git, the default remains the current directory. The tutorial's explicit
-`--create-only --dir .superbee` remains a deliberate local creation. Initialization performs no
-sharing; `sync --establish` still requires a separate publication decision.
+[current release](../releases/current.md)

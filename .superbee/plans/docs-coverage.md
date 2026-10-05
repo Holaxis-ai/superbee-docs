@@ -4,7 +4,7 @@ title: Documentation coverage and delivery
 description: >-
   Ordered page coverage, representative slice, and readiness gates for the
   public documentation.
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: openai/codex
 generated:
   by: 'process:release-docs-preparation'
   at: '2026-10-03T15:08:44.959Z'
@@ -254,3 +254,12 @@ recovery and help. Waiting confirmation and renderer admission are source/test-g
 OAuth, host restart, hosted writes/transfers and adapter activation are outside this acceptance.
 Repository checks and independent exact-SHA review determine readiness for handoff. Publication
 remains a separate authorized step through the existing workflow.
+
+# First-workspace continuity journey
+
+The first-workspace tutorial demonstrates retained report-format reasoning, a changed JSON source,
+and a fresh-session source check. Its successful outcome is the current row count plus a checked
+explanation of whether the saved decision still applies. Use the stable package named by current
+release evidence. This exercise does not establish accuracy or token savings.
+
+[First durable workspace](../get-started/first-durable-workspace.md)
