@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: openai/codex
 generated:
   by: openai/codex
-  at: '2026-10-05T02:47:45.398Z'
+  at: '2026-10-05T03:13:54.869Z'
 ---
 # Outcome
 
@@ -200,8 +200,14 @@ This advanced journey is separate from the first exercise; you do not need to bu
 
 Sharing is a separate decision. Before publishing a Git board, confirm the intended existing
 repository, whether `origin/board` already exists, participants, privacy and repository-specific
-permission. An unknown or denied remote state is not absence. Do not run `sync --establish` for
-this tutorial. Follow [Share and synchronize a Git-backed bundle](../guides/share-and-synchronize-git-bundle.md)
+permission. Do not run `sync --establish` for this tutorial. The separate establishment workflow
+publishes `board` into an existing remote repository; Superbee does not create that repository.
+A denial, timeout, SSH failure, or unclear probe leaves both facts unknown, so stop and diagnose
+access. If `origin/board` exists, join with `superbee sync --pull-only` instead of establishing
+another board. A confirmed absent board requires consent, repository-specific Write access and
+branch-create policy clearance before establishment.
+
+Follow [Share and synchronize a Git-backed bundle](../guides/share-and-synchronize-git-bundle.md)
 for the complete handoff and recovery procedure.
 
 Use `superbee ui --status` to inspect the reader. Stop only this exercise's reader with the same
