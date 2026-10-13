@@ -5,6 +5,9 @@ description: >-
   Operational change triggers for the Architecture at a glance documentation
   page.
 superbee_updated_by: openai/codex
+generated:
+  by: openai/codex
+  at: '2026-10-13T13:02:31.897Z'
 ---
 # Affected pages
 
@@ -15,9 +18,11 @@ superbee_updated_by: openai/codex
 - `package.json`
 - `packages/*/package.json`
 - `packages/cli/build.mjs`
-- `packages/cli/scripts/build-bundle.mjs`
 - `packages/cli/scripts/prepare-bundle-inputs.mjs`
 - `packages/cli/scripts/embed-ui-assets.mjs`
+
+- `packages/superbee/build.mjs`
+- `packages/superbee/scripts/build-bundle.mjs`
 
 # Product events
 

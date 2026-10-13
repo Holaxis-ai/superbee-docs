@@ -2,10 +2,10 @@
 type: Guide
 title: Create a bundle View
 description: Author one safe responsive View for the local UI and MCP Apps hosts.
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:20.382Z'
+  by: openai/codex
+  at: '2026-10-13T13:11:11.240Z'
 ---
 # Goal
 
@@ -143,10 +143,7 @@ and atomic field/body update; MCP stays scalar-only. Design a scalar-only fallba
 View must run in both hosts. Preserve cross-links during body replacement, handle stale versions,
 and lock proposals after an unknown outcome. See View contract.
 
-Hosted checkouts cannot save View artifacts through this CLI. Follow the app/interface instruction
-rather than using a generic operation or direct blob mutation to bypass the refusal.
-
-Current stable release evidence.
+See [current stable release evidence](../sources/current-release.md).
 
 # View ordering and local delivery
 

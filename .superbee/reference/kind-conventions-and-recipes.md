@@ -1,13 +1,13 @@
 ---
 type: Reference
 title: Kind conventions and recipe formats
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: openai/codex
 description: >-
   Exact Convention schemas, recipe formats, validation modes, installation, and
   safe evolution.
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:23.368Z'
+  by: openai/codex
+  at: '2026-10-13T13:11:11.735Z'
 ---
 # Scope
 
@@ -340,18 +340,11 @@ no Kind declares order, `kinds` preserves its historical governs ordering. Inval
 warn and register without an order. Recipe reapplication preserves bundle-authored placement
 without treating it as recipe drift. The field is named `order`, not `reading_order`.
 
-Hosted model changes require the capability and compatible-instance checks below. Generic
-operations do not bypass a refusal. Design and validate before explicit publication. See the pinned
-[order tests](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/core/test/kinds.test.ts)
-and [recipe preservation test](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/cli/test/recipes.test.ts).
+See [current stable release evidence](../sources/current-release.md).
 
-Current stable release evidence.
+# Additive evolution coverage
 
-# Hosted model editing
-
-The current release permits CLI Kind and convention-only recipe
-changes in a checkout when the host declares that the person may change the bundle model.
-Recipes containing Views, References, or other non-convention content remain refused. Host model
-validation can reject changes incompatible with existing instances. Preserve the findings and fix
-the instances before retrying. Absent or refused capability retains the older boundary; local MCP
-convention writes remain refused. See [hosted editing](../guides/work-in-hosted-checkout.md).
+Recipe evolution admits a new outbound link declaration and revalidates existing edges against its
+intended target Kind. Allowed values on a field declared by that same plan are also admitted.
+Existing instance validation, state-bound plan tokens, guarded writes, and partial-completion
+recovery continue to apply. See [recipe evolution](../guides/evolve-installed-recipes.md).

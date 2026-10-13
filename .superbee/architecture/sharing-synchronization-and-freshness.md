@@ -4,130 +4,51 @@ title: 'Sharing, synchronization, and freshness'
 description: >-
   How Superbee classifies bundle channels, refreshes reads, converges shared
   changes, and preserves conflicting work.
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-02T19:52:21.383Z'
+  by: openai/codex
+  at: '2026-10-13T13:02:31.096Z'
 ---
 # Question answered
 
-How does Superbee know where a bundle is shared, make reads reasonably fresh, and converge changes
-without hiding conflicts or publishing through the wrong Git channel?
+How does Superbee select a sharing channel, refresh reads, and preserve work when writers conflict?
 
-Superbee classifies a bundle from repository evidence before it chooses a sharing behavior. A bundle
-may be local-only, committed in the current code branch, or checked out from the dedicated `board`
-branch. An unavailable remote probe can also leave classification indeterminate. That refusal is a
-safety result: an inaccessible private remote never counts as proof that no shared board exists.
+# Git channel ownership
 
-# Three durable channel modes
+| Channel | Delivery | Sync behavior |
+| --- | --- | --- |
+| Local-only | Local files | Plain sync does not infer publication consent. Establishment explicitly shares the chosen bundle. |
+| In-tree | Bundle committed with code | Normal repository Git workflow owns delivery. Read-side awareness can compare its configured upstream; full bundle sync refuses code-branch publication. |
+| Dedicated branch | Conventional `board` worktree or an admitted named standalone board | Sync commits bundle changes, converges with the matching upstream, preserves conflicts, and pushes a safe result. |
 
-| Channel | Where changes live | How teammates receive them | What `superbee sync` does |
-| --- | --- | --- | --- |
-| `local-only` | A conventional bundle directory with no proven shared Git channel | They do not; the state remains local | Ordinary sync does not infer permission to publish. `sync --establish` explicitly creates the dedicated channel. |
-| `in-tree` | The bundle is committed with code on the current branch | Normal repository commit, push, and pull | Full sync refuses because publishing the bundle would also publish the code branch. `sync --pull-only` refreshes awareness; `sync --establish` converts the arrangement. |
-| `branch` | The bundle is a linked worktree on `board`, with `origin/board` as the explicit shared ref | Superbee's board sync flow | Sync commits bundle changes, fetches and converges incoming history, pushes when safe, and records awareness. |
+The [channel classifier](https://github.com/Holaxis-ai/superbee/blob/069a42092f39d8261ccd4322c0dc7ff5488aa2c8/packages/board-git/src/channel.ts#L1-L140) distinguishes these modes.
+A named standalone branch `board-research` declares itself in `.superbee-board.json` and tracks
+`origin/board-research`; it never substitutes for `origin/board`.
 
-The
-[`BoardChannel` contract and decision matrix](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/channel.ts#L38-L69)
-define these modes. The
-[`remote evidence rules`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/channel.ts#L103-L135)
-distinguish a successful absent result from an offline, timed-out, or unauthorized probe. The full
-[`classification matrix`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/channel.ts#L197-L222)
-also refuses a verified dual-board situation so a human can choose which location is authoritative.
+# Bounded freshness
 
-# Freshness is bounded and observable
+A stale board read can attempt a short, fast-forward-only pull. Offline, dirty, busy, or diverged
+state remains readable as last-known local content. Attempt throttling and observed freshness are
+separate facts. The [opportunistic pull owner](https://github.com/Holaxis-ai/superbee/blob/069a42092f39d8261ccd4322c0dc7ff5488aa2c8/packages/board-git/src/autopull.ts#L1-L80)
+defines the read-side behavior. In-tree awareness uses its configured tracking upstream and leaves
+moving the code branch to normal Git.
 
-On a provisioned `branch` channel, board-reading commands consult a per-clone awareness cache. When
-the cache is older than five minutes, the triggering read may perform one inline, two-second-budget,
-fast-forward-only pull. A successful pull advances the cursor and rewrites the cache before the read
-continues. An offline, dirty, busy, detached, or diverged checkout stays on its last known state and
-the failed pull writes no newer cursor or awareness cache. The attempt timestamp and board marker are
-still refreshed so later reads back off for the rest of the staleness window and retain evidence that
-the board checkout was confirmed. This behavior keeps reads available while preserving an honest
-boundary around what was actually fetched. The
-[`opportunistic pull contract`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/autopull.ts#L1-L67)
-and
-[`pull-and-record transaction`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/autopull.ts#L149-L207)
-govern content, cursor, and cache updates. The
-[`attempt and marker writes`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/autopull.ts#L295-L337)
-govern retry throttling on both successful and failed attempts.
+# Full synchronization
 
-An `in-tree` bundle uses its current branch's configured tracking upstream as the comparison basis.
-Superbee fetches that exact upstream, counts bundle-touching commits in both directions, and records a
-mode-scoped cursor and delta. Delivery still happens through the user's normal `git pull`; Superbee
-does not move the code branch. Detached HEAD, missing tracking configuration, or an unusable ref
-produces an explicit no-comparison-basis result rather than a guessed `origin/<branch>`. See the
-[`in-tree read-side boundary`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/intree.ts#L1-L31)
-and
-[`fetch-and-record step`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/intree.ts#L140-L247).
+The [sync orchestrator](https://github.com/Holaxis-ai/superbee/blob/069a42092f39d8261ccd4322c0dc7ff5488aa2c8/packages/cli/src/commands/sync/orchestrate.ts#L99-L220) provisions or
+joins the selected board, commits saved edits, fetches and converges, preserves conflict copies,
+and reports partial outcomes. The
+[converging Git implementation](https://github.com/Holaxis-ai/superbee/blob/069a42092f39d8261ccd4322c0dc7ff5488aa2c8/packages/board-git/src/porcelain.ts#L1540-L1700) retains the
+incoming document and exports the local conflicting bytes for a reviewed resolution.
 
-# Explicit synchronization and conflict recovery
-
-For a `branch` channel, full sync runs a fixed sequence: provision or join the linked worktree,
-capture a baseline, commit local bundle changes, fetch and rebase onto `origin/board`, calculate the
-incoming and since-last-read deltas, push, then write the receipt and awareness state. The CLI
-[`orchestration sequence`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/cli/src/commands/sync/orchestrate.ts#L679-L702)
-keeps these phases in one order. `sync --pull-only` uses a fast-forward merge and never commits,
-rebases, or pushes.
-
-When the full-sync rebase finds the same path changed on both sides, Superbee keeps the fetched
-teammate version, saves the local bytes outside the board worktree, and completes or aborts the
-rebase cleanly. A parseable document also receives a body-only export that can be supplied to
-`doc update --body-file` after the user reconciles the content. The conflicted run skips its push and
-returns a conflict receipt with the recovery path. The
-[`converging rebase contract`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/porcelain.ts#L1547-L1578)
-and
-[`byte-preserving export sequence`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/src/porcelain.ts#L1620-L1687)
-make local work recoverable. A later sync can commit the reconciled document and publish it.
-
-# Diagram and nonvisual equivalent
-
-The diagram summarizes the channel decision, freshness path, and explicit convergence path. Its
-complete nonvisual equivalent is:
-
-1. Inspect local worktree, tracked-folder, local-branch, and remote-ref evidence.
-2. Classify the bundle as `local-only`, `in-tree`, or `branch`; refuse a mode-sensitive operation if
-   the available evidence is indeterminate or proves two competing locations.
-3. Keep local-only state local until an explicit establishment request.
-4. For in-tree state, fetch only the configured tracking upstream, record awareness, and leave
-   delivery and publication to the repository's normal Git workflow.
-5. For branch state, a stale read may run a bounded fast-forward-only pull. Failure preserves bundle
-   content, cursor, and awareness cache while recording the attempt throttle and board marker.
-6. A full sync commits local bundle changes, fetches and converges remote history, exports local
-   conflicting bytes when needed, pushes only a conflict-free result, and records the resulting
-   awareness state.
-
-# Trust and failure boundaries
-
-- Channel detection is evidence-based and read-only. Establishment is the explicit publication
-  boundary.
-- Opportunistic freshness is best-effort. A successful read means the selected local state was
-  readable; it does not prove the remote was reachable during that command. A failed pull leaves the
-  last successful awareness cache intact while its attempt timestamp prevents repeated network work.
-- Awareness is per clone and mode-scoped. It reports what that clone has observed since its cursor;
-  it is not a global event ledger.
-- Fast-forward-only refresh never reconciles divergence. Full sync owns rebase and conflict export.
-- A successful local commit followed by an authentication or network failure remains saved locally.
-  Retrying sync is the publication path.
-- This page covers Git-backed sharing of a local bundle. Remote HTTP storage, public site
-  publication, package release distribution, and arbitrary code-branch Git policy are outside its
-  scope.
-
-For the local document transaction before sharing, see the
-[document mutation lifecycle](document-mutation-lifecycle.md). For package and runtime boundaries,
-see [architecture at a glance](architecture-at-a-glance.md).
+Before a push that sends commits, an optional Git-configured check runs on the converged tree. A
+failure, timeout, or board edit holds the push. A lost push race refetches, converges, checks, and
+retries within a five-attempt bound. The
+[sync check](https://github.com/Holaxis-ai/superbee/blob/069a42092f39d8261ccd4322c0dc7ff5488aa2c8/packages/cli/src/commands/sync/gate.ts#L1-L162) owns command execution and postconditions.
+Pull-only sync and first establishment do not run it.
 
 # Evidence
 
 [pinned implementation source](../sources/superbee-codebase-main.md)
 
-# Release contracts
-
-The diagram remains independently pinned. Release-facing sync now includes Git inspect/resolve
-verbs and hosted working-copy reconciliation, with whole-document conflicts, remembered decisions,
-held deletes, bounded read-side pulls and optional turn-end sync. Git and hosted retain separate
-access, ownership and transaction domains. See
-[Git sharing](../guides/share-and-synchronize-git-bundle.md) and
-[Hosted checkout](../guides/work-in-hosted-checkout.md).
-
-[Current stable release evidence](../sources/current-release.md).
+[Current package evidence](../sources/current-release.md).

@@ -4,7 +4,10 @@ title: Bundle engine and storage seam change trigger
 description: >-
   Operational change triggers for core semantic ownership and backend
   capabilities.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: openai/codex
+generated:
+  by: openai/codex
+  at: '2026-10-13T12:56:34.845Z'
 ---
 # Affected pages
 
@@ -21,6 +24,9 @@ superbee_updated_by: openai/codex/root
 - `packages/core/src/versioning.ts`
 - `packages/server/src/router.ts`
 - `docs/WIRE-PROTOCOL.md`
+
+- `packages/core/src/engine.ts`
+- `packages/core/src/query-filter.ts`
 
 # Product events
 

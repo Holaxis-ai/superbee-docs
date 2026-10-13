@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: openai/codex
 generated:
   by: openai/codex
-  at: '2026-10-05T02:43:08.551Z'
+  at: '2026-10-13T13:12:49.684Z'
 ---
 # Purpose
 
@@ -272,3 +272,21 @@ separate scoped work. Use current release evidence and its actual package invent
 [First durable workspace](../get-started/first-durable-workspace.md)
 
 [Model recurring domain concepts](../guides/model-recurring-domain-concepts.md)
+
+# October 13 OSS documentation review
+
+The current installation and generated CLI reference use the current stable package. Architecture is grounded
+in the stable 069a42092f39d8261ccd4322c0dc7ff5488aa2c8 tree. The first page leads with saved work,
+a local first-workspace exercise, reusable structure, and Git collaboration.
+
+Service onboarding pages are removed from navigation and reduced to scope signposts. Reader guides
+no longer describe joining a hosted workspace. Immutable release history and the generated inventory
+retain factual descriptions of interfaces shipped by the OSS package. A GitHub release for the current npm stable package
+receipt remains unavailable; external finalization is not asserted.
+
+# Consumer runtime update
+
+The same review branch updates Portal and its Cloudflare adapter, Portal WebMCP, and Recipe Studio
+to the released consumer versions recorded in [Portal package evidence](../sources/superbee-portal.md).
+The existing Worker and public-bundle publication model remain the tested composition.
+No additional remote agent endpoint is enabled by this consumer update.

@@ -1,76 +1,19 @@
 ---
 type: Guide
-title: Troubleshoot a hosted checkout
+title: Open-source documentation scope
 description: >-
-  Recover sign-in, selection, held files, conflicts, and interrupted hosted
-  transfers.
+  Start with local Superbee or Git collaboration; service onboarding is outside
+  these docs.
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-03T15:02:09.156Z'
-superbee_updated_by: 'process:release-docs-preparation'
+  by: openai/codex
+  at: '2026-10-13T13:02:27.638Z'
+superbee_updated_by: openai/codex
 ---
-# Release applicability
+# Open-source documentation
 
-This page describes [the current stable CLI](../sources/current-release.md). Hosted availability depends on
-the selected host's capabilities and your access. CLI support does not establish that a production
-host offers every feature.
+These docs cover installing Superbee, keeping a local workspace, and sharing through Git.
+Service-specific onboarding and account administration belong with the service provider.
 
-# Collect the relevant receipts
-
-Use `whoami`, `catalog list --hosted`, `bundle locate --dir <folder>`, `status --dir <folder>`,
-and `sync --dir <folder>` for the selected checkout. Reads never establish another project's
-context. Keep local edits until the receipt establishes their disposition.
-
-| Receipt or symptom | Recovery |
-| --- | --- |
-| `AUTH_REQUIRED`, `status: not_signed_in` / exit 4 | Confirm the intended service and run `details.sign_in_command`, using its URL with `--host` when different from the example. |
-| `AUTH_REQUIRED`, `status: waiting_for_confirmation` / exit 4 | Relay `details.sign_in_url` and `details.user_code`; wait for browser confirmation, then repeat `details.resume`. |
-| `AUTH_REQUIRED` without either status above | Read the returned host, details, and help; use the owning sign-in or access recovery before retrying. |
-| `whoami` reports `waiting_for_confirmation` with `pending_sign_ins` | Resume the intended row's host-specific command in `help`. To cancel it, use `logout --host <url>`; a hostless first-run logout does not choose a pending host. |
-| `RUNTIME`, `reason: state_dir_not_writable` / exit 1 | Allow the required write to the private-state path named in the receipt, then repeat the same command. See setup recovery. |
-| `USAGE`, `reason: no_host` with a host or token environment variable | Pass the intended `--host`; environment credentials do not select a bundle's host. |
-| Missing published CLI client identity | Ask the host operator to provide supported CLI sign-in; do not invent credentials or client IDs. |
-| `choose_workspace` / `no_workspace` | Ask the person which returned workspace to select, or have them obtain access in the app. |
-| `ambiguous_bundle` | Choose the intended workspace. Use its catalog reference; an existing folder can be adopted with confirmed host/workspace only when origin proof succeeds. |
-| `copy_of_checkout` / `unbound_copy` | Follow checkout adoption. A marker is only a note; never route from it without the person's confirmed host. |
-| `conflict` / `not_inspected` / `stale_review` | Inspect base, local, and host versions, decide take/keep/revise, then sync. Reinspect when the host changes. |
-| `file_edited` | Review the current file and use revise instead of replaying keep for an earlier file. |
-| `resolution_not_replaceable` | Sync to settle the possibly sent decision before deciding whether to discard it. |
-| `deletions_held` | Show the exact IDs. Let the person run the acceptance command in their own terminal, or restore the deletes. Agents never simulate acceptance. |
-| `pulled.refused_deletions` | Confirm the shrink in the app before applying the token-bound take-host-deletions command. |
-| `unsafe_id` / `case_collision` | The person renames those documents in the app. Other safe documents can still sync. |
-| `sync_busy` | Wait and retry. Never remove the lock while another process holds, takes, or releases it. |
-| `lock_orphaned` | Confirm no Superbee command is still running, then remove only the lock the receipt names. |
-| `unknown` / `write_outcome_unknown` | Preserve the local files and retry the same intent so the command can reconcile the outcome. |
-| Definition, artifact, verification, View-save, or metadata refusal | Read the reason and use the named owning interface. Model changes need host permission and instance compatibility; artifacts, verification and View saves retain their refusal. |
-| `export_incomplete` | Repeat the same export into its intended destination. |
-| `unsent_changes` on in-place export | Sync first, or obtain agreement that keep-unsent leaves those edits local permanently. |
-
-When access has been withdrawn or the host is read-only, local edits are not proof of remote
-persistence. Report the unsent IDs and preserve them. `SUPERBEE_NO_AUTOPULL` and
-`SUPERBEE_NO_TURN_SYNC` can suppress automatic network work for a shell, but explicit sync still
-requires the intended person's access.
-
-[Checkout procedure and conflict choices](../guides/work-in-hosted-checkout.md)
-
-[Publish, adopt, or export](../guides/move-bundle-between-local-and-hosted.md)
-
-[Hosted operations and identity](../reference/hosted-cli-access.md)
-
-# Recovery additions
-
-These additions apply to [the current release](../releases/current.md), with matching host
-capabilities and access:
-
-| Receipt | Recovery |
-| --- | --- |
-| `ambiguous_host` on a new hosted write | Select the intended host explicitly with `--host`; keep bound checkout selection intact. |
-| `definitions_refused` | Ask the person managing bundle access for model-edit permission. Do not infer an admin-role requirement or use generic operations as a bypass. |
-| `definition_incompatible` | Preserve the convention file, inspect the named instance findings, fix those documents, and sync again. |
-| `index.md` conflict | Inspect the front-page versions; take, keep, or revise one deliberate result, then sync outgoing decisions. |
-| `too_large` | Preserve the file; account for request encoding and the host's declared bound. Split only with the person's agreement. |
-| `not_sendable`, `symlink`, or `unsafe_path` on the root | Correct the intended plain UTF-8 file without changing the bundle edition; never send through a link or directory. |
-| `export_source_changed` | Retry the same export after concurrent source writes settle. |
-| Interrupted staged publish / unknown creation outcome | Retry the same approved intent and target; preserve local files and inspect progress/receipts. |
-
-Capability-qualified model editing is explained in the checkout guide.
+[Start with open-source Superbee](../learn/start-here.md),
+[create your first useful workspace](../get-started/first-durable-workspace.md), or
+[share a bundle through Git](../guides/share-and-synchronize-git-bundle.md).

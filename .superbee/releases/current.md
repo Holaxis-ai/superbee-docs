@@ -1,45 +1,49 @@
 ---
 type: Release
-title: Superbee 0.4.1
+title: Superbee 0.4.2
 description: >-
-  Superbee 0.4.1 improves the first hosted CLI run, reports private-state write
-  refusals with structured recovery details, and identifies valid same-page
-  Markdown fragments for reader adapters.
-version: 0.4.1
+  Superbee adds hosted access management and bundle retirement, a coordinated
+  Git-to-hosted move, named Git boards and optional sync checks, expanded
+  additive recipe evolution, and verified portable exports. The npm distribution
+  now requires supported Node 22, 24, or 26 release lines.
+version: 0.4.2
 channel: latest
-published_at: '2026-10-03'
-resource: 'https://www.npmjs.com/package/superbee/v/0.4.1'
+published_at: '2026-10-13'
+resource: 'https://www.npmjs.com/package/superbee/v/0.4.2'
 superbee_updated_by: release-docs-automation
 generated:
   by: 'process:superbee'
-  at: '2026-10-03T14:59:49.953Z'
+  at: '2026-10-13T12:51:56.956Z'
 ---
-# Superbee 0.4.1
+# Superbee 0.4.2
 
-Superbee 0.4.1 improves the first hosted CLI run, reports private-state write refusals with structured recovery details, and identifies valid same-page Markdown fragments for reader adapters.
+Superbee adds hosted access management and bundle retirement, a coordinated Git-to-hosted move, named Git boards and optional sync checks, expanded additive recipe evolution, and verified portable exports. The npm distribution now requires supported Node 22, 24, or 26 release lines.
 
-This release was published on 2026-10-03 as `superbee@0.4.1` under
+This release was published on 2026-10-13 as `superbee@0.4.2` under
 the npm `latest` tag.
 
 # What changed
 
-- On a first run with no selected host or saved session, whoami and logout succeed and report not_signed_in. A hosted command that needs a host returns AUTH_REQUIRED (exit 4) with not_signed_in and a sign_in_command. Login still needs a selected host; a bundle command with only SUPERBEE_HOST or SUPERBEE_ACCESS_TOKEN still requires --host and returns USAGE (exit 2).
-- Device sign-in without --wait reports waiting_for_confirmation with the URL, user code, and resume command. whoami can report pending sign-ins before a default host has been recorded. Resume or cancel the intended host explicitly.
-- Refused private-state writes report RUNTIME (exit 1), reason state_dir_not_writable, the path, errno, and permission remedy. An existing private root already at mode 0700 avoids a redundant permission write; required changes and permission repairs still need write access.
-- The bounded Markdown renderer names validated fragment-only targets in inert metadata. A reader adapter must map them to an existing heading before making them navigable. Raw HTML, images, and arbitrary URL targets retain their existing boundaries.
+- Workspace admins can preview and apply access grants or revocations for existing workspace members. Bundle owners or admins can retire a hosted bundle after a person confirms its ID at the terminal.
+- A Git board published to hosted gains a moved marker on its shared branch. Current CLIs stop pushing to that board and direct teammates to the hosted checkout; older writers require upgrade or branch protection.
+- Standalone named board-research checkouts target their own upstream. An optional trusted Git-configured sync check can hold an outgoing push. Lost push races refetch, converge, and retry up to five times.
+- Recipe evolution accepts a new outbound link declaration and allowed values on a field declared by the same plan. Existing edge and instance checks remain enforced.
+- The package exposes superbee/portable-export and superbee/bundle-descriptor for trusted offline consumers. Publication refuses recognized private operational-state files in a bundle.
+- Local history attribution and writer identity handling are corrected; hosted conflict receipts are written atomically and Git path/status handling preserves path identities.
+- Node support is ^22.14.0 || ^24.0.0 || ^26.0.0. macOS and Linux remain the supported npm platforms.
 
 # What you need to do
 
-Install the version in this release record explicitly and verify the package/source identity. Update hosted automation to inspect not_signed_in and waiting_for_confirmation instead of assuming every AUTH_REQUIRED receipt already has a browser link. Confirm the intended host before starting sign-in. Keep existing bundles and their edition unchanged.
+Check node --version before upgrading and use a supported Node release line. Follow the installation and upgrade guides, verify superbee version, and rerun setup for your AI host. Before moving a team Git board to hosted, upgrade all writers and automations, review publication, share the destination with members, and point writers at their hosted checkouts.
 
 # Compatibility
 
-This patch introduces no bundle-format or edition migration and retains Node.js >=20, macOS, Linux, and the Linux path through WSL2. Native Windows remains outside the npm package support boundary. The released tree differs from 0.4.1-pre.1 only in package version metadata, its lockfile entry, and stable README installation guidance; executable source is unchanged in that comparison, while source/package/artifact identities differ.
+Existing OKF bundle editions and ordinary document workflows are retained. Native Windows npm execution remains excluded; WSL2 uses the Linux path. Hosted access and retirement require a compatible host and the stated person permissions. Node 20 and odd-numbered Node release lines are outside the package engine range. The npm package and source tag are verified; the GitHub v0.4.2 release receipt was absent at documentation review.
 
 # Recovery
 
-For not_signed_in, run the returned sign-in command for the intended host. For waiting_for_confirmation, relay the exact URL and code, wait for the person, and repeat the resume command. For state_dir_not_writable, allow the required write to the named private-state path and retry the same command. For a fragment that remains inert, check the reader adapter and heading target. Preserve existing bundle files and use the current setup and hosted recovery guides.
+Preserve unsent work and inspect partial receipts. Fix a failed sync check, then rerun sync; never assume a held push erased a local commit. Follow moved-board recovery commands before carrying later Git edits into hosted. Export a copy before retirement and let the person confirm in their own terminal. For installation recovery, use the upgrade guide and a prior verified package only on its supported Node/platform range.
 
 # Verified evidence
 
-[Inspect the package, source, and verification evidence](../sources/superbee-release-0.4.1.md).
+[Inspect the package, source, and verification evidence](../sources/superbee-release-0.4.2.md).

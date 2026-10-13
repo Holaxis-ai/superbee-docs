@@ -2,84 +2,64 @@
 type: Diagram
 title: Architecture at a glance
 description: >-
-  How Superbee's private workspace layers become one supported installed
-  package.
-superbee_updated_by: openai/codex/root
+  How the installed CLI composes the command runtime, shared semantics, host
+  adapters, and publication APIs.
+superbee_updated_by: openai/codex
+generated:
+  by: openai/codex
+  at: '2026-10-13T12:56:33.455Z'
 ---
 # Question answered
 
-How is Superbee divided into stable semantic, reusable capability, host, and distribution layers, and
-which of those boundaries are supported entry points for an installed user?
+How does Superbee separate bundle semantics, reusable capabilities, host adapters, and the package
+people install?
 
-Superbee keeps bundle meaning and storage contracts in one core. Private workspace packages build
-Git collaboration, serving, Views, rendering, publication, and host integrations around that core.
-The public `superbee` package then composes and ships those capabilities without asking users to
-install or coordinate the internal packages separately.
+Superbee keeps OKF meaning in core and composes it through a reusable command runtime. The public
+`superbee` distribution bundles that runtime with its browser UI, MCP integration, and trusted
+publication interfaces. Installing the CLI requires one package.
 
-# One public package and supported entry points
+# Installed and reusable entry points
 
-The current stable package exposes the installed `superbee` executable, a root package entry, the
-read-only snapshot API at `superbee/publication`, and its bounded bridge at
-`superbee/publication/bridge`. The package also ships the agent skill, references, and notices. The
-source boundary is declared in the
-[`superbee` package manifest](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/cli/package.json#L24-L45); the [current release page](../releases/current.md) remains the installed stable authority.
+The [distribution manifest](https://github.com/Holaxis-ai/superbee/blob/069a42092f39d8261ccd4322c0dc7ff5488aa2c8/packages/superbee/package.json#L24-L65) declares the executable,
+`superbee/publication`, `superbee/publication/bridge`, `superbee/bundle-descriptor`, and
+`superbee/portable-export`. The root module is the executable entry; trusted Node.js consumers should
+use the declared API subpaths and their types.
 
-Nine private `@superbee/*` workspaces surround the public `superbee` package workspace. They let
-contributors test and evolve responsibilities independently, but they are not separate products or
-installation steps. The CLI build emits the executable plus separate publication and bridge modules,
-then embeds already-built UI assets; those facts are visible in the
-[`build` entry point](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/cli/build.mjs#L71-L95)
-and its
-[`source-bundle aliases`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/cli/scripts/build-bundle.mjs#L129-L160).
+The [command runtime](https://github.com/Holaxis-ai/superbee/blob/069a42092f39d8261ccd4322c0dc7ff5488aa2c8/packages/cli/package.json#L1-L43) is a separate `@superbee/cli` library.
+Core, the reference server, Markdown rendering, and browser-local integration also have library
+manifests. A source export or package manifest does not establish that a given library version was
+published or accepted by a production host. Follow the release evidence for the package you use.
 
-# Four inward-facing layers
+# Four ownership layers
 
-| Layer | Packages and responsibility |
+| Layer | Responsibility |
 | --- | --- |
-| Composition and distribution | `superbee` CLI owns the installed command surface, setup, orchestration, packaging, and stable import exports. It composes capabilities but does not redefine their semantics. |
-| Host and projection composites | `ui-server`, `mcp-app`, `publication`, and `ui` adapt bundles for local browser use, MCP Apps hosts, read-only snapshots, and human presentation. The CLI embeds the built UI assets and has no runtime package dependency on the UI. |
-| Reusable capabilities | `board-git`, `server`, `view-runtime`, and `markdown-renderer` provide Git coordination, the reference HTTP adapter, safe View execution, and Markdown rendering over the semantic base. |
-| Semantic and storage base | `core` owns OKF bundle/document meaning, Kinds, links, queries, mutation policy, and storage interfaces. It has no production dependency on another Superbee workspace. |
+| Distribution and command composition | `superbee` packages the executable and declared APIs; `cli` owns command dispatch, setup, and orchestration. |
+| Host adapters and publication | `ui-server`, `mcp-app`, `ui`, `publication`, and `bundle-descriptor` adapt shared semantics for people, agent hosts, and immutable publication. |
+| Reusable capabilities | `board-git`, `server`, `view-runtime`, `markdown-renderer`, and `browser-local` provide Git coordination, HTTP transport, View execution, rendering, and browser working-copy behavior. |
+| Semantic and storage base | `core` owns OKF documents, validation, links, queries, mutation policy, storage interfaces, and portable-export verification. |
 
-The package manifests make those inward dependencies reproducible: [`core`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/core/package.json#L2-L6)
-defines the base, and its [production dependency block](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/core/package.json#L58-L60)
-contains no Superbee workspace;
-[`board-git`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/board-git/package.json#L2-L27),
-the [`reference server`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/server/package.json#L2-L26),
-[`view-runtime`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/view-runtime/package.json#L2-L34),
-and [`markdown-renderer`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/markdown-renderer/package.json#L2-L35)
-depend inward on it. The
-[`UI server`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/ui-server/package.json#L2-L28),
-[`MCP App`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/mcp-app/package.json#L2-L35),
-and [`publication facade`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/publication/package.json#L2-L24)
-compose several of those reusable capabilities. The
-[`UI package`](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/ui/package.json#L2-L23)
-depends, among Superbee workspaces, only on the rendering and View contracts it consumes at runtime.
+The [distribution build](https://github.com/Holaxis-ai/superbee/blob/069a42092f39d8261ccd4322c0dc7ff5488aa2c8/packages/superbee/build.mjs#L18-L115) bundles source dependencies and
+copies declarations into the installed artifact. It embeds built UI assets, rather than requiring
+users to coordinate separate UI and runtime installations. Core's
+[manifest](https://github.com/Holaxis-ai/superbee/blob/069a42092f39d8261ccd4322c0dc7ff5488aa2c8/packages/core/package.json#L155-L176) keeps production dependencies outside the
+Superbee workspace graph. The diagram groups responsibilities; it is not an exhaustive dependency
+map or inventory of published versions.
 
-The visual is a conceptual layer flow, not the full package DAG. A grouped arrow means one or more
-packages in the upstream group use the downstream layer; it does not claim that every package has
-every possible edge. The dashed publication edge shows that the snapshot and bridge modules are
-built beside the CLI in the same npm artifact. The diagram scales inline with the page;
-use **Expand** when its labels need more room on a narrow screen. The table and prose remain the
-complete readable equivalent, while the pinned manifests preserve the exact package responsibilities
-and dependencies.
+# Keep semantics with their owner
 
-# Core architecture constraints
+A host can select capabilities, authorize a person, and present work. It must use core for document
+meaning and the common View policy for admitted proposals. A View submits a proposal; a trusted host
+confirms and applies it. Publication captures approved content read-only and does not turn a public
+site into a write channel.
 
-- Core is the semantic authority. Adapters can transport or present bundle state, but they do not
-  create a second definition of documents, Kinds, links, or mutation safety.
-- Dependencies point inward. Core remains reusable without a CLI, host UI, Git board, or publication
-  site; outer packages may combine inner capabilities.
-- The CLI is the composition and distribution root. Its aliases allow one self-contained executable
-  while the workspace graph remains modular for development.
-- Publication is read-only. Views cannot mutate the source bundle on their own. A `bundle-propose`
-  View may submit one versioned proposal; the trusted shell applies it only after separate human
-  confirmation and version checks.
+Continue with [the storage seam](bundle-engine-and-storage-seam.md),
+[the mutation lifecycle](document-mutation-lifecycle.md), or
+[the system context](superbee-system-context.md).
 
-For how these layers meet humans, agents, Git, and public sites, continue to the
-[system context](superbee-system-context.md). For the write path and its transaction authorities,
-continue to the [document mutation lifecycle](document-mutation-lifecycle.md).
 
 # Evidence
 
 [pinned implementation source](../sources/superbee-codebase-main.md)
+
+[Current package evidence](../sources/current-release.md).

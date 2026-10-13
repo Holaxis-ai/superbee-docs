@@ -4,10 +4,10 @@ title: Migrate or upgrade safely
 description: >-
   Upgrade Superbee or move from AgentState while preserving the intended
   workspace and verifying each compatibility step.
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-03T15:24:42.366Z'
+  by: openai/codex
+  at: '2026-10-13T13:11:11.908Z'
 ---
 # Outcome
 
@@ -282,37 +282,22 @@ only darwin/linux, and a forced native Windows install refuses commands. Use WSL
 unsupported Windows source build; do not remove or migrate existing bundles as an installation
 repair. Preserve the previous executable identity and local work before changing environments.
 
-A hosted move is a separate decision from upgrading the CLI. Use
-[Publish, adopt, or export](move-bundle-between-local-and-hosted.md) for an explicit transfer;
-never treat `init`, a copied checkout marker, or a package reinstall as checkout migration.
-Hosted Kind and convention-only recipe changes require model-edit permission from the host and
-compatibility with existing instances. Review those capabilities before changing the model.
-
 Library integrators upgrading the filesystem API must provide an explicit `FilesystemHostPolicy`
 for a non-POSIX host and retain the backend returned by `initBundle` as `{root, backend}`. Core
 has no npm OS restriction and its non-filesystem backends remain available. See the pinned
 [core migration contract](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/core/README.md).
 
-Current stable release evidence.
+See [current stable release evidence](../sources/current-release.md).
 
 # Review the stable upgrade
-
-Review the current release guide before changing automation. An otherwise valid bundle operation
-that attempts a hosted read or write, such as `catalog list --hosted`, now returns `AUTH_REQUIRED`
-(exit 4) with `details.status: not_signed_in` when no host or saved session is selected.
-Inspect the status and run the returned sign-in command for the intended host.
-`waiting_for_confirmation` means an existing
-browser-confirmation flow is waiting for the person; relay its URL and code before retrying.
-`whoami` and `logout` succeed without a selected host and report that nothing is signed in.
-`login` without a host remains `USAGE` (exit 2). Publication preview without `--yes` can
-succeed (exit 0) while reporting `ready: false` and `reason: no_host`; it performs no hosted write.
-A bundle command given only a host or token environment variable still needs `--host`.
-
-A refused private-state write now returns `RUNTIME` (exit 1) with
-`reason: state_dir_not_writable` and the path/permission remedy. Treat these structured details
-as recovery guidance instead of parsing the message. See [hosted access](../reference/hosted-cli-access.md)
-and [setup recovery](../troubleshooting/setup-and-bundle-resolution.md).
 
 This patch changes no bundle format, edition, or migration requirement. Keep existing bundles
 and their edition unchanged unless a separate reviewed migration is intended. The comparison
 with the published prerelease is metadata-only; package and artifact identities still differ.
+
+# Check Node before upgrading
+
+The current package requires Node `^22.14.0 || ^24.0.0 || ^26.0.0` on macOS or Linux. Node 20 and
+odd-numbered Node release lines are outside that range. Run `node --version` before the package
+upgrade. Update Node to a supported line, then verify the installed Superbee identity and rerun your
+host-scoped setup. The package upgrade preserves existing bundle editions and content.

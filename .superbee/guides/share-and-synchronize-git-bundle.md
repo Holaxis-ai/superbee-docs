@@ -4,20 +4,20 @@ title: Share and synchronize a Git-backed bundle
 description: >-
   Join, refresh, share, and recover a Git-backed Superbee bundle without
   crossing its publication boundary.
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:21.734Z'
+  by: openai/codex
+  at: '2026-10-13T13:03:42.291Z'
 ---
 # Outcome
 
 Join a project that already shares a Superbee bundle, refresh incoming work without publishing
 local changes, and use the correct sharing path for the bundle's Git mode.
 
-This guide is for macOS, Linux, and Windows users of [the current stable release](../releases/current.md). It
+This guide is for macOS and Linux users (including WSL2 users) of [the current stable release](../releases/current.md). It
 is verified against the package identity in the current release evidence, source commit
-`ff8f9c8681c94204cac23e8ab7bb2981bb256a12`, and the synchronization and SessionStart tests
-linked below. The stable package requires Node.js 20 or newer.
+`069a42092f39d8261ccd4322c0dc7ff5488aa2c8`, and the synchronization and SessionStart tests
+linked below. The stable package requires Node.js 22.14 or later in the 22.x line, or Node.js 24.x or 26.x.
 
 GitHub role and policy guidance on this page is version-neutral. It links to GitHub's current
 documentation because provider permissions can change independently of a Superbee release.
@@ -405,11 +405,6 @@ local body; revise uses the current edited document. These conflict verbs do not
 push. A later plain sync shares keep/revise. A lost claim does not offer ownership back; retain
 the arbitration and follow claim recovery guidance.
 
-These choices also exist in hosted checkouts with their own host inspection/precondition rules.
-Deletion-hold acceptance/restore and take-host-deletions flags are hosted-only. See
-[Hosted checkout](work-in-hosted-checkout.md). This release's Git workflow should not be described
-as using the hosted deletion policy or hosted access credentials.
-
 
 # Initialization alignment
 
@@ -443,3 +438,30 @@ A fresh `sync --establish` snapshot with malformed documents fails with `USAGE` 
 publication or move. Its `details.malformed` names the records. Repair them, check `status`, and
 retry establishment only under the same explicit publication approval. A skipped listing is not
 proof that the document was deleted or that the remaining bundle is a complete publication source.
+
+# Named boards and optional sync checks
+
+A standalone Git checkout can use `board-<name>` instead of `board`. Names contain lowercase
+letters, digits, and hyphens. Its tracked root `.superbee-board.json` must contain the branch
+identity, for example `{"schema": 1, "branch": "board-research"}`, and track
+`origin/board-research`. Sync uses that named branch without touching `origin/board`. The
+conventional project `.superbee/` worktree continues to use `board`; this is a standalone-checkout
+contract, not an initialization option.
+
+A clone can require a check before sending ordinary sync commits:
+
+```sh
+git config superbee.syncGate '<trusted-check-command>'
+git config superbee.syncGateTimeoutSeconds 600
+```
+
+Choose trusted code outside the board. The command comes from Git configuration and runs from the
+converged board root before each push that sends commits. It must leave the board unchanged. A
+nonzero exit, timeout, or file change holds the push with `GATE_FAILED` (exit 5); local commits stay
+saved. Inspect the returned output, fix the failure, and rerun sync. An empty configuration value
+disables the check. Pull-only sync and first establishment do not run it.
+
+A push that loses a race to another writer triggers a refetch, convergence, another check, and a
+retry, up to five attempts in total. Exhaustion reports `details.reason: non-fast-forward`.
+Authentication and policy refusals require their own remedies. Turn-end sync runs the configured
+check within the host's hook time limit, so keep it fast.

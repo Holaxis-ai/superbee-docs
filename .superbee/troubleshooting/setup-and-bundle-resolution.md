@@ -4,10 +4,10 @@ title: Troubleshoot setup and bundle resolution
 description: >-
   Diagnose installation, host setup, workspace selection, and local bundle
   health from their owning command receipts.
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-03T15:02:09.329Z'
+  by: openai/codex
+  at: '2026-10-13T13:11:10.582Z'
 ---
 # Outcome
 
@@ -237,17 +237,12 @@ Native Windows `EBADPLATFORM` is the distribution boundary, not a missing npm pr
 Forcing installation will not restore support. WSL2 is the normal Linux route; preserve existing
 files before moving work. See [Host and platform support](../reference/host-and-platform-support.md) for the release matrix.
 
-If `home`, `status`, or `bundle locate` reports `copy_of_checkout`, the folder was moved/copied and
-is not bound to hosted state here. Do not initialize a replacement or route from the marker.
-Follow [Hosted checkout recovery](hosted-checkout.md) for adoption and workspace proof.
-`AUTH_REQUIRED`, `choose_workspace`, held deletions, and hosted conflicts also belong to that guide.
-
 For a fresh clone with a conventional shared-board binding, the orientation and setup
 retain the shared-board path. Follow the returned sync recovery; `init` is reserved for a confirmed
 new local bundle. Unavailable hook launchers are reported as unsupported by setup rather than as a
 ready integration.
 
-Current stable release evidence.
+See [current stable release evidence](../sources/current-release.md).
 
 # Malformed-file recovery
 
@@ -270,7 +265,3 @@ settings, then repeat the same command. Superbee has no state-directory override
 credentials or redirecting private state into a bundle is not a recovery procedure. An existing
 private root already at mode `0700` no longer receives a redundant permission write; needed
 state changes and repairs still require write access.
-
-For hosted `AUTH_REQUIRED` (exit 4), distinguish `not_signed_in` from
-`waiting_for_confirmation` before deciding whether to start sign-in or relay an existing
-browser-confirmation link. See [hosted recovery](hosted-checkout.md).

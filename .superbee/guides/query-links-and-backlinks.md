@@ -4,10 +4,10 @@ title: 'Query, links, and backlinks'
 description: >-
   Find documents, traverse derived relationships, and regenerate portable
   navigation safely.
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:21.532Z'
+  by: openai/codex
+  at: '2026-10-13T13:03:42.607Z'
 ---
 # Goal
 
@@ -148,12 +148,6 @@ commands. See [Research claims and evidence](../examples/claims-and-evidence.md)
 modeled example.
 
 # Release contracts
-
-A View can request graph only when `hello.host.capabilities` declares it. Respect the advertised
-document, relationship, reply, and body limits and render partial/over-limit states. OSS graph
-returns documents and relationships without model/definition projections; `graph.model` remains
-reserved. Typed CLI reads on a hosted checkout use its local folder so unsent changes are included;
-generic hosted op calls intentionally refuse those folder-owned read IDs.
 
 Current stable release evidence.
 

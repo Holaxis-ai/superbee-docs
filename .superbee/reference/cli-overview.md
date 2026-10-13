@@ -4,10 +4,10 @@ title: CLI overview
 description: >-
   Compact command ownership and output contract for the current stable Superbee
   release.
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:22.444Z'
+  by: openai/codex
+  at: '2026-10-13T13:11:10.911Z'
 ---
 # Scope
 
@@ -47,7 +47,7 @@ Catalog labels are resolved explicitly and never act as ambient project selectio
 | Bundle | `bundle locate`, `catalog`, `init`, `index generate`, `status` | Resolve, create, inspect, catalog, and validate a bundle. |
 | Documents and links | `doc write`, `doc update`, `doc field`, `doc verify`, `doc read`, `doc open`, `doc history`, `doc delete`, `list`, `link` | Create, patch, edit one frontmatter field, record verification, inspect, display, query, relate, and remove concepts. |
 | Artifacts | `artifact create`, `promote`, `pull`, `blobs`, `delete` | Move byte-preserving outputs across the model boundary and store produced HTML. |
-| Kinds and recipes | `new`, `kinds`, `kind field`, `recipes`, `recipe add` | Inspect or evolve bundle-owned structure and create validated instances. |
+| Kinds and recipes | `new`, `kinds`, `kind field`, `recipes`, `recipe add`, `recipe evolve` | Inspect or evolve bundle-owned structure and create validated instances. |
 | Remote and human presentation | `serve`, `ui`, `mcp`, `view list`, `sync` | Serve or present a bundle, integrate MCP Apps, inspect Views, and exchange a Git-backed board. |
 | Session and installation | `version`, `session-start`, `hook`, `skill`, `setup` | Inspect the build, orient sessions, and manage persistent host integrations. |
 
@@ -163,17 +163,9 @@ current release evidence
 
 | Area | Additional commands | Task ownership |
 | --- | --- | --- |
-| Hosted account | `login`, `whoami`, `logout`, `setup hosted` | Start/resume browser sign-in, inspect local session state, clear a session, and select hosted defaults. |
-| Hosted bundles | `catalog list --hosted`, `checkout`, `publish --to hosted`, `export` | Discover reachable bundles, bind a working folder, preview an explicit move, or create a local copy. |
-| Generic hosted reads | `op list`, `op run` | Discover a host read without a typed CLI verb; results and descriptions remain data. |
-| Conflict recovery | `sync --inspect`, `sync --resolve` | Review and record a document decision, then sync separately to share keep/revise. |
-| Hosted deletion recovery | `sync --restore-deletes`, `sync --take-host-deletions` | Restore an outgoing hold or accept a confirmed incoming shrink. Outgoing acceptance remains the person's interactive terminal step. |
 | Optional session sync | `hook install --turn-end-sync` | Sync at turn end on Claude Code/Codex after agreement; Git boards also require `--git-boards`. |
 
-Use [Hosted CLI access and operations](hosted-cli-access.md) for selection and capability constraints.
-The [generated command inventory](cli-commands.md) is captured from the verified installed stable package.
-
-Current stable release evidence.
+See [current stable release evidence](../sources/current-release.md).
 
 # Paged-read contract
 

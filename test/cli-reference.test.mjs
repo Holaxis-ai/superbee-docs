@@ -8,7 +8,7 @@ const help = execFileSync("node_modules/.bin/superbee", ["--help"], { encoding: 
 test("CLI inventory includes every shipped Hosted command", () => {
   const hosted = commandRows(help).filter((row) => row.section === "Hosted");
   assert.deepEqual(hosted.map((row) => row.command.split(" ")[0]),
-    ["login", "whoami", "logout", "checkout", "export", "publish", "op"]);
+    ["login", "whoami", "logout", "checkout", "export", "publish", "op", "access", "bundle"]);
 });
 
 test("CLI inventory refuses unknown command groups instead of omitting them", () => {
