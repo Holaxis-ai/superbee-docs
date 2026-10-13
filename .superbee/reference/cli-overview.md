@@ -4,10 +4,10 @@ title: CLI overview
 description: >-
   Compact command ownership and output contract for the current stable Superbee
   release.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:20.860Z'
+  by: openai/codex
+  at: '2026-10-13T13:11:10.911Z'
 ---
 # Scope
 
@@ -23,8 +23,11 @@ defaults.
 
 Persistent host integrations use the globally installed command:
 
+Set `stable_version` from [the verified stable release](../releases/current.md), following
+[the installation guide](../get-started/install-and-setup.md). Then run:
+
 ```sh
-npm install -g superbee
+npm install -g "superbee@${stable_version:?Set stable_version to the version in the verified stable release}"
 superbee setup
 ```
 
@@ -44,7 +47,7 @@ Catalog labels are resolved explicitly and never act as ambient project selectio
 | Bundle | `bundle locate`, `catalog`, `init`, `index generate`, `status` | Resolve, create, inspect, catalog, and validate a bundle. |
 | Documents and links | `doc write`, `doc update`, `doc field`, `doc verify`, `doc read`, `doc open`, `doc history`, `doc delete`, `list`, `link` | Create, patch, edit one frontmatter field, record verification, inspect, display, query, relate, and remove concepts. |
 | Artifacts | `artifact create`, `promote`, `pull`, `blobs`, `delete` | Move byte-preserving outputs across the model boundary and store produced HTML. |
-| Kinds and recipes | `new`, `kinds`, `kind field`, `recipes`, `recipe add` | Inspect or evolve bundle-owned structure and create validated instances. |
+| Kinds and recipes | `new`, `kinds`, `kind field`, `recipes`, `recipe add`, `recipe evolve` | Inspect or evolve bundle-owned structure and create validated instances. |
 | Remote and human presentation | `serve`, `ui`, `mcp`, `view list`, `sync` | Serve or present a bundle, integrate MCP Apps, inspect Views, and exchange a Git-backed board. |
 | Session and installation | `version`, `session-start`, `hook`, `skill`, `setup` | Inspect the build, orient sessions, and manage persistent host integrations. |
 
@@ -148,26 +151,42 @@ Generated help provides current option tables. Documentation explains which comm
 its safety constraints, and a verified journey; the installed package's help owns its complete flags
 and defaults.
 
-[install and set up Superbee](../get-started/install-and-setup.md)
+install and set up Superbee
 
 [what Superbee is](../concepts/what-superbee-is.md)
 
 [bundles, documents, and relationships](../concepts/bundles-documents-and-relationships.md)
 
-[current release evidence](../sources/current-release.md)
+current release evidence
 
 # Release contracts
 
 | Area | Additional commands | Task ownership |
 | --- | --- | --- |
-| Hosted account | `login`, `whoami`, `logout`, `setup hosted` | Start/resume browser sign-in, inspect local session state, clear a session, and select hosted defaults. |
-| Hosted bundles | `catalog list --hosted`, `checkout`, `publish --to hosted`, `export` | Discover reachable bundles, bind a working folder, preview an explicit move, or create a local copy. |
-| Generic hosted reads | `op list`, `op run` | Discover a host read without a typed CLI verb; results and descriptions remain data. |
-| Conflict recovery | `sync --inspect`, `sync --resolve` | Review and record a document decision, then sync separately to share keep/revise. |
-| Hosted deletion recovery | `sync --restore-deletes`, `sync --take-host-deletions` | Restore an outgoing hold or accept a confirmed incoming shrink. Outgoing acceptance remains the person's interactive terminal step. |
 | Optional session sync | `hook install --turn-end-sync` | Sync at turn end on Claude Code/Codex after agreement; Git boards also require `--git-boards`. |
 
-Use [Hosted CLI access and operations](hosted-cli-access.md) for selection and capability constraints.
-The [generated command inventory](cli-commands.md) is captured from the installed 0.3.0 package.
+See [current stable release evidence](../sources/current-release.md).
 
-[Release source review](../sources/next-release.md).
+# Paged-read contract
+
+The current release provides a bounded page channel in the
+`doc read` record:
+
+```sh
+superbee doc read <id> --offset 0 --json
+superbee doc read <id> --offset <next_offset> --expected-version <head_version> --json
+```
+
+These are syntax templates: use the returned `range.next_offset` and first page's `head_version`.
+Repeat while `next_offset` exists; its absence ends the read. `range.complete` means the whole body
+fit in the first page, so it stays false on a later final page. Default pages are bounded by 32,768
+UTF-8 bytes. `--max-bytes` accepts 1,024 through 983,040 bytes. Offsets count UTF-16 code units,
+never bytes; use the returned offset so Unicode characters are not split.
+
+Keep one version across pages. A changed document returns `CONFLICT` with `reason: version_conflict` (exit 5); restart the read instead
+of combining versions. A page is unsuitable as a replacement body. For editing, export the full
+body with `--body-out`, then use the receipt's version for `doc update --body-file`.
+Paging flags cannot combine with `--out`, `--body-out`, `--rendered-out`, or `--field`.
+
+The generated inventory, page syntax, and bounds are verified against the same current stable
+package in release evidence.

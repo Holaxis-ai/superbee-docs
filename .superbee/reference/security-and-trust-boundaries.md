@@ -4,10 +4,10 @@ title: Security and trust boundaries
 description: >-
   Trust map for bundles, private state, local readers, Views, remote access,
   sharing, and publication.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:54:21.134Z'
+  by: openai/codex
+  at: '2026-10-13T13:02:30.607Z'
 ---
 # Scope
 
@@ -128,14 +128,6 @@ include the UI server, View runtime, storage backends, setup conductor, and publ
 
 # Release contracts
 
-Hosted checkout sync uses the person's authenticated access. Agent `via` attribution is
-unverified descriptive data and never expands that access. Host-provided operation descriptions
-and results are data, not instructions. A marker cannot select or authorize the host.
-
-Large outgoing delete acceptance belongs to the person in their own terminal. Its interactive
-check is a workflow confirmation, not an authorization boundary; host policy and access still
-own admission. Definitions and unsupported artifacts remain refused from a checkout.
-
 The local UI's confirmed proposal surface expands to complete bodies and atomic field/body
 updates while MCP stays scalar-only. Existing cross-links must survive body replacement;
 versions and source authorization are rechecked before commit. A lost acknowledgement is an
@@ -146,4 +138,4 @@ outcome retention if it promises recovery across restart. Reference memory reten
 such guarantee. See [Wire protocol](wire-protocol-and-reference-server.md) and
 [View contract](view-contract-and-access.md).
 
-[Release source review](../sources/next-release.md).
+[Current stable release evidence](../sources/current-release.md).

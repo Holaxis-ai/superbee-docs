@@ -4,10 +4,10 @@ title: Install and set up Superbee
 description: >-
   Install the released CLI and let the read-only setup conductor verify one
   exact AI host.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:23.401Z'
+  by: openai/codex
+  at: '2026-10-13T13:03:42.130Z'
 ---
 # Outcome
 
@@ -22,7 +22,7 @@ This tutorial is verified against
 
 You need:
 
-- Node.js 20 or newer;
+- Node.js 22.14 or later in the 22.x line, or Node.js 24.x or 26.x;
 - npm;
 - a platform listed as supported by the [current release](../releases/current.md); and
 - one supported host: Codex, Claude Code, Claude Desktop, or OpenCode.
@@ -32,10 +32,12 @@ prerelease support become stable-package capabilities only when the release evid
 
 # 1. Install the CLI
 
-Run:
+Set `stable_version` to the version in the verified stable release,
+then run the following command. An unversioned install follows npm `latest`, which can temporarily
+point at a prerelease; verify the version rather than treating the tag as stable-release evidence.
 
 ```sh
-npm install -g superbee
+npm install -g "superbee@${stable_version:?Set stable_version to the version in the verified stable release}"
 ```
 
 Then inspect the installed identity:
@@ -45,7 +47,7 @@ superbee version
 ```
 
 The output identifies package `superbee`, channel `npm-package`, and a version and source commit that
-agree with the [current release evidence](../sources/current-release.md).
+agree with the current release evidence.
 
 If `superbee` is not found, make sure npm's global binary directory is on `PATH`, then open a fresh
 terminal. Do not use `npx` for persistent host integrations: MCP, Skills, and hooks need an
@@ -108,16 +110,10 @@ Continue with [Create your first durable workspace](first-durable-workspace.md).
 
 # Release contracts
 
-The npm distribution supports macOS and Linux with Node.js 20 or newer. Native Windows
+The npm distribution supports macOS and Linux with Node.js 22.14 or later in the 22.x line, or Node.js 24.x or 26.x. Native Windows
 upgrades are rejected by npm with `EBADPLATFORM`. A forced installation still refuses command
 execution; bare `--version` can identify the build. Windows users should use WSL2 or evaluate the
 experimental source-only [Windows build](https://github.com/Holaxis-ai/superbee-windows-cli), which
 has no first-party native Windows support promise. These changes do not migrate bundle files.
 
-Persistent AI host setup and hosted account setup are distinct. After ordinary
-host setup, users choosing hosted storage can run `superbee setup hosted --url <hosted-url>`.
-This explicit command starts sign-in and records the hosted workspace. Relay its returned browser
-link, wait for confirmation, and repeat its resume command; select among workspaces with the
-person. Continue with [Work in a hosted checkout](../guides/work-in-hosted-checkout.md).
-
-[Release source review](../sources/next-release.md).
+See [current stable release evidence](../sources/current-release.md).

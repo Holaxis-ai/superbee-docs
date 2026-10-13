@@ -2,10 +2,10 @@
 type: Reference
 title: CLI errors and exit codes
 description: 'Stable CLI failure codes, exit statuses, output channels, and retry guidance.'
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:22.395Z'
+  by: openai/codex
+  at: '2026-10-13T13:03:42.938Z'
 ---
 # Scope
 
@@ -40,6 +40,7 @@ Some failures carry details that let an agent correct itself without parsing the
 | --- | --- | --- |
 | A non-conforming actor on an OKF v0.2 bundle | `USAGE` | `details.actor` holds the rejected value; `help` gives a corrected `--actor` or `SUPERBEE_ACTOR` value. |
 | A refused `doc field` source or set action | `USAGE` | `details.reason` (for example `ambiguous-source`, `source-not-found`, or `unsupported-set-field`), `details.field`, and, when relevant, the selector, a recommended selector, candidate sources, or supported fields. |
+| A refused write under Superbee's private-state root | `RUNTIME`, exit 1 | `details.reason: state_dir_not_writable`, `details.path`, `details.errno`, and, when available, `details.syscall`; `help` names the permission remedy. |
 | A failed sharing preflight, board creation, or board update | Unchanged sync error code | `details.sharing` reports the operation, repository and board state, required authority, and whether local work was preserved or committed. |
 
 The `details.sharing` fields are:
@@ -123,22 +124,25 @@ Actor and field-action classification is in
 and sharing details are defined in
 [`sync-outcomes.ts` at v0.2.1](https://github.com/Holaxis-ai/superbee/blob/v0.2.1/packages/cli/src/sync-outcomes.ts).
 
-# Release contracts
+# Git frontmatter holds
 
-| Hosted condition | Machine receipt / code | Response |
-| --- | --- | --- |
-| Sign-in needed | `AUTH_REQUIRED`, exit 4; `details.sign_in_url`, `details.user_code`, `details.resume` | Relay exact link/code, wait for browser confirmation, repeat resume. |
-| Human acceptance unavailable | `FORBIDDEN`, exit 2; `needs_person_at_terminal` | Give the person the held-set acceptance command. Never simulate their terminal. |
-| Generic read belongs to folder | `USAGE`; `folder_answers` | Use the named typed verb to include unsent edits. |
-| Host operation not offered | `NOT_IMPLEMENTED` | Use advertised capabilities; local/Git bundles have no host operations. |
-| Conflicted host version | `not_inspected`, `stale_review`, `file_edited` | Inspect and decide take/keep/revise; do not blindly overwrite. |
-| Unbound/misidentified checkout | `unbound_copy`, `ambiguous_bundle`, `not_this_bundle`, `origin_unknown` | Confirm host/workspace and prove origin before adoption. |
-| Sync lock | `sync_busy` or `lock_orphaned` | Wait for busy locks. Only the orphaned receipt permits removal after confirming the process is gone. |
-| Host creation outcome uncertain | `TRANSIENT`; `write_outcome_unknown` | Repeat the same intent to finish or reconcile it. |
-| Export interrupted | `TRANSIENT`; `export_incomplete` | Retry the same destination. |
+Outgoing dedicated-board sync with malformed document frontmatter returns a held receipt and
+`CONFLICT` (exit 5). `held_documents` names IDs, paths, reasons, and details; `held_help` gives the
+repair. Scripts and turn-end hooks should return this work to the writer. No outgoing push occurs;
+valid pending edits wait too. A fresh establishment snapshot instead returns `USAGE` (exit 2) with
+`details.malformed`, before publication or move. Follow the Git recovery procedure linked above;
+do not treat a successful partial listing as proof that these files were deleted.
 
-A sync receipt can contain committed, conflict, held, refused, unknown, and paused rows. Exit 0
-requires all rows committed. Preserve partial outcomes; a failed command or missing acknowledgement
-does not mean no write happened. See [Hosted recovery](../troubleshooting/hosted-checkout.md).
 
-[Release source review](../sources/next-release.md).
+# Paging and partial listings
+
+A page's stale `--expected-version` returns `CONFLICT` with `reason: version_conflict` (exit 5).
+Restart the paged read; never combine versions. Paging with a complete byte or field channel
+returns `USAGE` (exit 2). A skipped malformed listing is partial visibility, not proof of deletion.
+
+# Outgoing sync check failures
+
+`GATE_FAILED` exits 5 when a configured sync check fails, times out, or changes the board.
+The local commit remains saved. Inspect the output, fix the check or content, and run sync again.
+A push-race retry can end with exit 1 and `details.reason: non-fast-forward` after five attempts.
+Rerun when competing writes settle. See [Git sharing](../guides/share-and-synchronize-git-bundle.md).

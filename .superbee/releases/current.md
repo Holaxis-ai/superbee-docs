@@ -1,49 +1,49 @@
 ---
 type: Release
-title: Superbee 0.3.0
+title: Superbee 0.4.2
 description: >-
-  Superbee 0.3.0 adds hosted checkout workflows, explicit conflict recovery,
-  bounded operation discovery, and expanded local View proposals. The npm CLI
-  now targets macOS and Linux.
-version: 0.3.0
+  Superbee adds hosted access management and bundle retirement, a coordinated
+  Git-to-hosted move, named Git boards and optional sync checks, expanded
+  additive recipe evolution, and verified portable exports. The npm distribution
+  now requires supported Node 22, 24, or 26 release lines.
+version: 0.4.2
 channel: latest
-published_at: '2026-09-30'
-resource: 'https://www.npmjs.com/package/superbee/v/0.3.0'
+published_at: '2026-10-13'
+resource: 'https://www.npmjs.com/package/superbee/v/0.4.2'
 superbee_updated_by: release-docs-automation
 generated:
   by: 'process:superbee'
-  at: '2026-09-30T19:56:03.711Z'
+  at: '2026-10-13T12:51:56.956Z'
 ---
-# Superbee 0.3.0
+# Superbee 0.4.2
 
-Superbee 0.3.0 adds hosted checkout workflows, explicit conflict recovery, bounded operation discovery, and expanded local View proposals. The npm CLI now targets macOS and Linux.
+Superbee adds hosted access management and bundle retirement, a coordinated Git-to-hosted move, named Git boards and optional sync checks, expanded additive recipe evolution, and verified portable exports. The npm distribution now requires supported Node 22, 24, or 26 release lines.
 
-This release was published on 2026-09-30 as `superbee@0.3.0` under
+This release was published on 2026-10-13 as `superbee@0.4.2` under
 the npm `latest` tag.
 
 # What changed
 
-- Hosted browser sign-in, catalog discovery, path-bound checkout/adoption, previewed publish and verified export provide explicit local/hosted workflows. Host capabilities and access still determine availability.
-- Hosted reconciliation includes whole-document conflict inspection and take/keep/revise decisions, remembered deletion holds with person-at-terminal acceptance, bounded read-side pulls, and optional turn-end sync for Claude Code and Codex.
-- Generic CLI and local MCP operation discovery delegates admitted operation IDs to the host; typed folder reads include unsent edits and cannot be bypassed through generic read IDs. Host hints never grant access.
-- Git boards support saved conflict inspection and resolution. Those decisions do not fetch, commit, or push; a later sync shares outgoing decisions. Git boards require separate turn-end opt-in.
-- Native Windows is excluded from the npm CLI distribution. WSL2 follows the supported Linux path; the separate Windows source build is experimental and unsupported.
-- Kind Conventions can declare finite numeric order for reading placement; recipe reapplication retains bundle-authored placement. Hosted definition and artifact writes remain refused in this release.
-- Local UI Views can request confirmed complete-body and atomic field/body changes alongside scalar proposals. MCP remains scalar-only. Capability discovery governs bounded graph reads; OSS graph.model is unimplemented.
-- The wire contract adds complete heads, verified NDJSON snapshots, and identified document-write outcome lookup. Reference memory outcome retention is bounded and not restart durable; production host admission and authentication remain host responsibilities.
+- Workspace admins can preview and apply access grants or revocations for existing workspace members. Bundle owners or admins can retire a hosted bundle after a person confirms its ID at the terminal.
+- A Git board published to hosted gains a moved marker on its shared branch. Current CLIs stop pushing to that board and direct teammates to the hosted checkout; older writers require upgrade or branch protection.
+- Standalone named board-research checkouts target their own upstream. An optional trusted Git-configured sync check can hold an outgoing push. Lost push races refetch, converge, and retry up to five times.
+- Recipe evolution accepts a new outbound link declaration and allowed values on a field declared by the same plan. Existing edge and instance checks remain enforced.
+- The package exposes superbee/portable-export and superbee/bundle-descriptor for trusted offline consumers. Publication refuses recognized private operational-state files in a bundle.
+- Local history attribution and writer identity handling are corrected; hosted conflict receipts are written atomically and Git path/status handling preserves path identities.
+- Node support is ^22.14.0 || ^24.0.0 || ^26.0.0. macOS and Linux remain the supported npm platforms.
 
 # What you need to do
 
-On macOS or Linux with Node.js 20 or newer, install superbee@latest, inspect superbee version, and rerun setup for the selected AI host. Restart that host when instructed. Native Windows users should review the platform withdrawal and use WSL2 before upgrading. Confirm hosted destination, workspace, sharing intent, and capabilities before signing in or transferring work.
+Check node --version before upgrading and use a supported Node release line. Follow the installation and upgrade guides, verify superbee version, and rerun setup for your AI host. Before moving a team Git board to hosted, upgrade all writers and automations, review publication, share the destination with members, and point writers at their hosted checkouts.
 
 # Compatibility
 
-Existing local bundle files are retained. The npm package supports darwin and linux only; native Windows npm upgrades fail with EBADPLATFORM, and a forced install still refuses commands. Core integration has a separate host-policy contract. Hosted definition writes added after the fixed release are excluded. View action support differs between local UI and MCP; negotiate advertised capabilities.
+Existing OKF bundle editions and ordinary document workflows are retained. Native Windows npm execution remains excluded; WSL2 uses the Linux path. Hosted access and retirement require a compatible host and the stated person permissions. Node 20 and odd-numbered Node release lines are outside the package engine range. The npm package and source tag are verified; the GitHub v0.4.2 release receipt was absent at documentation review.
 
 # Recovery
 
-Preserve a recoverable local bundle and prior executable identity before upgrading. Reinstalling the previous CLI does not undo remote writes. Inspect conflicts before take/keep/revise and sync separately to share outgoing decisions; restore held deletes when they were unintended. Export creates a verified local current-revision copy without deleting hosted ownership. Copying a marker or reinstalling does not rebind checkout state.
+Preserve unsent work and inspect partial receipts. Fix a failed sync check, then rerun sync; never assume a held push erased a local commit. Follow moved-board recovery commands before carrying later Git edits into hosted. Export a copy before retirement and let the person confirm in their own terminal. For installation recovery, use the upgrade guide and a prior verified package only on its supported Node/platform range.
 
 # Verified evidence
 
-[Inspect the package, source, and verification evidence](../sources/superbee-release-0.3.0.md).
+[Inspect the package, source, and verification evidence](../sources/superbee-release-0.4.2.md).

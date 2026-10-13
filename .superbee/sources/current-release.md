@@ -1,42 +1,44 @@
 ---
 type: Source
-title: Superbee 0.3.0 release evidence
+title: Superbee 0.4.2 release evidence
 description: >-
   Immutable package, source, compatibility, and verification evidence for
-  Superbee 0.3.0.
-resource: 'https://registry.npmjs.org/superbee/-/superbee-0.3.0.tgz'
-version: 0.3.0
+  Superbee 0.4.2.
+resource: 'https://registry.npmjs.org/superbee/-/superbee-0.4.2.tgz'
+version: 0.4.2
 channel: latest
-published_at: '2026-09-30'
+published_at: '2026-10-13'
 superbee_updated_by: release-docs-automation
 generated:
   by: 'process:superbee'
-  at: '2026-09-30T19:56:03.016Z'
+  at: '2026-10-13T12:51:56.241Z'
 ---
 # Evidence identity
 
 | Field | Verified value |
 | --- | --- |
-| npm package | `superbee@0.3.0` |
+| npm package | `superbee@0.4.2` |
 | npm tag | `latest` |
-| npm integrity | `sha512-vJsyNjh8gcFsgsgOSVkIjct/A1TE2W6ydeKD+ULpJHguNvGrkJ2T71IAYlN5z1EiLYyEJ9GK6nvqg2EJgz9xAA==` |
-| npm tarball | `https://registry.npmjs.org/superbee/-/superbee-0.3.0.tgz` |
-| source tag | `v0.3.0` |
-| source commit | `bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8` |
-| Node requirement | `>=20` |
-| supported platforms | `macOS (darwin)`, `Linux (linux); includes WSL2` |
+| npm integrity | `sha512-MJg/zOGrySGs5grKIuMBR8FmuoK1LwgXO0TOArs6iuP9lYoMLJ1cCDRNDXY9+X1hVeCJbtHw+MXWTTxS4SJOKg==` |
+| npm tarball | `https://registry.npmjs.org/superbee/-/superbee-0.4.2.tgz` |
+| source tag | `v0.4.2` |
+| source commit | `069a42092f39d8261ccd4322c0dc7ff5488aa2c8` |
+| Node requirement | `^22.14.0 || ^24.0.0 || ^26.0.0` |
+| supported platforms | `macOS (darwin) and Linux with Node ^22.14.0 || ^24.0.0 || ^26.0.0.`, `WSL2 follows Linux; native Windows npm distribution remains excluded.` |
 
 # Public authorities
 
-- Package: https://www.npmjs.com/package/superbee/v/0.3.0
-- Source: https://github.com/Holaxis-ai/superbee/tree/v0.3.0
+- Package: https://www.npmjs.com/package/superbee/v/0.4.2
+- Source: https://github.com/Holaxis-ai/superbee/tree/v0.4.2
 
 # Verification performed
 
-- Public npm latest is 0.3.0 with the captured SHA-512 integrity; the downloaded tarball was verified before lifecycle-disabled isolated installation.
-- The non-draft, non-prerelease v0.3.0 GitHub release and dereferenced annotated tag bind bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8. The installed executable reports superbee 0.3.0, npm-package channel, the same clean source commit, and its shipped help.
-- The actual source-tree delta against 0.2.1 was reviewed through documentation triggers for all 45 affected maintained pages. Later main features were excluded; independently pinned architecture diagrams retain their declared source scope.
-- Production hosted sign-in/writes, production host capability acceptance, live AI host restart, native Windows execution, and exhaustive View/transfer/conflict host journeys were not executed during this documentation update. Those bounded implementation claims rest on the fixed release source, committed tests, and installed command help.
+- Public npm metadata on 2026-10-13 reports latest 0.4.2, publication timestamp 2026-10-13T03:04:21.706Z, and the recorded engine range. Downloaded package SHA-512 matches the registry integrity.
+- The dereferenced annotated v0.4.2 tag and installed npm-package identity agree on clean source 069a42092f39d8261ccd4322c0dc7ff5488aa2c8. Installed executable reports sha256:7e0870929a78d5f7179d7077429d76d4c39a6988cc49afeaf2c5175104fdd1ee.
+- The GitHub API returned 404 for releases/tags/v0.4.2 at review. This is a missing release receipt, not a failed package-integrity check. Release freshness remains blocked until release finalization supplies it; no GitHub release, authenticated npm mutation, or production deployment was performed for this documentation change.
+- Disposable macOS installed-package probes verify work-tracking initialization, three linked task creates, owner-filtered query, dependency lookup, hard version conflict, create-only rerun preservation, and bundle health.
+- Installed portable-export and bundle-descriptor imports succeed. Portable export rejects an empty malformed archive. Hosted operations, live sign-in, retirement, production Git migration, Linux execution, and live AI-host restart were not executed.
+- The complete v0.4.1-to-v0.4.2 source delta and declared stable-release events were queried through documentation impact records. Reader-facing changes are recorded in the current source review; architecture and diagram review are recorded separately.
 
 # Publication boundary
 

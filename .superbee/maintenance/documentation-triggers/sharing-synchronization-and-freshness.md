@@ -5,6 +5,9 @@ description: >-
   Operational change triggers for the sharing, synchronization, and freshness
   architecture page.
 superbee_updated_by: openai/codex
+generated:
+  by: openai/codex
+  at: '2026-10-13T12:56:35.022Z'
 ---
 # Affected pages
 
@@ -21,6 +24,9 @@ superbee_updated_by: openai/codex
 - `packages/cli/src/commands/sync/orchestrate.ts`
 - `packages/cli/src/commands/sync/converge.ts`
 - `packages/cli/src/sync-outcomes.ts`
+
+- `packages/cli/src/commands/sync/gate.ts`
+- `packages/cli/src/hosted/moved-marker.ts`
 
 # Product events
 

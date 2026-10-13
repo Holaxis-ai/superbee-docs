@@ -4,10 +4,10 @@ title: Host and platform support
 description: >-
   Verified operating-system and AI-host integration support for the current
   stable Superbee release.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:23.651Z'
+  by: openai/codex
+  at: '2026-10-13T13:11:11.075Z'
 ---
 # Scope
 
@@ -24,8 +24,8 @@ accepted the change. Restart that host when instructed, then rerun setup until i
 
 | Platform | Current stable support | Requirement or limit |
 | --- | --- | --- |
-| macOS | Supported | Node.js 20 or newer and npm are required. |
-| Linux | Supported | Node.js 20 or newer and npm are required. |
+| macOS | Supported | Node.js 22.14+ on the 22 line, 24.x, or 26.x, and npm are required. |
+| Linux | Supported | Node.js 22.14+ on the 22 line, 24.x, or 26.x, and npm are required. |
 | Native Windows | Unsupported | Use WSL2 for the Linux CLI; native npm installation fails with `EBADPLATFORM`. |
 
 Treat behavior present only on `main` as unreleased until the stable package evidence includes it.
@@ -88,10 +88,19 @@ runtime support. WSL2 follows the Linux installation. The separate
 and is not a replacement package on npm. The core library's other storage backends are a separate
 integration contract and do not restore native Windows CLI distribution.
 
-The four AI host selectors stay `codex`, `claude-code`, `claude-desktop`, and `opencode` on supported
-CLI platforms. Hosted Superbee is a storage/account destination, not a fifth AI host selector.
-`setup hosted` signs in and chooses the default workspace. Optional turn-end sync is available for
-Claude Code and Codex after explicit `hook install --turn-end-sync`; Git boards also require
-`--git-boards`. Host registration readiness still requires the host restart and a fresh check.
+See [current stable release evidence](../sources/current-release.md).
 
-[Release source review](../sources/next-release.md).
+# Distribution scope
+
+The [current release](../releases/current.md) requires Node `^22.14.0 || ^24.0.0 || ^26.0.0` and the npm package's
+`darwin`/`linux` support, including WSL2's Linux environment. Native Windows remains excluded.
+The separately installed stable package was probed on macOS only; Linux, native Windows, and live AI
+host restart acceptance are not claimed by the release evidence.
+
+# Optional session sync
+
+The four AI host selectors are `codex`, `claude-code`, `claude-desktop`, and `opencode`.
+Optional turn-end sync is available for Codex and Claude Code after an explicit
+`hook install --turn-end-sync`; Git boards also require `--git-boards`. Install this hook only
+when its publication behavior matches the sharing choice for the workspace. Host setup still
+requires a restart and a fresh verification run.

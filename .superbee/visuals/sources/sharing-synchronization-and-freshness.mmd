@@ -6,13 +6,13 @@ flowchart TD
     tracking upstream while normal Git delivers changes. A stale branch-mode read may perform a
     bounded fast-forward pull. A failed pull preserves content, cursor, and awareness cache while
     recording a retry throttle and board marker. Full sync commits, converges, preserves conflicts
-    as exports, pushes safe results, and records awareness.
+    as exports, checks configured sync gates, pushes safe results, and records awareness.
   }
 
   evidence["Repository evidence<br/>worktree, tracked folder, refs, remote probe"] --> decide{"Channel classification"}
   decide -->|"no shared evidence"| local["Local-only<br/>state remains local"]
   decide -->|"bundle committed with code"| intree["In-tree<br/>configured upstream awareness"]
-  decide -->|"dedicated board evidence"| branch["Board branch<br/>linked worktree"]
+  decide -->|"dedicated board evidence"| branch["Board branch<br/>linked worktree or named standalone clone"]
   decide -->|"unknown or competing"| refuse["Refuse mode-sensitive action<br/>preserve both locations"]
 
   local --> establish["Explicit sync --establish"]
@@ -31,7 +31,9 @@ flowchart TD
 
   branch --> sync["Full sync<br/>commit, fetch, rebase"]
   sync --> conflict{"Same-path conflict?"}
-  conflict -->|"no"| push["Push board branch"]
+  conflict -->|"no"| gate{"Configured sync gate passes?"}
+  gate -->|"yes or unconfigured"| push["Push board branch<br/>bounded race retry"]
+  gate -->|"no"| held["Keep local commit<br/>return GATE_FAILED"]
   conflict -->|"yes"| export["Keep incoming version<br/>export local bytes"]
   export --> reconcile["Human or agent reconciles<br/>then runs sync again"]
   reconcile --> sync

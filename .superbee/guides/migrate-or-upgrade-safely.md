@@ -4,10 +4,10 @@ title: Migrate or upgrade safely
 description: >-
   Upgrade Superbee or move from AgentState while preserving the intended
   workspace and verifying each compatibility step.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:54:20.864Z'
+  by: openai/codex
+  at: '2026-10-13T13:11:11.908Z'
 ---
 # Outcome
 
@@ -49,8 +49,11 @@ support. Confirm that it lists your environment before installing the package.
 
 Install the current stable package:
 
+Set `stable_version` from the verified stable release, following
+[the installation guide](../get-started/install-and-setup.md). Then run:
+
 ```sh
-npm install -g superbee
+npm install -g "superbee@${stable_version:?Set stable_version to the version in the verified stable release}"
 ```
 
 Confirm the installed package and source identity:
@@ -60,7 +63,7 @@ superbee version
 ```
 
 The version and artifact channel should agree with
-[the current release record](../releases/current.md).
+the current release record.
 
 Now inspect the host integration you use:
 
@@ -245,13 +248,13 @@ superbee doc open <document-id>
 - A `legacy_naming` finding affects View registration. Ordinary documents remain readable while
   the View records are repaired.
 
-[install and set up Superbee](../get-started/install-and-setup.md)
+install and set up Superbee
 
 [understand bundles, documents, and relationships](../concepts/bundles-documents-and-relationships.md)
 
 [find a command](../reference/cli-overview.md)
 
-[current release](../releases/current.md)
+current release
 
 # Evidence
 
@@ -279,15 +282,22 @@ only darwin/linux, and a forced native Windows install refuses commands. Use WSL
 unsupported Windows source build; do not remove or migrate existing bundles as an installation
 repair. Preserve the previous executable identity and local work before changing environments.
 
-A hosted move is a separate decision from upgrading the CLI. Use
-[Publish, adopt, or export](move-bundle-between-local-and-hosted.md) for an explicit transfer;
-never treat `init`, a copied checkout marker, or a package reinstall as checkout migration.
-Definition changes remain unsupported in hosted checkouts in this release. Design and validate
-Kinds locally before publication.
-
 Library integrators upgrading the filesystem API must provide an explicit `FilesystemHostPolicy`
 for a non-POSIX host and retain the backend returned by `initBundle` as `{root, backend}`. Core
 has no npm OS restriction and its non-filesystem backends remain available. See the pinned
 [core migration contract](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/core/README.md).
 
-[Release source review](../sources/next-release.md).
+See [current stable release evidence](../sources/current-release.md).
+
+# Review the stable upgrade
+
+This patch changes no bundle format, edition, or migration requirement. Keep existing bundles
+and their edition unchanged unless a separate reviewed migration is intended. The comparison
+with the published prerelease is metadata-only; package and artifact identities still differ.
+
+# Check Node before upgrading
+
+The current package requires Node `^22.14.0 || ^24.0.0 || ^26.0.0` on macOS or Linux. Node 20 and
+odd-numbered Node release lines are outside that range. Run `node --version` before the package
+upgrade. Update Node to a supported line, then verify the installed Superbee identity and rerun your
+host-scoped setup. The package upgrade preserves existing bundle editions and content.

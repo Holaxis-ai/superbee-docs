@@ -3,6 +3,10 @@ type: Documentation Publication
 title: Current Superbee documentation
 home: learn/start-here
 supporting_documents:
+  - guides/work-in-hosted-checkout
+  - guides/move-bundle-between-local-and-hosted
+  - reference/hosted-cli-access
+  - troubleshooting/hosted-checkout
   - design/docs-operating-model
   - design/site-experience-contract
   - examples/claims-and-evidence
@@ -12,6 +16,9 @@ supporting_documents:
   - releases/0.1.6
   - releases/0.2.1
   - releases/0.3.0
+  - releases/0.4.0
+  - releases/0.4.1
+  - releases/0.4.2
   - sources/current-release
   - sources/next-release
   - sources/superbee-codebase-main
@@ -22,11 +29,14 @@ supporting_documents:
   - sources/superbee-release-0.1.6
   - sources/superbee-release-0.2.1
   - sources/superbee-release-0.3.0
+  - sources/superbee-release-0.4.0
+  - sources/superbee-release-0.4.1
+  - sources/superbee-release-0.4.2
 operational_types: Documentation Trigger
 superbee_updated_by: release-docs-automation
 generated:
   by: 'process:superbee'
-  at: '2026-09-30T19:56:08.219Z'
+  at: '2026-10-13T13:09:14.165Z'
 ---
 # Purpose
 

@@ -4,10 +4,10 @@ title: Model recurring domain concepts
 description: >-
   Turn a proven recurring concept into a bundle-owned Kind and validated
   instances.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:54:20.324Z'
+  by: openai/codex
+  at: '2026-10-13T13:11:11.570Z'
 ---
 # Outcome
 
@@ -258,7 +258,4 @@ then inspect `superbee kinds`. Declared positions come before undeclared Kinds; 
 ID. This is a Convention display hint, not a field to add to each instance. Recipe reapplication
 preserves local placement. See [Kind conventions](../reference/kind-conventions-and-recipes.md).
 
-Design Kinds and validate instances locally before publishing a hosted bundle. This CLI
-refuses definition changes in a hosted checkout; later source changes are not release evidence.
-
-[Release source review](../sources/next-release.md).
+See [current stable release evidence](../sources/current-release.md).

@@ -4,10 +4,10 @@ title: Understand reusable domain structure
 description: >-
   Choose when documents, relationships, Kinds, recipes, and Views earn their
   maintenance cost.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:20.604Z'
+  by: openai/codex
+  at: '2026-10-13T13:02:28.990Z'
 ---
 # Question answered
 
@@ -201,10 +201,4 @@ do not establish feature equivalence with Superbee.
 
 # Release contracts
 
-Kind Conventions can declare numeric `order` to guide reading sequence without changing the
-instances' schemas. Bundle-owned placement survives recipe reapplication. Hosted checkouts retain
-the model established before publication and refuse in-place definition edits in this
-release. See [Kind reference](../reference/kind-conventions-and-recipes.md) and
-[Hosted checkout](../guides/work-in-hosted-checkout.md).
-
-[Release source review](../sources/next-release.md).
+Current stable release evidence.

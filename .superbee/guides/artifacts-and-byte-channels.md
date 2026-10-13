@@ -4,10 +4,10 @@ title: Artifacts and byte channels
 description: >-
   Route canonical documents and opaque bytes correctly, preserve output purity,
   and recover versioned object operations.
-superbee_updated_by: anthropic/claude
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: anthropic/claude
-  at: '2026-09-22T22:26:45.513Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T20:45:20.148Z'
 ---
 # Goal
 
@@ -162,3 +162,11 @@ The contract is grounded in the tagged
 [`promote` and `pull`](https://github.com/Holaxis-ai/superbee/blob/v0.1.4/packages/cli/src/commands/promote.ts),
 and storage implementations. See [Security and trust boundaries](../reference/security-and-trust-boundaries.md)
 before storing public or sensitive material.
+
+# Large-document reads
+
+The [current release](../releases/current.md) adds paged record reads for inspecting large
+bodies. Follow `range.next_offset` with the same `head_version` until no next offset is returned;
+a later final page can have `complete: false`. Pages carry partial body content. Continue using
+`--body-out` for a complete edit-and-update loop and `--out` for a full document export. See the
+[paging contract](../reference/cli-overview.md) for limits and incompatible channel flags.

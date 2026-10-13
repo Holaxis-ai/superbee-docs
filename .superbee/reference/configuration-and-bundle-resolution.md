@@ -1,13 +1,13 @@
 ---
 type: Reference
 title: Configuration and bundle resolution
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: openai/codex
 description: >-
   Exact local, project-bound, remote, catalog, and MCP bundle selection
   precedence and recovery.
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:23.146Z'
+  by: openai/codex
+  at: '2026-10-13T13:11:10.748Z'
 ---
 # Scope
 
@@ -217,7 +217,7 @@ explicit `--dir` path to continue bounded work without changing ambient project 
 # Governing evidence
 
 The package identity and stable verification boundary are recorded in
-[the current release evidence](../sources/current-release.md). Bundle precedence, bindings, remote
+the current release evidence. Bundle precedence, bindings, remote
 selection, and private-state exclusion are grounded in the tagged
 [`bundle.ts`](https://github.com/Holaxis-ai/superbee/blob/f4e1c37349627030f8201ff52028f71a9c92570a/packages/cli/src/bundle.ts)
 and
@@ -248,19 +248,22 @@ and
 
 # Release contracts
 
-A hosted checkout is selected through its local folder with normal discovery or `--dir`.
-Private state binds that canonical folder path to host, workspace, and bundle. A read-only
-`.superbee/checkout.json` marker describes origin but never activates hosted routing.
-`copy_of_checkout` with `home: local` requires confirmed adoption before sync or MCP writes.
+See [current stable release evidence](../sources/current-release.md).
 
-Plain catalog listing can additionally read reachable hosted bundles that have no local folder,
-without starting sign-in. `catalog list --local` suppresses that read; `--hosted` lists all reachable
-hosted bundles on the selected host. Catalog remains explicit selection, with existing folder
-paths and workspace-qualified references shown rather than silently switching current context.
+# Initialization target
 
-An explicit `--remote` URL is probed for hosted identity; hosted URLs receive checkout guidance
-rather than being treated as the unauthenticated reference server's default bundle. Continue with
-[Hosted CLI access](hosted-cli-access.md) and [Hosted recovery](../troubleshooting/hosted-checkout.md).
-Never infer routing from a marker or reuse another workspace's access.
+In the [current release](../releases/current.md), plain `init` without `--dir` honors an
+existing bundle or project binding. With neither, a Git work tree selects its top-level
+`.superbee/`; outside Git it uses the current directory. Inspect the returned physical root before
+writing. Explicit `--dir` still names the chosen target. A binding to a private board refuses bare
+init and routes work to its bound owner. Creating a folder does not establish sharing.
 
-[Release source review](../sources/next-release.md).
+# Named standalone Git board
+
+A named standalone checkout uses a tracked `.superbee-board.json` with schema `1` and its own
+`board-<name>` branch, tracking the matching `origin/board-<name>`. It does not become the conventional
+project `.superbee` worktree or change another board's upstream. Follow
+[named board sharing](../guides/share-and-synchronize-git-bundle.md#named-boards-and-optional-sync-checks).
+
+The optional Git settings `superbee.syncGate` and `superbee.syncGateTimeoutSeconds` select a trusted
+check command and timeout for outgoing ordinary sync. They are not bundle frontmatter or files.

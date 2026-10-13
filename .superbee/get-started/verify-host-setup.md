@@ -4,7 +4,10 @@ title: Verify host setup
 description: >-
   Confirm what setup changed and test the CLI, Skill, hook, MCP, and MCP Apps
   surfaces in a restarted host.
-superbee_updated_by: release-docs-review
+superbee_updated_by: 'process:release-docs-preparation'
+generated:
+  by: 'process:release-docs-preparation'
+  at: '2026-10-02T19:52:26.027Z'
 ---
 # Outcome
 
@@ -23,7 +26,7 @@ default for setup.
 
 | Surface | Command | Change |
 | --- | --- | --- |
-| CLI | `npm install -g superbee` | Installs the released `superbee` package and a durable global executable. |
+| CLI | Versioned installation from [the install guide](install-and-setup.md) | Installs the released `superbee` package and a durable global executable. |
 | Agent Skill | `superbee skill install --scope user` | Copies the package's `SKILL.md`, references, and ownership manifest into the configured Skill folders for Claude Code, Codex, and OpenCode. OpenCode uses Claude-compatible discovery. |
 | SessionStart hook | `superbee hook install --scope user` | Adds the managed `session-start` launch to Claude Code and Codex, enables Codex hooks, and writes the managed OpenCode plugin. One invocation processes all three supported hook hosts. |
 | MCP | `superbee mcp install --host <host>` | Adds one user-level `superbee` MCP registration to the selected host. The launch uses the durable Node and package paths and carries no bundle directory. |

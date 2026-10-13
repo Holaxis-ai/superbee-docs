@@ -4,13 +4,19 @@ title: Show documents and Views change trigger
 description: >-
   Operational change triggers for the Show documents and Views documentation
   page.
-superbee_updated_by: openai/codex
+superbee_updated_by: 'process:release-docs-preparation'
+generated:
+  by: 'process:release-docs-preparation'
+  at: '2026-10-03T14:55:22.392Z'
 ---
 # Affected pages
 
 [Show documents and Views](../../guides/show-documents-and-views.md)
 
 # Source paths
+
+- `packages/markdown-renderer/src/**`
+- `packages/markdown-renderer/test/**`
 
 - `packages/cli/src/commands/ui.ts`
 - `packages/cli/test/ui.test.ts`

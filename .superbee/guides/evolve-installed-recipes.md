@@ -4,10 +4,10 @@ title: Evolve installed recipes
 description: >-
   Plan and apply an additive installed-recipe upgrade with state-bound safety
   and explicit recovery.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:54:20.593Z'
+  by: openai/codex
+  at: '2026-10-13T13:11:11.404Z'
 ---
 # Goal
 
@@ -115,9 +115,14 @@ model and [Migrate or upgrade safely](migrate-or-upgrade-safely.md) for package-
 
 # Release contracts
 
-A bundle-authored Convention `order` controls reading placement and is preserved when its recipe
-is reapplied. It does not create schema drift requiring evolution. Validate the live Convention
-and instances after substantive model changes. A hosted checkout cannot evolve definitions in this
-release; finish and validate the local/Git model before publication.
+See [current stable release evidence](../sources/current-release.md).
 
-[Release source review](../sources/next-release.md).
+# Add a relationship or enum in one plan
+
+The current planner can add a new outbound link type and validate existing edges against its target
+Kind. It can also declare a new field and its allowed values in the same plan. Review the full plan
+and any instance or edge findings before applying its token. A new relationship does not rewrite
+existing records, and incompatible edges or values still require deliberate repair.
+
+Use [Kind and recipe reference](../reference/kind-conventions-and-recipes.md) for the accepted model
+and [current release evidence](../sources/current-release.md) for the released implementation.

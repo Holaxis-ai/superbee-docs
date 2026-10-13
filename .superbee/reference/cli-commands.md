@@ -4,10 +4,10 @@ title: CLI commands
 description: >-
   Generated current command inventory plus stable invocation and output
   conventions.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:cli-reference-generator'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T20:04:56.126Z'
+  by: 'process:cli-reference-generator'
+  at: '2026-10-13T12:56:36.067Z'
 ---
 # Scope
 
@@ -36,7 +36,7 @@ The text between the markers is owned by `npm run cli-reference:build`. Do not e
 
 <!-- BEGIN GENERATED CLI INVENTORY -->
 
-Generated from the current stable package's executable help. 46 command entries are present.
+Generated from the current stable package's executable help. 48 command entries are present.
 
 | Group | Command signature |
 | --- | --- |
@@ -49,7 +49,7 @@ Generated from the current stable package's executable help. 46 command entries 
 | Documents & links | `doc update <id> [--<field> <value> ...] [--title <t>] [--type <t>] [--stale-after <iso>] [--body <s> \| --body-file <p>] [--expected-version <v>] [--actor <n>] [--dir <path>] [--remote <url>]` |
 | Documents & links | `doc field <set\|add\|remove\|edit\|replace-all> <id> <field> [value] [--from-file <path>] [--id <source-id> \| --resource <resource>] [--expected-version <v>] [--actor <n>] [--strict] [--dir <path>] [--remote <url>]` |
 | Documents & links | `doc verify <id> --actor <n> [--at <iso-8601>] [--expected-version <v>] [--dir <path>] [--remote <url>]` |
-| Documents & links | `doc read <id> [--out (<path> \| -) \| --body-out (<path> \| -) \| --rendered-out (<path> \| -) \| --field <name>] [--dir <path>] [--remote <url>]` |
+| Documents & links | `doc read <id> [--out (<path> \| -) \| --body-out (<path> \| -) \| --rendered-out (<path> \| -) \| --field <name> \| [--offset <n>] [--max-bytes <n>] [--expected-version <v>]] [--dir <path>] [--remote <url>]` |
 | Documents & links | `doc open <id> [--dir <path> \| --remote <url>] [--port <n>] [--actor <name>]` |
 | Documents & links | `doc history <id> [--limit <n> \| --seq <n>] [--dir <path>] [--remote <url>]` |
 | Documents & links | `doc delete <id> [--expected-version <v>] [--dir <path>] [--remote <url>]` |
@@ -86,6 +86,8 @@ Generated from the current stable package's executable help. 46 command entries 
 | Hosted | `export (<bundle-id> [--host <url>] [--workspace <id>] \| [--dir <checkout>]) (--to <folder> \| --in-place [--keep-unsent]) [--git] [--json]` |
 | Hosted | `publish --to hosted [--dir <bundle>] [--host <url>] [--workspace <id>] [--bundle-id <id>] [--name <name>] [--with-history] [--yes] [--json]` |
 | Hosted | `op (list \| run <operationId> [--input <json> \| --input-file <path>]) [--dir <path>] [--json]` |
+| Hosted | `access (list <bundle> \| grant <bundle> <email-or-principal> --level read\|write [--yes] \| revoke <bundle> <email-or-principal> [--yes]) [--host <url>] [--workspace <id>] [--json]` |
+| Hosted | `bundle retire <bundle> [--host <url>] [--workspace <id>] [--json]` |
 
 <!-- END GENERATED CLI INVENTORY -->
 

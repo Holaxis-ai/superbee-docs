@@ -27,11 +27,11 @@ test("consumer uses only public published package surfaces and nested versioned 
     "@superbee/docs-mkdocs": "0.2.2",
     "@superbee/docs-projection": "0.2.3",
     "@superbee/docs-tooling": "0.2.4",
-    "@superbee/portal": "0.2.3",
-    "@superbee/portal-cloudflare": "0.2.4",
+    "@superbee/portal": "0.2.10",
+    "@superbee/portal-cloudflare": "0.2.10",
     "@superbee/portal-docs": "0.2.2",
-    "@superbee/portal-webmcp": "0.2.2",
-    "@superbee/recipe-studio": "0.1.1",
+    "@superbee/portal-webmcp": "0.3.1",
+    "@superbee/recipe-studio": "0.1.3",
     superbee: release.version,
   });
   assert.equal(consumer.scripts["tools:bootstrap"], undefined);
@@ -183,6 +183,14 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.equal(manifest.presentation.producer.name, "superbee-portal-docs");
   assert.match(home, /Superbee/);
   assert.match(home, /In Codex or Claude Code with the Superbee Skill installed/);
+  assert.match(home, /open-source tool/);
+  assert.match(home, /What does the writer need before finishing the handout/);
+  assert.doesNotMatch(home, /Join a hosted workspace|Sign in and check out a bundle/);
+  for (const route of ["work-in-hosted-checkout", "move-bundle-between-local-and-hosted", "hosted-cli-access", "hosted-checkout"]) {
+    assert.doesNotMatch(home, new RegExp(`href="[^\"]*${route}`), `OSS navigation excludes ${route}`);
+  }
+  assert.ok(paths.has("assets/superbee-docs-home.css"));
+  assert.ok(paths.has("assets/superbee-docs-home.js"));
   assert.match(whatSuperbeePage, /A new session must reconstruct what happened/);
   assert.match(whatSuperbeePage, /roadmap\.md/);
   assert.match(whatSuperbeePage, /depends on/);
