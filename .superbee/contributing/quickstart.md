@@ -4,10 +4,10 @@ title: Contributor quickstart
 description: >-
   Prepare a checkout, make a bounded source change, run the right proofs, and
   verify exact-SHA CI.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:node22-docs'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:16.838Z'
+  by: 'process:node22-docs'
+  at: '2026-10-13T13:12:16.523Z'
 ---
 # Goal
 
@@ -19,10 +19,14 @@ The workflow follows the repository's tagged
 
 # Supported development environment
 
-- Node.js 20 or newer.
+- Node.js 24.21.0 by default. Published packages support Node.js 22, 24, and 26, with 22.14.0
+  as the minimum. See the [current runtime requirements](../reference/host-and-platform-support.md).
 - npm with the repository lockfile.
 - Git.
-- macOS, Linux, or Windows for the public package; individual scripts can document narrower needs.
+- macOS or Linux. Native Windows work belongs to the separate experimental Windows repository.
+
+For current development prerequisites, follow
+[`CONTRIBUTING.md`](https://github.com/Holaxis-ai/superbee/blob/fa30ce771996f71f0d0b7f1db8c4d5414115f7ce/CONTRIBUTING.md).
 
 Use the repository's existing branch and worktree conventions. Preserve unrelated local changes.
 

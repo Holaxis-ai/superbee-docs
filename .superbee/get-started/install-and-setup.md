@@ -4,10 +4,10 @@ title: Install and set up Superbee
 description: >-
   Install the released CLI and let the read-only setup conductor verify one
   exact AI host.
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: 'process:node22-docs'
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:19.896Z'
+  by: 'process:node22-docs'
+  at: '2026-10-13T13:12:00.991Z'
 ---
 # Outcome
 
@@ -22,13 +22,22 @@ This tutorial is verified against
 
 You need:
 
-- Node.js 20 or newer;
+- a supported Node.js 22, 24, or 26 release (22.14.0 minimum);
 - npm;
 - a platform listed as supported by the [current release](../releases/current.md); and
 - one supported host: Codex, Claude Code, Claude Desktop, or OpenCode.
 
 Use the current release record and npm package metadata to determine platform support. Source and
 prerelease support become stable-package capabilities only when the release evidence includes them.
+
+Check your runtime before installing:
+
+```sh
+node --version
+```
+
+If it is below 22.14.0 or uses an unsupported major, switch to Node.js 24 with your existing
+version manager, then install Superbee in that environment.
 
 # 1. Install the CLI
 
@@ -110,7 +119,9 @@ Continue with [Create your first durable workspace](first-durable-workspace.md).
 
 # Release contracts
 
-The npm distribution supports macOS and Linux with Node.js 20 or newer. Native Windows
+The npm distribution supports macOS and Linux with a supported Node.js 22, 24, or 26 release
+(22.14.0 minimum). See [Node.js requirements](../reference/host-and-platform-support.md) for
+the current runtime policy and its relationship to older release records. Native Windows
 upgrades are rejected by npm with `EBADPLATFORM`. A forced installation still refuses command
 execution; bare `--version` can identify the build. Windows users should use WSL2 or evaluate the
 experimental source-only [Windows build](https://github.com/Holaxis-ai/superbee-windows-cli), which

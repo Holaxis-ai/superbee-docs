@@ -4,20 +4,21 @@ title: Share and synchronize a Git-backed bundle
 description: >-
   Join, refresh, share, and recover a Git-backed Superbee bundle without
   crossing its publication boundary.
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: 'process:node22-docs'
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:21.734Z'
+  by: 'process:node22-docs'
+  at: '2026-10-13T13:13:12.850Z'
 ---
 # Outcome
 
 Join a project that already shares a Superbee bundle, refresh incoming work without publishing
 local changes, and use the correct sharing path for the bundle's Git mode.
 
-This guide is for macOS, Linux, and Windows users of [the current stable release](../releases/current.md). It
+This guide is for macOS and Linux users (including WSL2 users on Windows) of [the current stable release](../releases/current.md). It
 is verified against the package identity in the current release evidence, source commit
 `ff8f9c8681c94204cac23e8ab7bb2981bb256a12`, and the synchronization and SessionStart tests
-linked below. The stable package requires Node.js 20 or newer.
+linked below. Use a supported Node.js 22, 24, or 26 release (22.14.0 minimum), following the
+[current runtime requirements](../reference/host-and-platform-support.md).
 
 GitHub role and policy guidance on this page is version-neutral. It links to GitHub's current
 documentation because provider permissions can change independently of a Superbee release.

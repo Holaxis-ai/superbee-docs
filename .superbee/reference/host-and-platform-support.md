@@ -4,10 +4,10 @@ title: Host and platform support
 description: >-
   Verified operating-system and AI-host integration support for the current
   stable Superbee release.
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: 'process:node22-docs'
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:22.914Z'
+  by: 'process:node22-docs'
+  at: '2026-10-13T13:12:16.142Z'
 ---
 # Scope
 
@@ -24,11 +24,26 @@ accepted the change. Restart that host when instructed, then rerun setup until i
 
 | Platform | Current stable support | Requirement or limit |
 | --- | --- | --- |
-| macOS | Supported | Node.js 20 or newer and npm are required. |
-| Linux | Supported | Node.js 20 or newer and npm are required. |
+| macOS | Supported | Node.js 22, 24, or 26 (22.14.0 minimum) and npm are required. |
+| Linux | Supported | Node.js 22, 24, or 26 (22.14.0 minimum) and npm are required. |
 | Native Windows | Unsupported | Use WSL2 for the Linux CLI; native npm installation fails with `EBADPLATFORM`. |
 
 Treat behavior present only on `main` as unreleased until the stable package evidence includes it.
+
+# Node.js requirements
+
+Use a supported Node.js 22, 24, or 26 release. The minimum is **22.14.0**; Node.js 24 is the
+default development runtime. The package engine range is `^22.14.0 || ^24.0.0 || ^26.0.0`.
+Node.js 20 and odd-numbered majors such as 23 and 25 are outside this support policy.
+
+The [runtime policy](https://github.com/Holaxis-ai/superbee/blob/fa30ce771996f71f0d0b7f1db8c4d5414115f7ce/scripts/ci-lanes.json) and
+[package engines](https://github.com/Holaxis-ai/superbee/blob/fa30ce771996f71f0d0b7f1db8c4d5414115f7ce/packages/superbee/package.json) govern these requirements.
+The [CI floor smoke](https://github.com/Holaxis-ai/superbee/blob/fa30ce771996f71f0d0b7f1db8c4d5414115f7ce/.github/workflows/ci-tests.yml) runs the installed package on
+Node.js 22.14.0.
+
+These are the current project's runtime requirements. The [current release guide](../releases/current.md) and linked stable release evidence record
+an older package with a Node.js 20 engine range; historical release requirements remain attached
+to those versions. Use the runtime baseline above for new installations and upgrades.
 
 # AI host integrations
 
@@ -98,7 +113,7 @@ Current stable release evidence.
 
 # Distribution scope
 
-The [current release](../releases/current.md) retains Node >=20 and the npm package's
-`darwin`/`linux` support, including WSL2's Linux environment. Native Windows remains excluded.
+The npm package targets `darwin` and `linux`, including WSL2's Linux environment. Use the Node.js
+requirements above for new installations and upgrades. Native Windows remains excluded.
 The separately installed stable package was probed on macOS only; Linux, native Windows, and live AI
 host restart acceptance are not claimed by the release evidence.

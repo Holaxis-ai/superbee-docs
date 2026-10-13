@@ -4,10 +4,10 @@ title: Documentation coverage and delivery
 description: >-
   Ordered page coverage, representative slice, and readiness gates for the
   public documentation.
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: 'process:node22-docs'
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:25.174Z'
+  by: 'process:node22-docs'
+  at: '2026-10-13T13:13:13.599Z'
 ---
 # Purpose
 
@@ -226,3 +226,12 @@ Installed stable-package probes verify clean identity, Unicode paging and absent
 changed-page refusal, complete byte export, malformed listing and Git init. Hosted/live integration
 acceptance remains limited to fixed source/tests as recorded in evidence. Publication uses the
 existing repository workflow after exact-SHA review and required checks.
+
+# Current runtime baseline
+
+Installation, platform support, Git sharing, and contributor prerequisites follow the
+[current Node.js requirements](../reference/host-and-platform-support.md): Node.js 22, 24, or 26
+with 22.14.0 as the minimum, and Node.js 24 as the development default. Their runtime claims use
+the linked package engines and CI policy separately from the older verified release record.
+Immutable release requirements retain their historical scope. The runtime-policy documentation
+triggers cover the policy manifest and its validator as well as package metadata.
