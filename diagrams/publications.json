@@ -6,7 +6,7 @@
   },
   "renderer": "superbee-docs-mmdc-v1+mermaid-cli@11.16.0+mermaid@11.17.2",
   "admission": "https://getsuperbee.com/schemas/documentation-static-svg/v1",
-  "manifestSha256": "sha256:0271592d2a5930724be3e27cd6b3891bd190c8c06bae82c9a15dda4283e506d8",
+  "manifestSha256": "sha256:28685ca92ad5138581c95c6bdf420d60b475462bc53bdf149953b36f7f1590dd",
   "predecessor": {
     "receipt": {
       "digest": "sha256:aaafe7dd024a8d1078d7a8f4f4bb81ef5921b6ebd439b7f1fd4bfeb31fca735d",
@@ -21,15 +21,15 @@
     {
       "id": "architecture-at-a-glance",
       "title": "Architecture at a glance",
-      "description": "How Superbee's private workspace layers become one supported installed package.",
+      "description": "How the installed CLI composes the command runtime, shared semantics, host adapters, and publication APIs.",
       "documentId": "architecture/architecture-at-a-glance",
       "publishedSource": "visuals/sources/architecture-at-a-glance.mmd",
       "publishedSvg": "visuals/diagrams/architecture-at-a-glance.svg",
-      "sourceSha256": "sha256:624ebd6595f072062c081dca55a78b8b51ee52c57507f468297b99e94d4ecceb",
-      "projectionSha256": "sha256:22c4771bbd7b5d36a825fe0b6876c078149e6e3686bff9c13666bd401ee6e07a",
-      "svgSha256": "sha256:df8fe361b8e08fb0e8ac41272fe13b2bedc8f6cb91299cc085f8c79d5e72df9a",
-      "sourceSize": 1236,
-      "svgSize": 21038
+      "sourceSha256": "sha256:b43ce7cc67a17597e26b9571e197a4a21305efb1120e21c9e35959399432e4e1",
+      "projectionSha256": "sha256:1aea58190cd46ac8afe0427747c77160a5b2423ea8abf5a2dfa46d8722bc7cb2",
+      "svgSha256": "sha256:11da5ac1e8e7ee72a6633cbf6f074db2f34472e65eacf9fb369b697fc2ab212a",
+      "sourceSize": 1343,
+      "svgSize": 22070
     },
     {
       "id": "bundle-engine-and-storage-seam",
@@ -90,11 +90,11 @@
       "documentId": "architecture/sharing-synchronization-and-freshness",
       "publishedSource": "visuals/sources/sharing-synchronization-and-freshness.mmd",
       "publishedSvg": "visuals/diagrams/sharing-synchronization-and-freshness.svg",
-      "sourceSha256": "sha256:a85fdf12af1c646b3ae381b3a71d2df6e30967db13486210902646106e997f13",
-      "projectionSha256": "sha256:02c21bc955a46a6ed6e8168bce4cd262ab2af914a42ebbabb0ba6cc279db59e7",
-      "svgSha256": "sha256:6431847ad9c399a5310b2e239574fb71ad4c1fe6839426d00c4986c437f444e1",
-      "sourceSize": 2067,
-      "svgSize": 45771
+      "sourceSha256": "sha256:9704b4bed83683323e80020f7f8f51fbe742d2a9a349679abf34992208e73e38",
+      "projectionSha256": "sha256:3a67f4dd7b9c64f0b5fa5f936b87d924f25912387a0bec4de754a49752ce7e45",
+      "svgSha256": "sha256:2c08c86c23c03fa22fbb70cc93b6ecb8542a646fe6d7f570e0637379e0102103",
+      "sourceSize": 2283,
+      "svgSize": 49154
     },
     {
       "id": "superbee-system-context",
@@ -116,12 +116,12 @@
       "documentId": "architecture/view-lifecycle-and-trust",
       "publishedSource": "visuals/sources/view-lifecycle-and-trust.mmd",
       "publishedSvg": "visuals/diagrams/view-lifecycle-and-trust.svg",
-      "sourceSha256": "sha256:e54eb11b847a16f6f49cf1e7fd7dddf1a45587ca2b47b9359312c3830366652c",
-      "projectionSha256": "sha256:819a0eb83250af4c18090091781888c69d4c321cb80d9d0921d261d7d71d8f3b",
-      "svgSha256": "sha256:06715a9dc359227678796b0bb9147992355ad79f82e6bbde72c6af1acdf4fab2",
-      "sourceSize": 1970,
-      "svgSize": 42048
+      "sourceSha256": "sha256:e9127f39a837f57331c7346df291804e5f7ec52457784364bc893cd3917d58b3",
+      "projectionSha256": "sha256:f6b0795ba561c6be7cd5bdefbe258ead1dbe31d85a3d667ffa9eee32358e9726",
+      "svgSha256": "sha256:911dd8eec06c48e9a27876200a0e982211bca7836390da5cf3c520b18619d34c",
+      "sourceSize": 2027,
+      "svgSize": 42092
     }
   ],
-  "receiptDigest": "sha256:7ab328ac13f2b61ccab30ef2564d14acc1d4a95cbc64244e1f4182f514bc14a5"
+  "receiptDigest": "sha256:ec0d7b7c3ac65dbdc7d93f6440533bcb7de04d7abcf20c5043db2c3f404587f5"
 }

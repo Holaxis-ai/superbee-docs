@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: release-docs-automation
 generated:
   by: 'process:superbee'
-  at: '2026-10-02T20:41:10.643Z'
+  at: '2026-10-13T12:52:00.958Z'
 ---
 # Release notes
 
@@ -17,13 +17,25 @@ the exact package and source evidence used to verify it.
 
 # Current stable release
 
+## Superbee 0.4.2
+
+Superbee adds hosted access management and bundle retirement, a coordinated Git-to-hosted move, named Git boards and optional sync checks, expanded additive recipe evolution, and verified portable exports. The npm distribution now requires supported Node 22, 24, or 26 release lines. Published 2026-10-13.
+
+[Read the current 0.4.2 release notes](current.md).
+
+# Previous stable releases
+
+## Superbee 0.4.1
+
+Superbee 0.4.1 improves the first hosted CLI run, reports private-state write refusals with structured recovery details, and identifies valid same-page Markdown fragments for reader adapters. Published 2026-10-03.
+
+[Read the 0.4.1 release notes](0.4.1.md).
+
 ## Superbee 0.4.0
 
 Superbee 0.4.0 adds capability-qualified hosted model and front-page editing, bounded large-bundle transfer, paged document reads, newest-first queries, and clearer malformed-document recovery. It promotes the published pre.4 behavior with corrected stable package identity. Published 2026-10-02.
 
-[Read the current 0.4.0 release notes](current.md).
-
-# Previous stable releases
+[Read the 0.4.0 release notes](0.4.0.md).
 
 ## Superbee 0.3.0
 

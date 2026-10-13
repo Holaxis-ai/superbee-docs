@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: 'process:cli-reference-generator'
 generated:
   by: 'process:cli-reference-generator'
-  at: '2026-10-02T20:41:13.113Z'
+  at: '2026-10-13T12:56:36.067Z'
 ---
 # Scope
 
@@ -36,7 +36,7 @@ The text between the markers is owned by `npm run cli-reference:build`. Do not e
 
 <!-- BEGIN GENERATED CLI INVENTORY -->
 
-Generated from the current stable package's executable help. 46 command entries are present.
+Generated from the current stable package's executable help. 48 command entries are present.
 
 | Group | Command signature |
 | --- | --- |
@@ -86,6 +86,8 @@ Generated from the current stable package's executable help. 46 command entries 
 | Hosted | `export (<bundle-id> [--host <url>] [--workspace <id>] \| [--dir <checkout>]) (--to <folder> \| --in-place [--keep-unsent]) [--git] [--json]` |
 | Hosted | `publish --to hosted [--dir <bundle>] [--host <url>] [--workspace <id>] [--bundle-id <id>] [--name <name>] [--with-history] [--yes] [--json]` |
 | Hosted | `op (list \| run <operationId> [--input <json> \| --input-file <path>]) [--dir <path>] [--json]` |
+| Hosted | `access (list <bundle> \| grant <bundle> <email-or-principal> --level read\|write [--yes] \| revoke <bundle> <email-or-principal> [--yes]) [--host <url>] [--workspace <id>] [--json]` |
+| Hosted | `bundle retire <bundle> [--host <url>] [--workspace <id>] [--json]` |
 
 <!-- END GENERATED CLI INVENTORY -->
 

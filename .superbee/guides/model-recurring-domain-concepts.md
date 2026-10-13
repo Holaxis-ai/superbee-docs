@@ -4,10 +4,10 @@ title: Model recurring domain concepts
 description: >-
   Turn a proven recurring concept into a bundle-owned Kind and validated
   instances.
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:21.075Z'
+  by: openai/codex
+  at: '2026-10-13T13:11:11.570Z'
 ---
 # Outcome
 
@@ -258,16 +258,4 @@ then inspect `superbee kinds`. Declared positions come before undeclared Kinds; 
 ID. This is a Convention display hint, not a field to add to each instance. Recipe reapplication
 preserves local placement. See [Kind conventions](../reference/kind-conventions-and-recipes.md).
 
-Design Kinds and validate instances before publishing a hosted bundle. In a checkout, model
-changes depend on the host permission and compatibility rules below.
-
-Current stable release evidence.
-
-# Hosted model editing
-
-The [current release](../releases/current.md) permits CLI Kind and convention-only recipe
-changes in a checkout when the host declares that the person may change the bundle model.
-Recipes containing Views, References, or other non-convention content remain refused. Host model
-validation can reject changes incompatible with existing instances. Preserve the findings and fix
-the instances before retrying. Absent or refused capability retains the older boundary; local MCP
-convention writes remain refused. See [hosted editing](../guides/work-in-hosted-checkout.md).
+See [current stable release evidence](../sources/current-release.md).

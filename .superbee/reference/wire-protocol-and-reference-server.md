@@ -4,10 +4,10 @@ title: Wire protocol and reference server
 description: >-
   Implemented v0 endpoints, preconditions, transport behavior, security limits,
   and RemoteBackend mapping.
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:23.868Z'
+  by: openai/codex
+  at: '2026-10-13T13:03:42.774Z'
 ---
 # Scope
 
@@ -144,11 +144,6 @@ valid. The reference memory outcome store is bounded
 and not restart durable. Production hosts own authentication, admission, trusted attribution,
 persistence, and retention. The Worker-safe router requires canonical bundle IDs and a trusted
 context resolver; the Node reference serve adapter still offers no authentication.
-
-These storage operations and hosted generic `op list`/`op run` are distinct surfaces. The pinned
-[wire contract](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/docs/WIRE-PROTOCOL.md)
-and [wire tests](https://github.com/Holaxis-ai/superbee/blob/bc4314b07dc53a9e6e15de78c17cafe49c1b5ea8/packages/core/test/wire-protocol.test.ts)
-own route syntax and behavior.
 
 
 # Malformed-document listing

@@ -1,52 +1,49 @@
 ---
 type: Release
-title: Superbee 0.4.0
+title: Superbee 0.4.2
 description: >-
-  Superbee 0.4.0 adds capability-qualified hosted model and front-page editing,
-  bounded large-bundle transfer, paged document reads, newest-first queries, and
-  clearer malformed-document recovery. It promotes the published pre.4 behavior
-  with corrected stable package identity.
-version: 0.4.0
+  Superbee adds hosted access management and bundle retirement, a coordinated
+  Git-to-hosted move, named Git boards and optional sync checks, expanded
+  additive recipe evolution, and verified portable exports. The npm distribution
+  now requires supported Node 22, 24, or 26 release lines.
+version: 0.4.2
 channel: latest
-published_at: '2026-10-02'
-resource: 'https://www.npmjs.com/package/superbee/v/0.4.0'
+published_at: '2026-10-13'
+resource: 'https://www.npmjs.com/package/superbee/v/0.4.2'
 superbee_updated_by: release-docs-automation
 generated:
   by: 'process:superbee'
-  at: '2026-10-02T20:41:07.214Z'
+  at: '2026-10-13T12:51:56.956Z'
 ---
-# Superbee 0.4.0
+# Superbee 0.4.2
 
-Superbee 0.4.0 adds capability-qualified hosted model and front-page editing, bounded large-bundle transfer, paged document reads, newest-first queries, and clearer malformed-document recovery. It promotes the published pre.4 behavior with corrected stable package identity.
+Superbee adds hosted access management and bundle retirement, a coordinated Git-to-hosted move, named Git boards and optional sync checks, expanded additive recipe evolution, and verified portable exports. The npm distribution now requires supported Node 22, 24, or 26 release lines.
 
-This release was published on 2026-10-02 as `superbee@0.4.0` under
+This release was published on 2026-10-13 as `superbee@0.4.2` under
 the npm `latest` tag.
 
 # What changed
 
-- Hosted CLI Kind changes and convention-only recipes are allowed when the host grants that person model-edit permission. The host validates existing-instance compatibility; artifact, verification, View-save, and MCP convention-write refusals remain.
-- The root index.md can sync as the front page when the host advertises root writes. Conflicts use inspect and take/keep/revise. Bundle-edition changes, subdirectory indexes, and log.md retain their holds or refusals.
-- Hosted publication stages larger bundles in bounded parts. Compatible hosts support paged export and checkout beyond a single response, with explicit target selection, verified bytes, and same-intent recovery.
-- Sync and publication honor the host document-write bound. Preserve oversized content and resolve the hold rather than silently truncating a document.
-- doc read --offset returns bounded body pages with a version guard. Continue while range.next_offset exists; a later final page still reports range.complete:false. Complete byte channels remain the editing source.
-- View queries can request newest ordering when query.newest is advertised. CLI list and home use meaningful-change ordering. Malformed listings name skipped records; complete heads and snapshots still refuse incomplete synchronization inputs.
-- Local UI View delivery verifies approved bytes in the trusted shell before mounting the sandboxed View. Refresh through the bridge; self-frame reload can leave it blank. Byte delivery does not prove visible rendering.
-- Malformed YAML holds every outgoing dedicated-board push. Worktree holds also skip local commits; valid pending edits wait. Repair the named document, check status and retry, preserving existing commits and adding the correction atop. Fresh malformed establishment snapshots fail before publication or move.
-- Plain init in a Git work tree selects its top-level .superbee unless an existing bundle, project binding, or explicit directory selects another target. Initialization remains local; board establishment is a separate publication decision.
-- New hosted writes with several stored or remembered host candidates require explicit host selection. Bound checkouts keep their stored host. After a committed sync send, the folder takes the host canonical bytes.
+- Workspace admins can preview and apply access grants or revocations for existing workspace members. Bundle owners or admins can retire a hosted bundle after a person confirms its ID at the terminal.
+- A Git board published to hosted gains a moved marker on its shared branch. Current CLIs stop pushing to that board and direct teammates to the hosted checkout; older writers require upgrade or branch protection.
+- Standalone named board-research checkouts target their own upstream. An optional trusted Git-configured sync check can hold an outgoing push. Lost push races refetch, converge, and retry up to five times.
+- Recipe evolution accepts a new outbound link declaration and allowed values on a field declared by the same plan. Existing edge and instance checks remain enforced.
+- The package exposes superbee/portable-export and superbee/bundle-descriptor for trusted offline consumers. Publication refuses recognized private operational-state files in a bundle.
+- Local history attribution and writer identity handling are corrected; hosted conflict receipts are written atomically and Git path/status handling preserves path identities.
+- Node support is ^22.14.0 || ^24.0.0 || ^26.0.0. macOS and Linux remain the supported npm platforms.
 
 # What you need to do
 
-On macOS or Linux with Node.js 20 or newer, install npm install -g superbee@0.4.0, inspect superbee version, rerun setup for the selected AI host, and restart when instructed. From 0.3.0, review hosted capability and transfer bounds, paged-read termination/version guards, and Git frontmatter hold recovery before updating automation. From pre.4, install the verified stable version; the reviewed source delta requires no functional rollback or bundle migration.
+Check node --version before upgrading and use a supported Node release line. Follow the installation and upgrade guides, verify superbee version, and rerun setup for your AI host. Before moving a team Git board to hosted, upgrade all writers and automations, review publication, share the destination with members, and point writers at their hosted checkouts.
 
 # Compatibility
 
-Existing bundles retain their files and OKF edition. Node >=20 and macOS/Linux support continue; WSL2 follows Linux and native Windows remains excluded. Stable source differs from pre.4 only in package version metadata and README installation text, with no executable source changes. Package and embedded source identities differ, so stable and prerelease artifact bytes are not assumed identical. Hosted availability and model/root-write permissions remain host-specific.
+Existing OKF bundle editions and ordinary document workflows are retained. Native Windows npm execution remains excluded; WSL2 uses the Linux path. Hosted access and retirement require a compatible host and the stated person permissions. Node 20 and odd-numbered Node release lines are outside the package engine range. The npm package and source tag are verified; the GitHub v0.4.2 release receipt was absent at documentation review.
 
 # Recovery
 
-Keep a recoverable bundle and prior executable identity. Reinstalling an earlier CLI does not undo remote writes or model edits. Preserve held/refused files, inspect conflicts, repair malformed YAML without discarding committed history, and retry interrupted publication or export with the same approved target and intent. Export supplies a verified portable current-revision copy. Never replace a full document body with a read page or shorten content without the owner decision.
+Preserve unsent work and inspect partial receipts. Fix a failed sync check, then rerun sync; never assume a held push erased a local commit. Follow moved-board recovery commands before carrying later Git edits into hosted. Export a copy before retirement and let the person confirm in their own terminal. For installation recovery, use the upgrade guide and a prior verified package only on its supported Node/platform range.
 
 # Verified evidence
 
-[Inspect the package, source, and verification evidence](../sources/superbee-release-0.4.0.md).
+[Inspect the package, source, and verification evidence](../sources/superbee-release-0.4.2.md).

@@ -36,25 +36,28 @@ async function json(file, subject) {
 }
 
 /**
- * The four files that make the documentation agent-callable, contributed to this site's own
- * presentation so their bytes enter the Portal artifact digest like any other published file.
+ * Agent-callable tools and the landing-page styling are contributed to this site's presentation
+ * so their bytes enter the Portal artifact digest like any other published file.
  *
- * Only the bootstrap is linked from pages. The other three are published because the bootstrap
- * imports them by URL, and linking them separately would run library code that registers nothing.
- * Ordering is irrelevant for the same reason: the module graph decides load order, not the page.
+ * Only the two bootstraps are linked from pages. Their supporting libraries and stylesheet are
+ * published for URL loading. The module graph decides the tools' load order.
  */
 async function agentToolAssets() {
-  const [client, tools, routes, bootstrap] = await Promise.all([
+  const [client, tools, routes, bootstrap, homeStyle, homeBootstrap] = await Promise.all([
     readPortalClientBrowserAssetV2(),
     readPortalWebMcpBrowserAssetV0(),
     readFile(new URL("../assets/superbee-webmcp-routes.js", import.meta.url)),
     readFile(new URL("../assets/superbee-webmcp.js", import.meta.url)),
+    readFile(new URL("../assets/superbee-docs-home.css", import.meta.url)),
+    readFile(new URL("../assets/superbee-docs-home.js", import.meta.url)),
   ]);
   return [
     { path: client.path, bytes: client.bytes },
     { path: tools.path, bytes: tools.bytes },
     { path: "assets/superbee-webmcp-routes.js", bytes: new Uint8Array(routes) },
     { path: "assets/superbee-webmcp.js", bytes: new Uint8Array(bootstrap), loadAsModule: true },
+    { path: "assets/superbee-docs-home.css", bytes: new Uint8Array(homeStyle) },
+    { path: "assets/superbee-docs-home.js", bytes: new Uint8Array(homeBootstrap), loadAsModule: true },
   ];
 }
 

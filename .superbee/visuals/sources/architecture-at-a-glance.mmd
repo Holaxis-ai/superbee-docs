@@ -1,15 +1,15 @@
 flowchart TB
   accTitle: Superbee architecture at a glance
   accDescr {
-    The installed superbee package composes private host and projection packages plus reusable
+    The installed superbee package composes the reusable command runtime, host adapters, and
     capabilities. Those packages depend inward on core, which owns bundle semantics and storage
     contracts. The current stable package ships publication modules and built UI assets beside the
-    CLI without making private workspaces separate user installs.
+    CLI. The diagram groups ownership rather than enumerating every dependency.
   }
 
   subgraph distribution["Composition and distribution: current stable"]
-    cli["superbee<br/>CLI and root export"]
-    publicModules["stable read-only exports<br/>snapshot API and bridge"]
+    cli["superbee<br/>installed CLI and declared exports"]
+    publicModules["stable read-only exports<br/>snapshot, descriptor, portable-export"]
   end
 
   subgraph hosts["Host and projection composites"]
@@ -25,7 +25,9 @@ flowchart TB
     core["core"]
   end
 
-  cli -->|"composes hosts and embeds UI"| hostAdapters
+  runtime["@superbee/cli<br/>command runtime"]
+  cli -->|"bundles"| runtime
+  runtime -->|"composes hosts"| hostAdapters
   publicModules -. "built beside CLI" .-> publication
 
   hostAdapters -->|"use selected capabilities"| reusable

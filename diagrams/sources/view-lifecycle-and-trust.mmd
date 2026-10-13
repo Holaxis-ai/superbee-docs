@@ -23,11 +23,11 @@ flowchart TD
   approval --> bridged["Opaque-origin sandbox<br/>bounded message bridge"]
 
   bridged --> before["Before operation<br/>resolve current launch and authorization"]
-  before --> operation["Bounded query, read, or set-field proposal"]
+  before --> operation["Advertised query, read, or proposal"]
   operation --> after{"After operation<br/>still current and authorized?"}
   after -->|"no"| revoked
   after -->|"yes: read"| result["Bounded read result"]
-  after -->|"yes: proposal"| proposal["Narrow set-field proposal"]
+  after -->|"yes: proposal"| proposal["Host-supported proposal<br/>MCP: scalar field<br/>local UI: field, body, or atomic update"]
 
   proposal --> confirm{"Separate trusted-shell<br/>human confirmation"}
   confirm -->|"deny"| unchanged["No bundle change"]

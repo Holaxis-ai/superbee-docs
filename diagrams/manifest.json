@@ -14,7 +14,7 @@
     {
       "id": "architecture-at-a-glance",
       "title": "Architecture at a glance",
-      "description": "How Superbee's private workspace layers become one supported installed package.",
+      "description": "How the installed CLI composes the command runtime, shared semantics, host adapters, and publication APIs.",
       "source": "diagrams/sources/architecture-at-a-glance.mmd",
       "publishedSource": "visuals/sources/architecture-at-a-glance.mmd",
       "publishedSvg": "visuals/diagrams/architecture-at-a-glance.svg",

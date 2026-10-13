@@ -271,7 +271,7 @@ test("the real MkDocs site remains readable without JavaScript at mobile width",
     assert.equal(observed.questionLevel, "H2");
     assert.equal(observed.questionNavigation, "Question answered");
     assert.equal(observed.navLabel, "Documentation navigation");
-    assert.match(observed.diagramAlt, /private workspace layers/);
+    assert.match(observed.diagramAlt, /installed CLI composes the command runtime/);
     assert.ok(observed.diagramWidth > 0);
     assert.equal(observed.horizontalOverflow, false);
   } finally {

@@ -4,7 +4,10 @@ title: Publication snapshot API
 description: >-
   Stable read-only Node.js API for immutable bundle capture and admitted
   publication Views.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: openai/codex
+generated:
+  by: openai/codex
+  at: '2026-10-13T13:03:43.099Z'
 ---
 # Scope
 
@@ -145,3 +148,28 @@ The export contract is defined in tagged
 with capture and bridge behavior exercised by the packed-package tests. See
 [Public publication](../architecture/public-publication-boundary.md) for the end-to-end pipeline and
 [Security and trust boundaries](security-and-trust-boundaries.md) for admission decisions.
+
+# Offline publication from a verified export
+
+The installed package also exposes `superbee/portable-export` and `superbee/bundle-descriptor` for
+trusted Node.js consumers. These are separate interfaces from the filesystem snapshot facade.
+
+```js
+import { verifyExport, materializeExport, exportProvenance } from "superbee/portable-export";
+
+const verified = verifyExport(archiveBytes, expectedBundleId);
+const provenance = exportProvenance(verified);
+const directory = await materializeExport(verified, canonicalParentDirectory);
+// Capture the materialized bundle through capturePublicationSnapshot.
+```
+
+Verification reads the complete archive before writing. It checks stored ZIP structure, entry CRCs,
+manifest lengths and SHA-256 digests, expected bundle identity, safe paths, and path collisions.
+`materializeExport` writes a new folder beneath a canonical existing parent; verification alone
+writes nothing. Retain the provenance with the publication. Private-state files are refused by the
+publication inventory guard. Review the entire exported bundle's disclosure before publishing it;
+archive integrity does not establish that its contents are suitable for a public audience.
+
+Packed exports and types are available from the
+[current source](https://github.com/Holaxis-ai/superbee/tree/v0.4.2/packages/superbee) and
+[portable export implementation](https://github.com/Holaxis-ai/superbee/blob/v0.4.2/packages/core/src/portable-export.ts).

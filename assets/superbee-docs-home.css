@@ -1,0 +1,34 @@
+/* The landing page has a short introduction, rather than an article-length heading index. */
+.docs-content:has([data-document-id="learn/start-here"]) .docs-toc {
+  display: none;
+}
+.docs-content:has([data-document-id="learn/start-here"]) .docs-article-header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+.markdown[data-document-id="learn/start-here"] [data-aslite-rendered-document] > ul:first-of-type {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  list-style: none;
+  padding: 0;
+}
+.markdown[data-document-id="learn/start-here"] [data-aslite-rendered-document] > ul:first-of-type > li {
+  margin: 0;
+  padding: 1.25rem;
+  background: #f3f7fa;
+  border-top: 3px solid #0073b0;
+}
+.markdown[data-document-id="learn/start-here"] [data-aslite-rendered-document] > ul:first-of-type strong {
+  display: block;
+  margin-bottom: .5rem;
+}
+.markdown[data-document-id="learn/start-here"] [data-aslite-rendered-document] > h3 {
+  border-left: 3px solid #956300;
+  padding-left: .75rem;
+}
+@media (max-width: 640px) {
+  .markdown[data-document-id="learn/start-here"] [data-aslite-rendered-document] > ul:first-of-type {
+    grid-template-columns: 1fr;
+  }
+}

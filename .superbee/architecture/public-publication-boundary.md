@@ -4,7 +4,10 @@ title: Public publication boundary
 description: >-
   How a dedicated public bundle becomes a bounded complete publication and
   curated human presentation.
-superbee_updated_by: openai/codex/root
+superbee_updated_by: openai/codex
+generated:
+  by: openai/codex
+  at: '2026-10-13T13:12:49.506Z'
 ---
 # Question answered
 
@@ -21,10 +24,10 @@ reader experience, while the Portal artifact retains the complete public bundle 
 
 Superbee publication has no document-level privacy filter. Capture inventories every concept
 document, reserved OKF file, and blob in the selected bundle, excluding dot-prefixed implementation
-entries such as `.git`. The exact-byte inventory and default limits are defined by the
-[snapshot capture](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/publication/src/capture.ts#L33-L48)
+entries such as `.git`. Recognized private operational-state files also refuse publication. The exact-byte inventory and default limits are defined by the
+[snapshot capture](https://github.com/Holaxis-ai/superbee/blob/069a42092f39d8261ccd4322c0dc7ff5488aa2c8/packages/publication/src/capture.ts#L1-L561)
 and its
-[complete inventory walk](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/publication/src/capture.ts#L161-L216).
+[complete inventory walk](https://github.com/Holaxis-ai/superbee/blob/069a42092f39d8261ccd4322c0dc7ff5488aa2c8/packages/publication/src/capture.ts#L1-L561).
 
 This makes source selection consequential. A public site must capture a dedicated public bundle.
 Private strategy, credentials, personal data, embargoed material, and security findings must stay in
@@ -39,19 +42,19 @@ Capture authorizes one real, non-aliased filesystem root, rejects unsafe tree en
 inventory twice, and retries only when the source changed during capture. Every accepted object is
 content-addressed. Documents carry exact Markdown and canonical inert rendered HTML; relationships
 are derived from the captured documents; registered Views bind their exact entry object. The
-[snapshot construction](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/publication/src/capture.ts#L302-L443)
+[snapshot construction](https://github.com/Holaxis-ai/superbee/blob/069a42092f39d8261ccd4322c0dc7ff5488aa2c8/packages/publication/src/capture.ts#L1-L561)
 and
-[two-pass currentness check](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/publication/src/capture.ts#L446-L517)
+[two-pass currentness check](https://github.com/Holaxis-ai/superbee/blob/069a42092f39d8261ccd4322c0dc7ff5488aa2c8/packages/publication/src/capture.ts#L1-L561)
 make the snapshot the stable handoff between mutable bundle authority and downstream consumers.
 
 The snapshot backend is read-only. Every write and delete method refuses with
 `CAPABILITY_UNAVAILABLE`, as shown by the
-[publication storage adapter](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/publication/src/snapshot-backend.ts#L28-L64).
+[publication storage adapter](https://github.com/Holaxis-ai/superbee/blob/069a42092f39d8261ccd4322c0dc7ff5488aa2c8/packages/publication/src/snapshot-backend.ts#L1-L151).
 Published Views may receive `none` or `bundle-read`; `bundle-propose` is refused. The
-[publication bridge admission](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/publication/src/bridge.ts#L26-L54)
+[publication bridge admission](https://github.com/Holaxis-ai/superbee/blob/069a42092f39d8261ccd4322c0dc7ff5488aa2c8/packages/publication/src/bridge.ts#L1-L120)
 binds a View to its exact snapshot registration and entry digest, then disables actions and polling
 in the
-[read-only bridge service](https://github.com/Holaxis-ai/superbee/blob/77c20318205156d5020a16763e2791845f17826c/packages/publication/src/bridge.ts#L55-L98).
+[read-only bridge service](https://github.com/Holaxis-ai/superbee/blob/069a42092f39d8261ccd4322c0dc7ff5488aa2c8/packages/publication/src/bridge.ts#L1-L120).
 
 # Projection, runtime, and consumer ownership
 
@@ -107,3 +110,11 @@ above.
 [documentation operating model](../design/docs-operating-model.md)
 
 [View lifecycle and trust](view-lifecycle-and-trust.md)
+
+
+# Verified offline exports
+
+A portable archive can first be verified through `superbee/portable-export` and materialized into a
+new folder before snapshot capture. That verifies archive structure, digests, identity, and safe
+paths, not audience suitability. Review all content before selecting a public publication source.
+See [publication API](../reference/publication-snapshot-api.md).

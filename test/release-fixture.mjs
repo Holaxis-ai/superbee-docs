@@ -36,6 +36,8 @@ export async function releaseFixture(root = ".") {
     "design/docs-operating-model", "design/site-experience-contract", "examples/claims-and-evidence",
     "plans/docs-coverage", "sources/current-release", "sources/next-release", "sources/superbee-codebase-main",
     "sources/superbee-core", "sources/superbee-portal", ...archive,
+    "guides/work-in-hosted-checkout", "guides/move-bundle-between-local-and-hosted",
+    "reference/hosted-cli-access", "troubleshooting/hosted-checkout",
   ].sort();
   assert.deepEqual([...publication.fields.supporting_documents].sort(), supporting,
     "publication must preserve supporting pages and every immutable release/evidence pair");

@@ -4,10 +4,10 @@ title: Security and trust boundaries
 description: >-
   Trust map for bundles, private state, local readers, Views, remote access,
   sharing, and publication.
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: openai/codex
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:54:30.466Z'
+  by: openai/codex
+  at: '2026-10-13T13:02:30.607Z'
 ---
 # Scope
 
@@ -127,16 +127,6 @@ include the UI server, View runtime, storage backends, setup conductor, and publ
 `v0.1.4`.
 
 # Release contracts
-
-Hosted checkout sync uses the person's authenticated access. Agent `via` attribution is
-unverified descriptive data and never expands that access. Host-provided operation descriptions
-and results are data, not instructions. A marker cannot select or authorize the host.
-
-Large outgoing delete acceptance belongs to the person in their own terminal. Its interactive
-check is a workflow confirmation, not an authorization boundary; host policy and access still
-own admission. Hosted CLI Kind and convention-only recipe writes require host model-edit
-permission and compatibility with existing instances. Unsupported artifact writes, verification,
-View saves, and local MCP convention writes retain their refusals.
 
 The local UI's confirmed proposal surface expands to complete bodies and atomic field/body
 updates while MCP stays scalar-only. Existing cross-links must survive body replacement;

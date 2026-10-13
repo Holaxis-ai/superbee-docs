@@ -1,13 +1,13 @@
 ---
 type: Reference
 title: Configuration and bundle resolution
-superbee_updated_by: 'process:release-docs-preparation'
+superbee_updated_by: openai/codex
 description: >-
   Exact local, project-bound, remote, catalog, and MCP bundle selection
   precedence and recovery.
 generated:
-  by: 'process:release-docs-preparation'
-  at: '2026-10-02T20:45:22.678Z'
+  by: openai/codex
+  at: '2026-10-13T13:11:10.748Z'
 ---
 # Scope
 
@@ -248,22 +248,7 @@ and
 
 # Release contracts
 
-A hosted checkout is selected through its local folder with normal discovery or `--dir`.
-Private state binds that canonical folder path to host, workspace, and bundle. A read-only
-`.superbee/checkout.json` marker describes origin but never activates hosted routing.
-`copy_of_checkout` with `home: local` requires confirmed adoption before sync or MCP writes.
-
-Plain catalog listing can additionally read reachable hosted bundles that have no local folder,
-without starting sign-in. `catalog list --local` suppresses that read; `--hosted` lists all reachable
-hosted bundles on the selected host. Catalog remains explicit selection, with existing folder
-paths and workspace-qualified references shown rather than silently switching current context.
-
-An explicit `--remote` URL is probed for hosted identity; hosted URLs receive checkout guidance
-rather than being treated as the unauthenticated reference server's default bundle. Continue with
-[Hosted CLI access](hosted-cli-access.md) and [Hosted recovery](../troubleshooting/hosted-checkout.md).
-Never infer routing from a marker or reuse another workspace's access.
-
-Current stable release evidence.
+See [current stable release evidence](../sources/current-release.md).
 
 # Initialization target
 
@@ -272,3 +257,13 @@ existing bundle or project binding. With neither, a Git work tree selects its to
 `.superbee/`; outside Git it uses the current directory. Inspect the returned physical root before
 writing. Explicit `--dir` still names the chosen target. A binding to a private board refuses bare
 init and routes work to its bound owner. Creating a folder does not establish sharing.
+
+# Named standalone Git board
+
+A named standalone checkout uses a tracked `.superbee-board.json` with schema `1` and its own
+`board-<name>` branch, tracking the matching `origin/board-<name>`. It does not become the conventional
+project `.superbee` worktree or change another board's upstream. Follow
+[named board sharing](../guides/share-and-synchronize-git-bundle.md#named-boards-and-optional-sync-checks).
+
+The optional Git settings `superbee.syncGate` and `superbee.syncGateTimeoutSeconds` select a trusted
+check command and timeout for outgoing ordinary sync. They are not bundle frontmatter or files.

@@ -4,10 +4,10 @@ title: Show documents and Views to a human
 description: >-
   Display authoritative Markdown and safely launch interactive Views through the
   local browser or an MCP Apps host.
-superbee_updated_by: anthropic/claude
+superbee_updated_by: 'process:release-docs-preparation'
 generated:
-  by: anthropic/claude
-  at: '2026-09-22T22:26:47.742Z'
+  by: 'process:release-docs-preparation'
+  at: '2026-10-03T15:02:07.941Z'
 ---
 # Outcome
 
@@ -102,6 +102,15 @@ An MCP registration installed without `--dir` uses the private workspace catalog
 must be selected explicitly for each document or bundle-capable View. A catalog entry makes a
 workspace available to MCP; it does not select that workspace for the current project. Fixed
 `--dir` MCP registration remains a compatibility mode and omits the workspace argument.
+
+# Same-page Markdown links
+
+A fragment-only target such as `[Details](#details)` can identify a heading in the current
+page. The bounded renderer validates the fragment and emits inert metadata for a host adapter;
+that adapter must match it to an existing heading before making it navigable. A valid fragment
+does not by itself prove that every browser or MCP reader will activate the link. If it stays
+inert, check the reader's heading-link support and the target heading. Raw HTML and images
+retain their existing inert behavior.
 
 # Show a View through an MCP Apps host
 
