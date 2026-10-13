@@ -4,10 +4,10 @@ title: Contributor quickstart
 description: >-
   Prepare a checkout, make a bounded source change, run the right proofs, and
   verify exact-SHA CI.
-superbee_updated_by: 'process:release-docs-review'
+superbee_updated_by: 'process:release-tooling-review'
 generated:
-  by: 'process:release-docs-review'
-  at: '2026-09-30T19:53:16.838Z'
+  by: 'process:release-tooling-review'
+  at: '2026-09-30T20:54:43.553Z'
 ---
 # Goal
 
@@ -155,3 +155,12 @@ for this release. The historical links above describe the original quickstart bo
 Do not import later `main` features into the fixed release branch's documentation.
 
 [Release source review](../sources/next-release.md).
+
+# Documentation release tooling
+
+Documentation maintainers prepare a frozen release packet, review its actual source delta and
+installed-package journeys, author the affected pages, then run `npm run docs:release:finalize`
+in the documentation repository. This command applies and checks the reviewed handoff; it does
+not publish a package, merge, or deploy. A saved current-release probe is not a verification result.
+See the [documentation operating model](../design/docs-operating-model.md) for the publication
+gate, immutable evidence, and independent review/CI requirements.

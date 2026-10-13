@@ -4,7 +4,10 @@ title: Documentation operating model
 description: >-
   Audience, content, authority, lifecycle, and maintenance contract for
   Superbee's public documentation.
-superbee_updated_by: codebase-documentation-adoption
+superbee_updated_by: 'process:release-tooling-review'
+generated:
+  by: 'process:release-tooling-review'
+  at: '2026-09-30T20:54:43.223Z'
 ---
 # Outcome
 
@@ -230,6 +233,29 @@ when retried. `npm run docs:release:check` verifies stable-to-immutable agreemen
 navigation, bundle-native release navigation and selection, and the absence of hardcoded Superbee package
 versions outside release, evidence, migration, or publication records. Authored behavioral claims still require the declared release verification;
 automation never promotes an unverified version merely by changing a number.
+
+## Release preparation and finalization
+
+The release conductor and PR checklist own the operator publication gate. A saved status separates
+the documented release from the captured registry release; `current` records no completed
+finalization verification. Use a fresh packet for new authority, then review its machine package
+journeys, author release prose, disposition every affected page, and run:
+
+```sh
+npm run docs:release:finalize
+```
+
+Finalization rechecks public authority and uses the existing guarded apply/check machinery.
+Read-only dependency access preflight precedes installed-tree mutation. Reusable package journeys
+run in disposable storage with fabricated host fixtures and no production credentials or sockets.
+The reviewed verification retains the captured machine summary before immutable evidence is
+written. Exact-input local reuse never replaces independent exact-head review or fresh required CI.
+
+Maintain one source review and migration guide for a pending release. Keep its publication hold
+and remaining checks in the PR and operator status. Ordinary pages link to stable current-release
+identities; avoid repeating pending-publication disclaimers throughout the page set. Reconcile
+changed guidance against verified release evidence before merge. Subsequent checks can append
+provenance to a supporting Source or PR, while versioned release evidence remains immutable.
 
 An agent run ends with a durable update to the relevant page or plan, the evidence examined, checks
 run, and unresolved questions. Private chat is not the handoff mechanism.

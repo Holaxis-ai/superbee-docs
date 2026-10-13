@@ -7,7 +7,7 @@ description: >-
 superbee_updated_by: openai/codex
 generated:
   by: openai/codex
-  at: '2026-10-13T13:12:49.684Z'
+  at: '2026-10-13T13:54:23.098Z'
 ---
 # Purpose
 
@@ -290,3 +290,17 @@ The same review branch updates Portal and its Cloudflare adapter, Portal WebMCP,
 to the released consumer versions recorded in [Portal package evidence](../sources/superbee-portal.md).
 The existing Worker and public-bundle publication model remain the tested composition.
 No additional remote agent endpoint is enabled by this consumer update.
+
+# Release finalization tooling scope
+
+The `codex/docs-release-finalize` branch claims the existing conductor, dependency access
+preflight, reusable installed-package journeys and their tests, existing CI/check wiring, and
+operator guidance in the README, contributor quickstart, and operating model. The audience is
+the documentation maintainer; success means a reviewed handoff finalizes deterministically or
+stops before dependency mutation with a concrete recovery instruction. Product behavior pages
+and release identities remain governed by their existing verified sources.
+
+Journey checks cover stale supplied source without changing it, contradictory refs, inaccessible
+registry metadata without deleting installed files, interrupted apply/finalize, changed authority,
+exact-input invalidation, isolated package identity and fixture reads, and the full docs gate.
+Independent exact-head review and fresh required CI are the handoff gates.
