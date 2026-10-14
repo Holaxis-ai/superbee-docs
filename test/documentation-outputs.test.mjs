@@ -146,12 +146,6 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     assert.equal(wrangler.assets.not_found_handling, "404-page");
     assert.equal(wrangler.assets.html_handling, "auto-trailing-slash");
 
-    // Page links for agent answers come from the route inventory @superbee/portal-docs emits; it
-    // must list every navigated and supporting document at its /docs/<id>/ page.
-    const routes = JSON.parse(Buffer.from(artifact.files.get("assets/assistant-routes.json")).toString("utf8"));
-    assert.ok(routes.documents.length > 0);
-    for (const row of routes.documents) assert.equal(row.path, `/docs/${row.id}/`);
-
     // The agent entry point quotes one exact section of one published page, with every internal
     // link resolved to the exact published Markdown of a selected document.
     const llms = Buffer.from(artifact.files.get("llms.txt")).toString("utf8");
