@@ -9,8 +9,8 @@ import {
   createCodebaseDocumentationRecipeArtifactV0,
   createCodebaseDocumentationSolutionDescriptorV0,
 } from "@superbee/recipe-studio/codebase-documentation/v0";
-import { readPortalWebMcpBrowserAssetV0 } from "@superbee/portal-webmcp/asset/v0";
-import { readPortalClientBrowserAssetV2 } from "@superbee/portal/client/v2/asset";
+import { siteToolDescriptors } from "@superbee/agent-operations/read-tools";
+import { readPortalWebMcpBrowserAssetsV2 } from "@superbee/portal-webmcp/asset/v2";
 import { checkPublishedAgreement } from "@superbee/docs-tooling";
 import { deriveGitDocumentationFreshnessV1 } from "@superbee/docs-tooling/freshness/v1";
 import {
@@ -35,26 +35,34 @@ async function json(file, subject) {
   catch (error) { throw new Error(`${subject} must be readable JSON`, { cause: error }); }
 }
 
+/** The one owner of the page's WebMCP registration. */
+export const WEBMCP_PAGE_OWNER = "superbee-docs-presentation";
+/** The same-origin MCP route the Worker serves (`agentAccess` in scripts/cloudflare-worker.mjs). */
+export const WEBMCP_ENDPOINT = "/mcp";
+
 /**
  * Agent-callable tools and the landing-page styling are contributed to this site's presentation
  * so their bytes enter the Portal artifact digest like any other published file.
  *
- * Only the two bootstraps are linked from pages. Their supporting libraries and stylesheet are
- * published for URL loading. The module graph decides the tools' load order.
+ * WebMCP version 2: the page registers the five tools the site's own endpoint serves, from a list
+ * emitted here at build time, and forwards each call to that endpoint. It loads no read model and no
+ * Portal client. The list is the kernel's own descriptors, so what a page offers and what the
+ * endpoint answers cannot drift apart. Only the two bootstraps are linked from pages.
  */
 async function agentToolAssets() {
-  const [client, tools, routes, bootstrap, homeStyle, homeBootstrap] = await Promise.all([
-    readPortalClientBrowserAssetV2(),
-    readPortalWebMcpBrowserAssetV0(),
-    readFile(new URL("../assets/superbee-webmcp-routes.js", import.meta.url)),
+  const [webmcp, bootstrap, homeStyle, homeBootstrap] = await Promise.all([
+    readPortalWebMcpBrowserAssetsV2({
+      version: 2,
+      owner: WEBMCP_PAGE_OWNER,
+      endpoint: WEBMCP_ENDPOINT,
+      tools: siteToolDescriptors(),
+    }),
     readFile(new URL("../assets/superbee-webmcp.js", import.meta.url)),
     readFile(new URL("../assets/superbee-docs-home.css", import.meta.url)),
     readFile(new URL("../assets/superbee-docs-home.js", import.meta.url)),
   ]);
   return [
-    { path: client.path, bytes: client.bytes },
-    { path: tools.path, bytes: tools.bytes },
-    { path: "assets/superbee-webmcp-routes.js", bytes: new Uint8Array(routes) },
+    ...webmcp.map(({ path: assetPath, bytes }) => ({ path: assetPath, bytes })),
     { path: "assets/superbee-webmcp.js", bytes: new Uint8Array(bootstrap), loadAsModule: true },
     { path: "assets/superbee-docs-home.css", bytes: new Uint8Array(homeStyle) },
     { path: "assets/superbee-docs-home.js", bytes: new Uint8Array(homeBootstrap), loadAsModule: true },

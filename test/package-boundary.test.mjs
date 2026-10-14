@@ -25,7 +25,7 @@ test("consumer uses only public published package surfaces and nested versioned 
   assert.deepEqual(wrangler.routes, [{ pattern: "docs.getsuperbee.com", custom_domain: true }]);
   assert.deepEqual(consumer.dependencies, {
     // Restricted peers of the portal-cloudflare agentAccess endpoint; exact pins.
-    "@superbee/agent-operations": "0.1.0-pre.3",
+    "@superbee/agent-operations": "0.1.0-pre.4",
     "@superbee/core": "0.2.0-pre.11",
     "@superbee/docs-mkdocs": "0.2.2",
     "@superbee/docs-projection": "0.2.3",
@@ -68,10 +68,11 @@ test("consumer uses only public published package surfaces and nested versioned 
   assert.match(import.meta.resolve("@superbee/portal-cloudflare/static-assets"), /\/node_modules\/@superbee\/portal-cloudflare\//);
   assert.match(import.meta.resolve("@superbee/portal-cloudflare/reconcile"), /\/node_modules\/@superbee\/portal-cloudflare\//);
   assert.match(import.meta.resolve("@superbee/portal"), /\/node_modules\/@superbee\/portal\//);
-  // The two fixed browser assets this site contributes. Resolved through their own subpath exports
-  // so a package that stopped publishing either is caught here rather than at deploy time.
-  assert.match(import.meta.resolve("@superbee/portal-webmcp/asset/v0"), /\/node_modules\/@superbee\/portal-webmcp\//);
-  assert.match(import.meta.resolve("@superbee/portal/client/v2/asset"), /\/node_modules\/@superbee\/portal\//);
+  // The fixed forwarder this site contributes and the descriptors its tool list is built from.
+  // Resolved through their own subpath exports so a package that stopped publishing either is
+  // caught here rather than at deploy time.
+  assert.match(import.meta.resolve("@superbee/portal-webmcp/asset/v2"), /\/node_modules\/@superbee\/portal-webmcp\//);
+  assert.match(import.meta.resolve("@superbee/agent-operations/read-tools"), /\/node_modules\/@superbee\/agent-operations\//);
   assert.equal(consumer.scripts["diagram:build"], "superbee-docs diagram apply --root . --config portal.config.json");
   assert.equal(
     consumer.scripts["portal:build"],

@@ -46,7 +46,7 @@
     "package-verification:check": "node scripts/check-package-verification.mjs"
   },
   "dependencies": {
-    "@superbee/agent-operations": "0.1.0-pre.3",
+    "@superbee/agent-operations": "0.1.0-pre.4",
     "@superbee/core": "0.2.0-pre.11",
     "@superbee/docs-mkdocs": "0.2.2",
     "@superbee/docs-projection": "0.2.3",
@@ -64,6 +64,9 @@
   "overrides": {
     "@superbee/recipe-studio": {
       "@superbee/core": "$@superbee/core"
+    },
+    "@superbee/portal-cloudflare": {
+      "@superbee/agent-operations": "$@superbee/agent-operations"
     }
   }
 }
