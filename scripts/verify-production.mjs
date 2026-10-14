@@ -165,7 +165,7 @@ export async function agentEndpointVerificationRowsV1(origin, fetchImpl = fetch)
     let status = null;
     let observed = null;
     try {
-      const response = await fetchImpl(new URL(route, base), { redirect: "manual", ...init });
+      const response = await fetchImpl(new URL(route, base), { redirect: "manual", signal: AbortSignal.timeout(15_000), ...init });
       status = response.status;
       if (status === 200) observed = await check(response);
     } catch (error) {
@@ -184,7 +184,7 @@ export async function agentEndpointVerificationRowsV1(origin, fetchImpl = fetch)
   }, async (response) => {
     const names = ((await response.json())?.result?.tools ?? []).map((tool) => tool?.name).sort();
     return JSON.stringify(names) === JSON.stringify(AGENT_TOOL_NAMES) ? "ok" : `tools: ${names.join(",")}`;
-  }, "the agent endpoint did not answer tools/list with the five tools; its Worker binding or secret may be missing or renamed");
+  }, "the agent endpoint did not answer tools/list with the five tools; its Worker binding may be missing or renamed (the secret is not checked here)");
   await attempt("agent endpoint GET /api/v1/openapi.json", "/api/v1/openapi.json", { method: "GET" },
     async (response) => ((await response.json())?.openapi ? "ok" : "no openapi field"),
     "the agent API did not serve its OpenAPI document");

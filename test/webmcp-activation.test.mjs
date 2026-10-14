@@ -10,6 +10,7 @@ import puppeteer from "puppeteer";
 import { siteToolDescriptors } from "@superbee/agent-operations/read-tools";
 import { readPortalWebMcpBrowserAssetsV2 } from "@superbee/portal-webmcp/asset/v2";
 
+import { AGENT_RATE_LIMIT_BINDING, AGENT_SECRET_BINDING } from "../scripts/agent-access-config.mjs";
 import {
   composeDocumentationOutputs,
   WEBMCP_ENDPOINT,
@@ -126,8 +127,8 @@ test("the published bootstrap registers the five tools with no request, and each
         return bytes ? new Response(Buffer.from(bytes)) : new Response("missing", { status: 404 });
       },
     },
-    AGENT_LIMITER: { async limit() { return { success: true }; } },
-    AGENT_IP_HASH_SECRET: "dummy-local-secret-for-tests-only",
+    [AGENT_RATE_LIMIT_BINDING]: { async limit() { return { success: true }; } },
+    [AGENT_SECRET_BINDING]: "dummy-local-secret-for-tests-only",
   };
   let forwarded = 0;
   const server = createServer(async (request, response) => {
