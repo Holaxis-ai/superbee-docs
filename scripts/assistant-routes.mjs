@@ -30,13 +30,14 @@ export function documentRouteRowsV1(hostingRequirements, publication) {
   const rows = [];
   const files = new Map(publication.manifest.files.map((file) => [file.path, file]));
   for (const route of hostingRequirements.routes) {
-    if (route.disposition !== "shell" || !route.methods.includes("GET")) continue;
+    // The same filter Portal applies when it checks each row against the declared shells.
+    if (route.disposition !== "shell" || route.methods.join(",") !== "GET,HEAD" || route.pattern.includes("*")) continue;
     if (!route.pattern.startsWith(DOCS_PREFIX) || !route.pattern.endsWith("/")) continue;
-    const target = files.get(route.artifactPath ?? `${route.pattern.slice(1)}index.html`);
-    if (target?.mediaType !== "text/html; charset=utf-8") continue;
     let id;
     try { id = decodeURIComponent(route.pattern.slice(DOCS_PREFIX.length, -1)); }
     catch { continue; }
+    const target = files.get(route.artifactPath ?? `${decodeURIComponent(route.pattern.slice(1))}index.html`);
+    if (target?.mediaType !== "text/html; charset=utf-8") continue;
     // A shell that is not a bundle document (a section index, say) gets no row.
     if (!id || !publication.getDocument(id)) continue;
     rows.push({ id, path: route.pattern });

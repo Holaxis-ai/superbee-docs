@@ -171,12 +171,18 @@ async function documentationCompositionOptions({
         });
         // Page links for agent answers: the routes file is a published file, so it is built from a
         // provisional artifact (same snapshot, projection and assets) and then joins the real one.
-        const routesAsset = await assistantRoutesAssetV1({
-          snapshot,
-          projection: compiled.projection,
-          config,
-          portalAssets,
-        });
+        let routesAsset;
+        try {
+          routesAsset = await assistantRoutesAssetV1({
+            snapshot,
+            projection: compiled.projection,
+            config,
+            portalAssets,
+          });
+        } catch (error) {
+          await compiled.projection.close();
+          throw error;
+        }
         return {
           projection: compiled.projection,
           portalAssets: [...portalAssets, routesAsset],
