@@ -151,6 +151,12 @@ export const AGENT_TOOL_NAMES = Object.freeze([
   "inspect_bundle", "query_documents", "read_bundle_graph", "read_document", "search_documents",
 ]);
 
+/** A document that has a page on the site: its agent answers must carry that page's link. */
+export const AGENT_PAGE_PROBE = Object.freeze({
+  documentId: "learn/start-here",
+  path: "/docs/learn/start-here/",
+});
+
 /**
  * The remote agent endpoint is switched on by a Worker binding, and without the binding it turns
  * itself off quietly and pages keep working. A deploy that lost or renamed the binding would
@@ -185,6 +191,35 @@ export async function agentEndpointVerificationRowsV1(origin, fetchImpl = fetch)
     const names = ((await response.json())?.result?.tools ?? []).map((tool) => tool?.name).sort();
     return JSON.stringify(names) === JSON.stringify(AGENT_TOOL_NAMES) ? "ok" : `tools: ${names.join(",")}`;
   }, "the agent endpoint did not answer tools/list with the five tools; its Worker binding may be missing or renamed (the secret is not checked here)");
+  const callTool = (name, args) => ({
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 2, method: "tools/call", params: { name, arguments: args } }),
+  });
+  // An answer's page link comes from the artifact's assets/assistant-routes.json. If the build stops
+  // emitting that file, answers silently lose their links, so the deploy check asks for one and
+  // follows it. The link's host is not compared: the endpoint builds it from the request it saw.
+  const followLink = async (url) => {
+    if (typeof url !== "string") return "the answer carries no url";
+    let link;
+    try { link = new URL(url); } catch { return `url is not absolute: ${url}`; }
+    if (link.pathname !== AGENT_PAGE_PROBE.path || link.search || link.hash) return `unexpected url: ${url}`;
+    const page = await fetchImpl(new URL(link.pathname, base), { redirect: "manual", signal: AbortSignal.timeout(15_000) });
+    return page.status === 200 ? "ok" : `the linked page answered ${page.status}`;
+  };
+  await attempt("agent endpoint read_document carries a page url", "/mcp",
+    callTool("read_document", { documentId: AGENT_PAGE_PROBE.documentId }), async (response) => {
+      const result = (await response.json())?.result;
+      const answer = JSON.parse(result?.content?.[0]?.text ?? "null");
+      return followLink(answer?.data?.document?.url);
+    }, "the agent answer for a known page has no working url; the build may have stopped emitting assets/assistant-routes.json");
+  await attempt("agent endpoint search_documents carries a page url", "/mcp",
+    callTool("search_documents", { query: "start here", limit: 25 }), async (response) => {
+      const result = (await response.json())?.result;
+      const answer = JSON.parse(result?.content?.[0]?.text ?? "null");
+      const hit = answer?.data?.hits?.find((row) => row?.id === AGENT_PAGE_PROBE.documentId);
+      return hit ? followLink(hit.url) : `search did not return ${AGENT_PAGE_PROBE.documentId}`;
+    }, "the search answer for a known page has no working url; the build may have stopped emitting assets/assistant-routes.json");
   await attempt("agent endpoint GET /api/v1/openapi.json", "/api/v1/openapi.json", { method: "GET" },
     async (response) => ((await response.json())?.openapi ? "ok" : "no openapi field"),
     "the agent API did not serve its OpenAPI document");

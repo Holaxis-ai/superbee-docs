@@ -7,6 +7,7 @@ import test from "node:test";
 
 import { DEPLOYMENT_REDIRECTS } from "../scripts/deployment-assets.mjs";
 import {
+  AGENT_PAGE_PROBE,
   AGENT_TOOL_NAMES,
   agentEndpointVerificationRowsV1,
   DOCUMENTATION_NOT_FOUND_PROBE_ROUTE,
@@ -209,14 +210,22 @@ test("production verification preserves the final failure without retrying past 
   }
 });
 
-function agentFetch({ tools = AGENT_TOOL_NAMES, mcp = 200, openapi = 200 } = {}) {
+function agentFetch({ tools = AGENT_TOOL_NAMES, mcp = 200, openapi = 200, link = true, linked = 200 } = {}) {
   const seen = [];
-  const impl = async (url, init = {}) => {
-    seen.push(`${init.method ?? "GET"} ${new URL(url).pathname}`);
-    if (new URL(url).pathname === "/mcp") {
-      return mcp === 200
-        ? Response.json({ jsonrpc: "2.0", id: 1, result: { tools: tools.map((name) => ({ name })) } })
-        : new Response("no", { status: mcp });
+  const toolAnswer = (data) => Response.json({ jsonrpc: "2.0", id: 2, result: { content: [{ type: "text", text: JSON.stringify({ ok: true, data }) }] } });
+  const url = link ? `https://docs.getsuperbee.com${AGENT_PAGE_PROBE.path}` : undefined;
+  const impl = async (url_, init = {}) => {
+    const target = new URL(url_);
+    seen.push(`${init.method ?? "GET"} ${target.pathname}`);
+    if (target.pathname === AGENT_PAGE_PROBE.path) return new Response("page", { status: linked });
+    if (target.pathname === "/mcp") {
+      if (mcp !== 200) return new Response("no", { status: mcp });
+      const body = JSON.parse(init.body);
+      if (body.params?.name === "read_document") return toolAnswer({ document: { id: AGENT_PAGE_PROBE.documentId, ...(url ? { url } : {}) } });
+      if (body.params?.name === "search_documents") {
+        return toolAnswer({ hits: [{ id: "other/page" }, { id: AGENT_PAGE_PROBE.documentId, ...(url ? { url } : {}) }] });
+      }
+      return Response.json({ jsonrpc: "2.0", id: 1, result: { tools: tools.map((name) => ({ name })) } });
     }
     return openapi === 200 ? Response.json({ openapi: "3.1.0" }) : new Response("no", { status: openapi });
   };
@@ -228,18 +237,34 @@ test("production verification probes the agent endpoint and fails when it is off
   const rows = await agentEndpointVerificationRowsV1(ORIGIN, healthy.impl);
   assert.deepEqual(rows.map((row) => [row.id, row.outcome]), [
     ["agent endpoint POST /mcp tools/list", "pass"],
+    ["agent endpoint read_document carries a page url", "pass"],
+    ["agent endpoint search_documents carries a page url", "pass"],
     ["agent endpoint GET /api/v1/openapi.json", "pass"],
   ]);
-  assert.deepEqual(healthy.seen, ["POST /mcp", "GET /api/v1/openapi.json"]);
+  assert.deepEqual(healthy.seen, [
+    "POST /mcp", "POST /mcp", `GET ${AGENT_PAGE_PROBE.path}`, "POST /mcp", `GET ${AGENT_PAGE_PROBE.path}`,
+    "GET /api/v1/openapi.json",
+  ]);
 
   // The binding is missing: the Worker falls through to the static site, which answers 405 / 404.
   const off = await agentEndpointVerificationRowsV1(ORIGIN, agentFetch({ mcp: 405, openapi: 404 }).impl);
-  assert.deepEqual(off.map((row) => row.outcome), ["fail", "fail"]);
+  assert.deepEqual(off.map((row) => row.outcome), ["fail", "fail", "fail", "fail"]);
   assert.ok(off.every((row) => typeof row.reason === "string" && row.reason.length > 0));
 
   const renamed = await agentEndpointVerificationRowsV1(ORIGIN, agentFetch({ tools: ["inspect_bundle"] }).impl);
-  assert.deepEqual(renamed.map((row) => row.outcome), ["fail", "pass"]);
+  assert.deepEqual(renamed.map((row) => row.outcome), ["fail", "pass", "pass", "pass"]);
+
+  // The routes file is gone from the build: answers carry no url, and the deploy check fails.
+  const unlinked = await agentEndpointVerificationRowsV1(ORIGIN, agentFetch({ link: false }).impl);
+  assert.deepEqual(unlinked.map((row) => row.outcome), ["pass", "fail", "fail", "pass"]);
+  assert.match(unlinked[1].fields[1].actual, /no url/u);
+  assert.match(unlinked[1].reason, /assistant-routes\.json/u);
+
+  // A link that does not serve the page fails too.
+  const dead = await agentEndpointVerificationRowsV1(ORIGIN, agentFetch({ linked: 404 }).impl);
+  assert.deepEqual(dead.map((row) => row.outcome), ["pass", "fail", "fail", "pass"]);
+  assert.match(dead[1].fields[1].actual, /answered 404/u);
 
   const unreachable = await agentEndpointVerificationRowsV1(ORIGIN, async () => { throw new Error("offline"); });
-  assert.deepEqual(unreachable.map((row) => row.outcome), ["fail", "fail"]);
+  assert.deepEqual(unreachable.map((row) => row.outcome), ["fail", "fail", "fail", "fail"]);
 });

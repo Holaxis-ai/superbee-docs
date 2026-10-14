@@ -93,6 +93,28 @@ test("one search, one read and one graph read answer from the published artifact
   assert.equal(graph.data.data.bundleId, "superbee-docs");
 });
 
+test("answers carry the real page URL for a document with a page and none for one without", async () => {
+  const env = environment();
+  const read = await call(env, "read_document", { documentId: "get-started/install-and-setup" });
+  assert.equal(new URL(read.data.data.document.url).pathname, "/docs/get-started/install-and-setup/");
+  const searched = await call(env, "search_documents", { query: "install superbee", limit: 3 });
+  const hit = searched.data.data.hits.find((row) => row.id === "get-started/install-and-setup");
+  assert.equal(new URL(hit.url).pathname, "/docs/get-started/install-and-setup/");
+  // A bundle document the site renders no page for: no URL, not a guessed one.
+  const pageless = await call(env, "read_document", { documentId: "conventions/documentation-publication" });
+  assert.equal(pageless.isError, false);
+  assert.equal(pageless.data.data.document.id, "conventions/documentation-publication");
+  assert.equal("url" in pageless.data.data.document, false);
+  // Every URL the endpoint hands out serves a page.
+  const listed = await call(env, "query_documents", { limit: 100 });
+  const withUrl = listed.data.data.documents.filter((row) => row.url);
+  assert.ok(withUrl.length > 0 && withUrl.length < listed.data.data.documents.length);
+  for (const row of withUrl) {
+    const page = await send(env, new Request(new URL(new URL(row.url).pathname, "https://docs.test")));
+    assert.equal(page.status, 200, row.url);
+  }
+});
+
 test("the GET API and OpenAPI answer, and search is POST only", async () => {
   const env = environment();
   const query = await send(env, new Request("https://docs.test/api/v1/query_documents?prefix=learn/&limit=2"));
