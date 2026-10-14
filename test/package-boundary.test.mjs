@@ -24,11 +24,14 @@ test("consumer uses only public published package surfaces and nested versioned 
   assert.equal(wrangler.name, "superbee-docs");
   assert.deepEqual(wrangler.routes, [{ pattern: "docs.getsuperbee.com", custom_domain: true }]);
   assert.deepEqual(consumer.dependencies, {
+    // Restricted peers of the portal-cloudflare agentAccess endpoint; exact pins.
+    "@superbee/agent-operations": "0.1.0-pre.3",
+    "@superbee/core": "0.2.0-pre.11",
     "@superbee/docs-mkdocs": "0.2.2",
     "@superbee/docs-projection": "0.2.3",
     "@superbee/docs-tooling": "0.2.4",
     "@superbee/portal": "0.2.10",
-    "@superbee/portal-cloudflare": "0.2.10",
+    "@superbee/portal-cloudflare": "0.2.11",
     "@superbee/portal-docs": "0.2.2",
     "@superbee/portal-webmcp": "0.3.1",
     "@superbee/recipe-studio": "0.1.3",
@@ -108,6 +111,11 @@ test("consumer uses only public published package surfaces and nested versioned 
     "/data/*",
     "/bundle/*",
     "/__superbee/bridge/*",
+    // The remote agent endpoint (agentAccess in scripts/cloudflare-worker.mjs).
+    "/mcp",
+    "/mcp/",
+    "/api/v1",
+    "/api/v1/*",
   ]);
   await assert.rejects(readFile("scripts/apply-diagrams.mjs"), (error) => error.code === "ENOENT");
   await assert.rejects(readFile("scripts/mkdocs-runtime.mjs"), (error) => error.code === "ENOENT");
