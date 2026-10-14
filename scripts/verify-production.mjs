@@ -147,6 +147,50 @@ export async function documentationVerificationExtensionV1(context, siteUrl) {
   return rows;
 }
 
+export const AGENT_TOOL_NAMES = Object.freeze([
+  "inspect_bundle", "query_documents", "read_bundle_graph", "read_document", "search_documents",
+]);
+
+/**
+ * The remote agent endpoint is switched on by a Worker binding, and without the binding it turns
+ * itself off quietly and pages keep working. A deploy that lost or renamed the binding would
+ * therefore look healthy, so production verification asks the endpoint directly: `tools/list` must
+ * name the five tools and the OpenAPI document must be served. Both requests are read-only; the
+ * `tools/list` POST carries no document or visitor input.
+ */
+export async function agentEndpointVerificationRowsV1(origin, fetchImpl = fetch) {
+  const base = new URL(origin);
+  const rows = [];
+  const attempt = async (id, route, init, check, reason) => {
+    let status = null;
+    let observed = null;
+    try {
+      const response = await fetchImpl(new URL(route, base), { redirect: "manual", signal: AbortSignal.timeout(15_000), ...init });
+      status = response.status;
+      if (status === 200) observed = await check(response);
+    } catch (error) {
+      observed = `request failed: ${error instanceof Error ? error.message : String(error)}`;
+    }
+    const passed = status === 200 && observed === "ok";
+    rows.push(extension(id, route, passed, [
+      { field: "status", expected: "200", actual: status === null ? null : String(status) },
+      { field: "body", expected: "ok", actual: observed },
+    ], reason));
+  };
+  await attempt("agent endpoint POST /mcp tools/list", "/mcp", {
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+    body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+  }, async (response) => {
+    const names = ((await response.json())?.result?.tools ?? []).map((tool) => tool?.name).sort();
+    return JSON.stringify(names) === JSON.stringify(AGENT_TOOL_NAMES) ? "ok" : `tools: ${names.join(",")}`;
+  }, "the agent endpoint did not answer tools/list with the five tools; its Worker binding may be missing or renamed (the secret is not checked here)");
+  await attempt("agent endpoint GET /api/v1/openapi.json", "/api/v1/openapi.json", { method: "GET" },
+    async (response) => ((await response.json())?.openapi ? "ok" : "no openapi field"),
+    "the agent API did not serve its OpenAPI document");
+  return rows;
+}
+
 export async function verifyDocumentationDeploymentV1({
   baseUrl,
   dist,
@@ -160,7 +204,10 @@ export async function verifyDocumentationDeploymentV1({
     fetchImpl,
     unenforcedCapabilities,
     notFound: { route: DOCUMENTATION_NOT_FOUND_PROBE_ROUTE },
-    extend: (context) => documentationVerificationExtensionV1(context, siteUrl),
+    extend: async (context) => [
+      ...await documentationVerificationExtensionV1(context, siteUrl),
+      ...await agentEndpointVerificationRowsV1(context.origin, fetchImpl),
+    ],
   });
 }
 

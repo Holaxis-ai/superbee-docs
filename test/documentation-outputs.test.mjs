@@ -136,6 +136,11 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
       "/data/*",
       "/bundle/*",
       "/__superbee/bridge/*",
+      // The remote agent endpoint (agentAccess in scripts/cloudflare-worker.mjs).
+      "/mcp",
+      "/mcp/",
+      "/api/v1",
+      "/api/v1/*",
     ]);
     // Cloudflare selects the artifact's own 404.html only under this exact assets setting.
     assert.equal(wrangler.assets.not_found_handling, "404-page");

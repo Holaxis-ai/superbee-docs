@@ -24,13 +24,16 @@ test("consumer uses only public published package surfaces and nested versioned 
   assert.equal(wrangler.name, "superbee-docs");
   assert.deepEqual(wrangler.routes, [{ pattern: "docs.getsuperbee.com", custom_domain: true }]);
   assert.deepEqual(consumer.dependencies, {
+    // Restricted peers of the portal-cloudflare agentAccess endpoint; exact pins.
+    "@superbee/agent-operations": "0.1.0-pre.4",
+    "@superbee/core": "0.2.0-pre.11",
     "@superbee/docs-mkdocs": "0.2.2",
     "@superbee/docs-projection": "0.2.3",
     "@superbee/docs-tooling": "0.2.4",
     "@superbee/portal": "0.2.10",
-    "@superbee/portal-cloudflare": "0.2.10",
+    "@superbee/portal-cloudflare": "0.2.12",
     "@superbee/portal-docs": "0.2.2",
-    "@superbee/portal-webmcp": "0.3.1",
+    "@superbee/portal-webmcp": "0.3.2",
     "@superbee/recipe-studio": "0.1.3",
     superbee: release.version,
   });
@@ -65,10 +68,11 @@ test("consumer uses only public published package surfaces and nested versioned 
   assert.match(import.meta.resolve("@superbee/portal-cloudflare/static-assets"), /\/node_modules\/@superbee\/portal-cloudflare\//);
   assert.match(import.meta.resolve("@superbee/portal-cloudflare/reconcile"), /\/node_modules\/@superbee\/portal-cloudflare\//);
   assert.match(import.meta.resolve("@superbee/portal"), /\/node_modules\/@superbee\/portal\//);
-  // The two fixed browser assets this site contributes. Resolved through their own subpath exports
-  // so a package that stopped publishing either is caught here rather than at deploy time.
-  assert.match(import.meta.resolve("@superbee/portal-webmcp/asset/v0"), /\/node_modules\/@superbee\/portal-webmcp\//);
-  assert.match(import.meta.resolve("@superbee/portal/client/v2/asset"), /\/node_modules\/@superbee\/portal\//);
+  // The fixed forwarder this site contributes and the descriptors its tool list is built from.
+  // Resolved through their own subpath exports so a package that stopped publishing either is
+  // caught here rather than at deploy time.
+  assert.match(import.meta.resolve("@superbee/portal-webmcp/asset/v2"), /\/node_modules\/@superbee\/portal-webmcp\//);
+  assert.match(import.meta.resolve("@superbee/agent-operations/read-tools"), /\/node_modules\/@superbee\/agent-operations\//);
   assert.equal(consumer.scripts["diagram:build"], "superbee-docs diagram apply --root . --config portal.config.json");
   assert.equal(
     consumer.scripts["portal:build"],
@@ -108,6 +112,11 @@ test("consumer uses only public published package surfaces and nested versioned 
     "/data/*",
     "/bundle/*",
     "/__superbee/bridge/*",
+    // The remote agent endpoint (agentAccess in scripts/cloudflare-worker.mjs).
+    "/mcp",
+    "/mcp/",
+    "/api/v1",
+    "/api/v1/*",
   ]);
   await assert.rejects(readFile("scripts/apply-diagrams.mjs"), (error) => error.code === "ENOENT");
   await assert.rejects(readFile("scripts/mkdocs-runtime.mjs"), (error) => error.code === "ENOENT");
