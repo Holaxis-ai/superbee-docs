@@ -155,13 +155,17 @@ test("the published bootstrap registers the five tools with no request, and a ca
       const warn = console.warn.bind(console);
       console.warn = (...parts) => { globalThis.__warnings.push(parts.map(String).join(" ")); warn(...parts); };
       globalThis.__tools = new Map();
-      document.modelContext = {
-        async registerTool(tool) {
-          globalThis.__registered.push(tool.name);
-          globalThis.__tools.set(tool.name, tool);
-          return undefined;
+      // defineProperty, not assignment: current Chromium has a native document.modelContext.
+      Object.defineProperty(document, "modelContext", {
+        configurable: true,
+        value: {
+          async registerTool(tool) {
+            globalThis.__registered.push(tool.name);
+            globalThis.__tools.set(tool.name, tool);
+            return undefined;
+          },
         },
-      };
+      });
     });
     await page.goto(`http://127.0.0.1:${address.port}/docs/learn/start-here/`, { waitUntil: "networkidle0" });
     await page.waitForFunction(() => globalThis.__registered.length > 0 || globalThis.__warnings.length > 0,
