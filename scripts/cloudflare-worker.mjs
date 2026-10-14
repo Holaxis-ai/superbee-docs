@@ -2,6 +2,8 @@
 
 import { createCloudflarePortalHandler } from "@superbee/portal-cloudflare";
 
+import { AGENT_RATE_LIMIT, AGENT_RATE_LIMIT_BINDING, AGENT_SECRET_BINDING } from "./agent-access-config.mjs";
+
 /*
  * Remote agent access: a read-only MCP endpoint at /mcp and the same tools as a GET/POST API under
  * /api/v1, answered from the published artifact. Pages, styles and fonts stay asset-first. The
@@ -18,8 +20,8 @@ export default createCloudflarePortalHandler({
       version: "1.0.0",
       websiteUrl: "https://docs.getsuperbee.com",
     },
-    rateLimitBinding: "AGENT_LIMITER",
-    secretBinding: "AGENT_IP_HASH_SECRET",
-    rateLimit: { requests: 60, seconds: 60 },
+    rateLimitBinding: AGENT_RATE_LIMIT_BINDING,
+    secretBinding: AGENT_SECRET_BINDING,
+    rateLimit: AGENT_RATE_LIMIT,
   },
 });

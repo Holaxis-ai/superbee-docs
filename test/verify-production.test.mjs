@@ -7,6 +7,8 @@ import test from "node:test";
 
 import { DEPLOYMENT_REDIRECTS } from "../scripts/deployment-assets.mjs";
 import {
+  AGENT_TOOL_NAMES,
+  agentEndpointVerificationRowsV1,
   DOCUMENTATION_NOT_FOUND_PROBE_ROUTE,
   documentationVerificationExtensionV1,
   PRODUCTION_VERIFICATION_RECEIPT_V1,
@@ -205,4 +207,39 @@ test("production verification preserves the final failure without retrying past 
   } finally {
     await rm(directory, { recursive: true, force: true });
   }
+});
+
+function agentFetch({ tools = AGENT_TOOL_NAMES, mcp = 200, openapi = 200 } = {}) {
+  const seen = [];
+  const impl = async (url, init = {}) => {
+    seen.push(`${init.method ?? "GET"} ${new URL(url).pathname}`);
+    if (new URL(url).pathname === "/mcp") {
+      return mcp === 200
+        ? Response.json({ jsonrpc: "2.0", id: 1, result: { tools: tools.map((name) => ({ name })) } })
+        : new Response("no", { status: mcp });
+    }
+    return openapi === 200 ? Response.json({ openapi: "3.1.0" }) : new Response("no", { status: openapi });
+  };
+  return { impl, seen };
+}
+
+test("production verification probes the agent endpoint and fails when it is off or renamed", async () => {
+  const healthy = agentFetch();
+  const rows = await agentEndpointVerificationRowsV1(ORIGIN, healthy.impl);
+  assert.deepEqual(rows.map((row) => [row.id, row.outcome]), [
+    ["agent endpoint POST /mcp tools/list", "pass"],
+    ["agent endpoint GET /api/v1/openapi.json", "pass"],
+  ]);
+  assert.deepEqual(healthy.seen, ["POST /mcp", "GET /api/v1/openapi.json"]);
+
+  // The binding is missing: the Worker falls through to the static site, which answers 405 / 404.
+  const off = await agentEndpointVerificationRowsV1(ORIGIN, agentFetch({ mcp: 405, openapi: 404 }).impl);
+  assert.deepEqual(off.map((row) => row.outcome), ["fail", "fail"]);
+  assert.ok(off.every((row) => typeof row.reason === "string" && row.reason.length > 0));
+
+  const renamed = await agentEndpointVerificationRowsV1(ORIGIN, agentFetch({ tools: ["inspect_bundle"] }).impl);
+  assert.deepEqual(renamed.map((row) => row.outcome), ["fail", "pass"]);
+
+  const unreachable = await agentEndpointVerificationRowsV1(ORIGIN, async () => { throw new Error("offline"); });
+  assert.deepEqual(unreachable.map((row) => row.outcome), ["fail", "fail"]);
 });

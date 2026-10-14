@@ -3,6 +3,8 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 
+import { AGENT_RATE_LIMIT, AGENT_RATE_LIMIT_BINDING, AGENT_SECRET_BINDING } from "../scripts/agent-access-config.mjs";
+
 // A fresh handler per test: the endpoint keeps its binding and verified artifact for the life of
 // an isolate, as in production, so a test that swaps the environment needs its own instance.
 let instance = 0;
@@ -12,9 +14,9 @@ const send = async (env, request) => {
   return workers.get(env).fetch(request, env);
 };
 
-// The Worker runs here exactly as Wrangler runs it, in front of the built Portal artifact (`dist`)
-// that the deployment assembles into `deploy`. Only the two Cloudflare bindings are stand-ins: the
-// static-assets binding reads `dist`, and the rate limiter admits a fixed number of calls. The
+// The Worker runs here exactly as Wrangler runs it, in front of the assembled `deploy` directory
+// that wrangler.jsonc names as the static-assets directory (a test below checks that). Only the two Cloudflare bindings are stand-ins: the
+// static-assets binding reads `deploy`, and the rate limiter admits a fixed number of calls. The
 // secret is a dummy; the live one is the owner's `wrangler secret put AGENT_IP_HASH_SECRET`.
 const TYPES = new Map([[".json", "application/json"], [".html", "text/html"], [".js", "text/javascript"],
   [".css", "text/css"], [".txt", "text/plain"], [".xml", "application/xml"], [".md", "text/markdown"],
@@ -31,15 +33,15 @@ function environment(allowed = Infinity) {
         for (const candidate of candidates) {
           if (candidate.includes("..")) break;
           try {
-            const bytes = await readFile(path.join("dist", candidate));
+            const bytes = await readFile(path.join("deploy", candidate));
             return new Response(bytes, { headers: { "Content-Type": TYPES.get(path.extname(candidate)) ?? "application/octet-stream" } });
           } catch { /* try the next candidate */ }
         }
         return new Response("Not found", { status: 404 });
       },
     },
-    AGENT_LIMITER: { async limit() { used += 1; return { success: used <= allowed }; } },
-    AGENT_IP_HASH_SECRET: "dummy-local-secret-for-tests-only",
+    [AGENT_RATE_LIMIT_BINDING]: { async limit() { used += 1; return { success: used <= allowed }; } },
+    [AGENT_SECRET_BINDING]: "dummy-local-secret-for-tests-only",
   };
 }
 
@@ -112,7 +114,12 @@ test("a batch of nine is refused, eight is answered, an oversized body is refuse
   const env = environment();
   const batch = (count) => Array.from({ length: count }, (_, id) => ({ jsonrpc: "2.0", id, method: "tools/call", params: { name: "inspect_bundle", arguments: {} } }));
   const legacy = { ...HEADERS, "mcp-protocol-version": "2025-03-26" };
-  assert.equal((await rpc(env, batch(8), legacy)).status, 200);
+  const eight = await rpc(env, batch(8), legacy);
+  assert.equal(eight.status, 200);
+  const answers = await eight.json();
+  assert.ok(Array.isArray(answers), "a batch is answered with an array");
+  assert.equal(answers.length, 8, "every request in the batch is answered");
+  assert.deepEqual(answers.map((answer) => answer.id).sort((a, b) => a - b), [0, 1, 2, 3, 4, 5, 6, 7]);
   assert.equal((await rpc(env, batch(9), legacy)).status, 400);
   assert.equal((await rpc(env, "x".repeat(70 * 1024))).status, 413);
 });
@@ -131,13 +138,26 @@ test("over the limit answers 429 with Retry-After and pages keep answering", asy
 
 test("without the rate-limit binding the endpoint is off and pages are untouched", async () => {
   const env = environment();
-  delete env.AGENT_LIMITER;
+  delete env[AGENT_RATE_LIMIT_BINDING];
   const originalWarn = console.warn;
   console.warn = () => {};
   try {
     const response = await rpc(env, { jsonrpc: "2.0", id: 1, method: "tools/list" });
     // Falls through to the site, which answers a POST to /mcp as it would any other path.
-    assert.ok([404, 405].includes(response.status), `status ${response.status}`);
+    assert.equal(response.status, 405);
     assert.equal((await send(env, new Request("https://docs.test/"))).status, 200);
   } finally { console.warn = originalWarn; }
+});
+
+test("wrangler.jsonc and the Worker agree on the binding names, the limit and the asset directory", async () => {
+  const wrangler = JSON.parse(await readFile("wrangler.jsonc", "utf8"));
+  const limiter = wrangler.ratelimits.filter((entry) => entry.name === AGENT_RATE_LIMIT_BINDING);
+  assert.equal(limiter.length, 1, `wrangler.jsonc declares exactly one ${AGENT_RATE_LIMIT_BINDING} binding`);
+  assert.equal(limiter[0].simple.limit, AGENT_RATE_LIMIT.requests);
+  assert.equal(limiter[0].simple.period, AGENT_RATE_LIMIT.seconds);
+  assert.equal(wrangler.assets.directory, "./deploy", "production serves `deploy`, which these tests read");
+  assert.ok(wrangler.compatibility_flags.includes("nodejs_compat"));
+  for (const route of ["/mcp", "/mcp/", "/api/v1", "/api/v1/*"]) {
+    assert.ok(wrangler.assets.run_worker_first.includes(route), `${route} runs the Worker first`);
+  }
 });

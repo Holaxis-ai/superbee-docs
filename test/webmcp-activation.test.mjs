@@ -109,27 +109,41 @@ test("only the bootstrap is linked, and only from documentation pages", () => {
   }
 });
 
-test("the published bootstrap registers the five tools with no request, and a call is one POST to /mcp", { timeout: 90_000 }, async () => {
+test("the published bootstrap registers the five tools with no request, and each call is one POST that the real Worker answers", { timeout: 90_000 }, async () => {
   // Executed, not grepped: the wiring is a runtime fact. The server below is the page's origin; it
-  // serves the artifact and records every request so "no request at registration" is measured, and it
-  // answers /mcp with a canned envelope so the forwarded call can be read back.
+  // serves the artifact and records every full URL so "no request at registration" is measured.
+  // /mcp is answered by the REAL Worker (scripts/cloudflare-worker.mjs), not a canned response, so
+  // the forwarder's actual request shape is what the handler sees. Only the two Cloudflare bindings
+  // are stand-ins: static assets read the composed artifact, and the limiter admits everything.
   const files = composed.artifact.files;
   const requests = [];
-  const server = createServer((request, response) => {
-    const requested = new URL(request.url ?? "/", "http://localhost").pathname.replace(/^\//, "");
-    requests.push(`${request.method} /${requested}`);
+  const worker = (await import("../scripts/cloudflare-worker.mjs")).default;
+  const env = {
+    ASSETS: {
+      async fetch(request) {
+        const pathname = decodeURIComponent(new URL(request.url).pathname).replace(/^\//, "");
+        const bytes = files.get(pathname) ?? files.get(`${pathname.replace(/\/$/, "")}/index.html`);
+        return bytes ? new Response(Buffer.from(bytes)) : new Response("missing", { status: 404 });
+      },
+    },
+    AGENT_LIMITER: { async limit() { return { success: true }; } },
+    AGENT_IP_HASH_SECRET: "dummy-local-secret-for-tests-only",
+  };
+  let forwarded = 0;
+  const server = createServer(async (request, response) => {
+    const url = new URL(request.url ?? "/", "http://localhost");
+    requests.push(`${request.method} ${url.pathname}${url.search}`);
+    const requested = url.pathname.replace(/^\//, "");
     if (requested === "mcp") {
+      forwarded += 1;
       const chunks = [];
-      request.on("data", (chunk) => chunks.push(chunk));
-      request.on("end", () => {
-        response.setHeader("Content-Type", "application/json");
-        const body = Buffer.concat(chunks).toString("utf8");
-        response.end(JSON.stringify({ jsonrpc: "2.0", id: JSON.parse(body).id, result: {
-          content: [{ type: "text", text: "ok" }],
-          structuredContent: { ok: true, operationId: "documents.search.v1", data: { echoed: body } },
-          isError: false,
-        } }));
-      });
+      for await (const chunk of request) chunks.push(chunk);
+      const answered = await worker.fetch(new Request(`http://${request.headers.host}/mcp`, {
+        method: request.method, headers: request.headers, body: Buffer.concat(chunks),
+      }), env);
+      response.statusCode = answered.status;
+      answered.headers.forEach((value, name) => response.setHeader(name, value));
+      response.end(Buffer.from(await answered.arrayBuffer()));
       return;
     }
     const bytes = files.get(requested) ?? files.get(`${requested.replace(/\/$/, "")}/index.html`);
@@ -149,13 +163,13 @@ test("the published bootstrap registers the five tools with no request, and a ca
     });
     const page = await browser.newPage();
     // A stand-in host, installed before any page script runs, that records what gets registered.
+    // defineProperty, not assignment: current Chromium has a native document.modelContext.
     await page.evaluateOnNewDocument(() => {
       globalThis.__registered = [];
       globalThis.__warnings = [];
       const warn = console.warn.bind(console);
       console.warn = (...parts) => { globalThis.__warnings.push(parts.map(String).join(" ")); warn(...parts); };
       globalThis.__tools = new Map();
-      // defineProperty, not assignment: current Chromium has a native document.modelContext.
       Object.defineProperty(document, "modelContext", {
         configurable: true,
         value: {
@@ -174,18 +188,22 @@ test("the published bootstrap registers the five tools with no request, and a ca
     assert.deepEqual(await page.evaluate(() => globalThis.__warnings), [], "activation must not warn on a correctly wired page");
     const registered = await page.evaluate(() => globalThis.__registered);
     assert.deepEqual([...registered].sort(), FIVE);
-    assert.deepEqual(requests.filter((entry) => entry.endsWith("/mcp") || entry.includes("/api/v1")), [],
+    assert.deepEqual(requests.filter((entry) => /\/mcp|\/api\/v1/u.test(entry)), [],
       "registration makes no request to the endpoint");
     assert.ok(!requests.some((entry) => /\/data\/(?:bundle|snapshot)\.json/u.test(entry)),
       "a version 2 page loads no read model");
 
-    const answer = await page.evaluate(async () => {
-      const result = await globalThis.__tools.get("search_documents").execute({ query: "install" });
-      return JSON.stringify(result);
-    });
-    const posts = requests.filter((entry) => entry === "POST /mcp");
-    assert.equal(posts.length, 1, "one call is one POST to /mcp");
-    assert.match(answer, /search_documents/u, `the forwarded body names the tool: ${answer}`);
+    const search = await page.evaluate(async () => globalThis.__tools.get("search_documents").execute({ query: "install" }));
+    assert.deepEqual(requests.filter((entry) => /\/mcp|\/api\/v1/u.test(entry)), ["POST /mcp"],
+      "one call is one POST to /mcp, with no query string, so the input never rides in a URL");
+    assert.equal(forwarded, 1);
+    assert.equal(search.ok, true, `the real Worker's structured answer comes back: ${JSON.stringify(search).slice(0, 300)}`);
+    assert.equal(search.operationId, "documents.search.v1");
+    assert.ok(Array.isArray(search.data.hits) && search.data.hits.length > 0, "search finds documents");
+
+    const inspected = await page.evaluate(async () => globalThis.__tools.get("inspect_bundle").execute({}));
+    assert.equal(inspected.ok, true);
+    assert.equal(inspected.data.bundle.bundleId, "superbee-docs");
   } finally {
     if (browser) await browser.close();
     await new Promise((closed) => server.close(closed));
