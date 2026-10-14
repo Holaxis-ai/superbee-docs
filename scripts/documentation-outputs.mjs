@@ -22,7 +22,6 @@ import {
   authorizePortalWrite,
 } from "@superbee/portal";
 
-import { assistantRoutesAssetV1 } from "./assistant-routes.mjs";
 import { validateDocumentationGuidance } from "./documentation-guidance.mjs";
 import { assertSnapshotReleaseVersionLabel } from "./release-version-label.mjs";
 
@@ -169,23 +168,9 @@ async function documentationCompositionOptions({
           publicationId: config.documentation.publicationId,
           overlay: { ...overlay, ...(freshness.length ? { freshness } : {}) },
         });
-        // Page links for agent answers: the routes file is a published file, so it is built from a
-        // provisional artifact (same snapshot, projection and assets) and then joins the real one.
-        let routesAsset;
-        try {
-          routesAsset = await assistantRoutesAssetV1({
-            snapshot,
-            projection: compiled.projection,
-            config,
-            portalAssets,
-          });
-        } catch (error) {
-          await compiled.projection.close();
-          throw error;
-        }
         return {
           projection: compiled.projection,
-          portalAssets: [...portalAssets, routesAsset],
+          portalAssets,
           metadata: { guidance, compilation: compiled.receipt },
         };
       } finally {

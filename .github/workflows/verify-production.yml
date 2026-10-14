@@ -105,7 +105,8 @@ jobs:
           --receipt production-verification-receipt.json
           --source-repository "$GITHUB_REPOSITORY"
           --source-commit "$GITHUB_SHA"
-          --attempts 1
+          --attempts 3
+          --delay-ms 15000
       - name: Preserve reconciliation and verification receipts
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
