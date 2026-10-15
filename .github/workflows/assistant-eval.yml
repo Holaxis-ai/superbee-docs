@@ -1,0 +1,62 @@
+name: Assistant golden questions (live)
+
+# Runs the docs assistant's golden questions against the real model when its prompt or questions
+# change, and on demand. It needs the ANTHROPIC_EVAL_API_KEY secret (a key in the docs assistant's
+# own Console workspace); without it the job reports that it was skipped. The deterministic mock
+# suite runs on every pull request in check.yml.
+on:
+  pull_request:
+    paths:
+      - ".superbee/assistant/**"
+      - "scripts/assistant-config.mjs"
+      # Package bumps can change the platform prompt and tools.
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: assistant-eval-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Require the eval key
+        id: key
+        env:
+          KEY: ${{ secrets.ANTHROPIC_EVAL_API_KEY }}
+        run: |
+          if [ -z "$KEY" ]; then echo "::notice::ANTHROPIC_EVAL_API_KEY is not set; the live golden questions did not run."; echo "present=false" >> "$GITHUB_OUTPUT"; else echo "present=true" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: steps.key.outputs.present == 'true'
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        if: steps.key.outputs.present == 'true'
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: "https://registry.npmjs.org"
+      - if: steps.key.outputs.present == 'true'
+        run: npm ci
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
+      - if: steps.key.outputs.present == 'true'
+        run: npm run portal:build
+      # The cap stops runaway spend; size it from assistant-eval.json after the first live run.
+      - name: Ask every golden question of the real model (capped at $3)
+        if: steps.key.outputs.present == 'true'
+        run: npm run assistant:eval -- --live --max-usd 3 --json assistant-eval.json
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_EVAL_API_KEY }}
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always() && steps.key.outputs.present == 'true'
+        with:
+          name: assistant-eval
+          path: assistant-eval.json
+          if-no-files-found: ignore
