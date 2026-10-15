@@ -45,3 +45,5 @@ jobs:
           npm run portal:build
           npm run mkdocs:sync
       - run: npm run check
+      - name: Run the assistant's golden questions (deterministic mock)
+        run: npm run assistant:eval

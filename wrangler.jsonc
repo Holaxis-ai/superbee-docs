@@ -25,9 +25,12 @@
       "/mcp",
       "/mcp/",
       "/api/v1",
-      "/api/v1/*"
+      "/api/v1/*",
+      "/__superbee/assistant/*"
     ]
   },
+  "durable_objects": { "bindings": [{ "name": "SUPERBEE_ASSISTANT", "class_name": "SuperbeeAssistant" }] },
+  "migrations": [{ "tag": "superbee-assistant-v1", "new_sqlite_classes": ["SuperbeeAssistant"] }],
   "ratelimits": [
     {
       "name": "AGENT_LIMITER",

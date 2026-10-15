@@ -1,8 +1,11 @@
 /* The host-neutral runtime stays package-owned; this file only gives Wrangler a stable entry. */
 
-import { createCloudflarePortalHandler } from "@superbee/portal-cloudflare";
+import { createCloudflarePortalHandler, SuperbeeAssistant } from "@superbee/portal-cloudflare";
 
 import { AGENT_RATE_LIMIT, AGENT_RATE_LIMIT_BINDING, AGENT_SECRET_BINDING } from "./agent-access-config.mjs";
+import { ASSISTANT } from "./assistant-config.mjs";
+
+export { SuperbeeAssistant };
 
 /*
  * Remote agent access: a read-only MCP endpoint at /mcp and the same tools as a GET/POST API under
@@ -24,4 +27,5 @@ export default createCloudflarePortalHandler({
     secretBinding: AGENT_SECRET_BINDING,
     rateLimit: AGENT_RATE_LIMIT,
   },
+  assistant: ASSISTANT,
 });

@@ -141,6 +141,8 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
       "/mcp/",
       "/api/v1",
       "/api/v1/*",
+      // The assistant (assistant in scripts/cloudflare-worker.mjs): config, conversations, ledger.
+      "/__superbee/assistant/*",
     ]);
     // Cloudflare selects the artifact's own 404.html only under this exact assets setting.
     assert.equal(wrangler.assets.not_found_handling, "404-page");

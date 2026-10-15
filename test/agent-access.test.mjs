@@ -183,3 +183,24 @@ test("wrangler.jsonc and the Worker agree on the binding names, the limit and th
     assert.ok(wrangler.assets.run_worker_first.includes(route), `${route} runs the Worker first`);
   }
 });
+
+// The assistant ships switched off: without SUPERBEE_ASSISTANT_ENABLED="true" and the provider key,
+// every assistant route answers 404 and pages are unaffected. The Worker exports the Durable Object
+// class wrangler.jsonc binds, and the instructions document the block names is in the bundle.
+test("the assistant is wired but off until the owner turns it on", async () => {
+  const worker = await import(`../scripts/cloudflare-worker.mjs?instance=${instance += 1}`);
+  const { ASSISTANT } = await import("../scripts/assistant-config.mjs");
+  assert.equal(typeof worker.SuperbeeAssistant, "function");
+  const wrangler = JSON.parse((await readFile("wrangler.jsonc", "utf8")).replace(/^\s*\/\/.*$/gmu, ""));
+  assert.deepEqual(wrangler.durable_objects.bindings, [{ name: "SUPERBEE_ASSISTANT", class_name: "SuperbeeAssistant" }]);
+  assert.ok(wrangler.migrations.some((row) => row.new_sqlite_classes?.includes("SuperbeeAssistant")));
+  assert.ok(wrangler.assets.run_worker_first.includes("/__superbee/assistant/*"));
+  const instructions = await readFile(path.join(".superbee", ASSISTANT.instructions), "utf8");
+  assert.match(instructions, /^---\ntype: Assistant Instructions\n/u);
+  assert.ok(new TextEncoder().encode(instructions).byteLength < 8192);
+  const env = environment();
+  const config = await worker.default.fetch(new Request("https://docs.getsuperbee.com/__superbee/assistant/v1/config"), env);
+  assert.equal(config.status, 404);
+  const page = await worker.default.fetch(new Request("https://docs.getsuperbee.com/"), env);
+  assert.equal(page.status, 200);
+});

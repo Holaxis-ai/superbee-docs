@@ -43,17 +43,19 @@
     "check": "npm run package-verification:check && npm run diagram:check && npm run docs:release:check && npm run cli-reference:check && npm run release-package:check && npm run architecture:check && npm run docs:impact:check && npm run prose:check && npm run bundle:check && npm run portal:check && npm run portal:build && npm run mkdocs:build && npm run cloudflare:check && npm run cloudflare:reconciliation:check && npm test",
     "docs:release:finalize": "node scripts/release-conductor.mjs finalize",
     "release-package:check": "node scripts/release-package-journeys.mjs",
-    "package-verification:check": "node scripts/check-package-verification.mjs"
+    "package-verification:check": "node scripts/check-package-verification.mjs",
+    "assistant:eval": "superbee-portal-assistant-eval --artifact dist --config scripts/assistant-config.mjs --questions .superbee/assistant/golden-questions.md"
   },
   "dependencies": {
     "@superbee/agent-operations": "0.1.0-pre.4",
+    "@superbee/assistant-runtime": "0.1.0-pre.6",
     "@superbee/core": "0.2.0-pre.11",
     "@superbee/docs-mkdocs": "0.2.2",
     "@superbee/docs-projection": "0.2.5",
     "@superbee/docs-tooling": "0.2.4",
-    "@superbee/portal": "0.2.10",
-    "@superbee/portal-cloudflare": "0.2.12",
-    "@superbee/portal-docs": "0.2.3",
+    "@superbee/portal": "0.2.13",
+    "@superbee/portal-cloudflare": "0.2.15",
+    "@superbee/portal-docs": "0.2.4",
     "@superbee/portal-webmcp": "0.3.2",
     "@superbee/recipe-studio": "0.1.3",
     "superbee": "0.4.2"
