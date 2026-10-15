@@ -9,6 +9,9 @@ on:
     paths:
       - ".superbee/assistant/**"
       - "scripts/assistant-config.mjs"
+      # Package bumps can change the platform prompt and tools.
+      - "package.json"
+      - "package-lock.json"
   workflow_dispatch:
 
 permissions:
@@ -45,6 +48,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
       - if: steps.key.outputs.present == 'true'
         run: npm run portal:build
+      # The cap stops runaway spend; size it from assistant-eval.json after the first live run.
       - name: Ask every golden question of the real model (capped at $3)
         if: steps.key.outputs.present == 'true'
         run: npm run assistant:eval -- --live --max-usd 3 --json assistant-eval.json

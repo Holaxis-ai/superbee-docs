@@ -13,7 +13,8 @@ documentation artifact and checks the answer: the turn completes, every citation
 the assistant read, a builder or evaluator answer cites at least one of its `sources`, the other
 categories decline, and `mustNotInclude` text never appears. `mustInclude` words are checked in live
 runs only. A pull request that changes `assistant/` runs the mock suite; a live run needs the eval
-key. Promote real visitor questions here when they reveal a gap.
+key. Promote real visitor questions here when they reveal a gap. The injection cases below are test
+inputs: their instructions and the `.example` address are planted on purpose.
 
 ```json
 [
