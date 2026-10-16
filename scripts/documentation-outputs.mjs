@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { mkdtemp, readFile, realpath, rm } from "node:fs/promises";
+import { cp, lstat, mkdtemp, readFile, realpath, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { pathToFileURL } from "node:url";
@@ -121,10 +121,35 @@ async function documentationCompositionOptions({
   const realRoot = await realpath(path.resolve(root));
   const config = await readDocumentationSiteConfigV3(path.resolve(realRoot, configFile));
   if (!config.diagrams) throw new Error("dual documentation outputs require verified static diagram configuration");
-  const authority = writePortal ? await authorizePortalWrite(config.bundle, config.output) : undefined;
+  // Hosted content and Git-owned assistant policy meet only in this disposable build input.
+  // Keep config.bundle pointing at the content checkout for guidance, diagrams and freshness.
+  try {
+    await lstat(path.join(config.bundle, "assistant"));
+    throw new Error("documentation content must not contain Git-owned assistant configuration");
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  if (writePortal) {
+    // The staging copy must not weaken Portal's protection of either original input.
+    await authorizePortalWrite(config.bundle, config.output);
+    await authorizePortalWrite(path.join(realRoot, "assistant"), config.output);
+  }
+  const temporary = await mkdtemp(path.join(tmpdir(), "superbee-docs-composition-"));
+  const cleanup = () => rm(temporary, { recursive: true, force: true });
+  const sourceDirectory = path.join(await realpath(temporary), "bundle");
+  let authority;
+  try {
+    await cp(config.bundle, sourceDirectory, { recursive: true });
+    await cp(path.join(realRoot, "assistant"), path.join(sourceDirectory, "assistant"), { recursive: true });
+    authority = writePortal ? await authorizePortalWrite(sourceDirectory, config.output) : undefined;
+  } catch (error) {
+    await cleanup();
+    throw error;
+  }
   return {
+    cleanup,
     config,
-    sourceDirectory: authority?.sourceDirectory ?? config.bundle,
+    sourceDirectory: authority?.sourceDirectory ?? sourceDirectory,
     mkdocsOutput: path.resolve(mkdocsOutput),
     ...(authority ? { portalAuthority: authority } : {}),
     compileProjection: async ({ snapshot }) => {
@@ -227,20 +252,30 @@ function documentationOutputsResult(composition) {
 
 /** Compose both outputs through the package-owned one-snapshot, one-projection lifecycle. */
 export async function composeDocumentationOutputs(options = {}) {
-  const composition = await composeDocumentationSiteV3(await documentationCompositionOptions(options));
-  return documentationOutputsResult(composition);
+  const { cleanup, ...compositionOptions } = await documentationCompositionOptions(options);
+  try {
+    return documentationOutputsResult(await composeDocumentationSiteV3(compositionOptions));
+  } finally {
+    await cleanup();
+  }
 }
 
 export async function startDocumentationOutputsPreview(options = {}, previewOptions = {}) {
-  const preview = await startDocumentationSitePreviewV3(
-    await documentationCompositionOptions({ ...options, writePortal: true }),
-    previewOptions,
-  );
-  return {
-    ...documentationOutputsResult(preview.composition),
-    preview: preview.result,
-    close: preview.close,
-  };
+  const { cleanup, ...compositionOptions } = await documentationCompositionOptions({ ...options, writePortal: true });
+  try {
+    const preview = await startDocumentationSitePreviewV3(compositionOptions, previewOptions);
+    return {
+      ...documentationOutputsResult(preview.composition),
+      preview: preview.result,
+      close: async () => {
+        try { await preview.close(); }
+        finally { await cleanup(); }
+      },
+    };
+  } catch (error) {
+    await cleanup();
+    throw error;
+  }
 }
 
 async function run(command, options = {}) {

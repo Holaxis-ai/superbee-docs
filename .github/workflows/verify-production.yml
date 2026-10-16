@@ -14,28 +14,12 @@ concurrency:
   group: superbee-docs-cloudflare-production
   cancel-in-progress: false
 
-# Content source. The site's content lives in the hosted bundle holaxis-sites/superbee-docs
-# (scripts/hosted-content.mjs). The build reads it once the repository variable DOCS_HOSTED_APP_ID
-# names that workspace's registered workload app; until then it reads .superbee from Git as before.
-# DO NOT set DOCS_HOSTED_APP_ID until production workload admission accepts this public repository
-# for a read-only app row (superbee-hosted appClaimChecks); before that every exchange is refused
-# (403 claim_repository_visibility) and production stops deploying.
-# With the variable set:
-# - acquire is the only job with id-token: write. It runs in the holaxis-sites-docs environment
-#   (the app row names it, and its main-only deployment rule is the repository admin's off switch),
-#   installs with --ignore-scripts, exchanges the job's OIDC token for a 900 s read bearer around the
-#   one export command, and hands the verified export to build as an artifact.
-# - build makes .superbee the export (assistant/ stays from Git: it is configuration) and builds.
-# - The app admits schedule and workflow_dispatch runs only, so a push to main re-dispatches this
-#   workflow on main instead of building. After a hosted content change, run it by hand:
-#   gh workflow run verify-production.yml --ref main
-# - The daily schedule deploys (instead of only probing), so hosted edits reach production within a day.
-# - This repository is public, so its Actions logs and artifacts are public: the token client masks the
-#   sbw_ bearer (::add-mask::) before anything runs, and the export artifact is the only content upload,
-#   kept 1 day.
+# Only the environment-bound acquire job can mint a hosted read token. Other workflows
+# reuse its public export after this complete main production run succeeds (30-day retention).
+# Push events redispatch because the workload app admits only dispatch and schedule.
 jobs:
   redispatch:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DOCS_HOSTED_APP_ID != ''
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -47,7 +31,7 @@ jobs:
         run: gh workflow run verify-production.yml --repo "$GITHUB_REPOSITORY" --ref main
 
   acquire:
-    if: github.ref == 'refs/heads/main' && vars.DOCS_HOSTED_APP_ID != '' && github.event_name != 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: holaxis-sites-docs
@@ -89,13 +73,13 @@ jobs:
           path: ${{ runner.temp }}/hosted
           if-no-files-found: error
           overwrite: true
-          retention-days: 1
+          retention-days: 30
 
   build:
     needs: acquire
     if: >-
       ${{ !cancelled() && github.ref == 'refs/heads/main'
-      && (vars.DOCS_HOSTED_APP_ID == '' || (github.event_name != 'push' && needs.acquire.result == 'success')) }}
+      && github.event_name != 'push' && needs.acquire.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -111,13 +95,11 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
       - name: Restore the verified hosted export
-        if: vars.DOCS_HOSTED_APP_ID != ''
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: superbee-docs-hosted-content-${{ github.run_id }}
           path: ${{ runner.temp }}/hosted
-      - name: Make .superbee the hosted content (assistant/ stays from Git)
-        if: vars.DOCS_HOSTED_APP_ID != ''
+      - name: Make .superbee exactly the hosted content
         env:
           TREE_DIGEST: ${{ needs.acquire.outputs.tree_digest }}
         run: node scripts/hosted-content.mjs materialize --from "$RUNNER_TEMP/hosted/export" --tree-digest "$TREE_DIGEST"
@@ -135,8 +117,6 @@ jobs:
           retention-days: 1
 
   reconcile:
-    # needs.build.result, not the implicit success(): build may follow a skipped acquire (Git mode),
-    # and a skipped ancestor would otherwise skip this job too.
     if: ${{ !cancelled() && github.ref == 'refs/heads/main' && needs.build.result == 'success' }}
     needs: build
     runs-on: ubuntu-latest
@@ -181,7 +161,7 @@ jobs:
         continue-on-error: true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          RECONCILIATION_MODE: ${{ github.event_name == 'schedule' && vars.DOCS_HOSTED_APP_ID == '' && 'probe' || 'deploy' }}
+          RECONCILIATION_MODE: deploy
         run: >-
           node scripts/reconcile-cloudflare.mjs
           --mode "$RECONCILIATION_MODE"

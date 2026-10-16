@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   check:
@@ -37,6 +38,10 @@ jobs:
       - run: npm ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
+      - name: Restore public content from a verified main production export
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/hosted-content.mjs snapshot
       - run: npm run source:sync
       - name: Bootstrap the exact MkDocs environment
         run: |

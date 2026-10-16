@@ -14,6 +14,9 @@ import {
   exportHosted,
   listFiles,
   materialize,
+  materializeSnapshot,
+  selectSnapshot,
+  RECEIPT_SCHEMA,
   readFreshnessBaseline,
   treeDigest,
   withFreshnessBaseline,
@@ -29,22 +32,19 @@ async function folder(files) {
   return root;
 }
 
-test("materialize makes the bundle folder exactly the export and keeps the Git configuration", async () => {
+test("materialize makes a reader folder exactly the hosted export", async () => {
   const exported = await folder({ "index.md": "i", "guides/a.md": "hosted a", "visuals/x.svg": "<svg/>" });
   const bundle = await folder({
     "index.md": "old",
     "guides/a.md": "git a",
     "guides/stale.md": "removed on the host",
-    "assistant/instructions.md": "config",
-    "assistant/golden-questions.md": "config",
   });
   try {
     const placed = await materialize({ from: exported, bundleDir: bundle });
     assert.deepEqual(await listFiles(bundle), [
-      "assistant/golden-questions.md", "assistant/instructions.md", "guides/a.md", "index.md", "visuals/x.svg",
+      "guides/a.md", "index.md", "visuals/x.svg",
     ]);
     assert.equal(await readFile(path.join(bundle, "guides/a.md"), "utf8"), "hosted a");
-    assert.equal(await readFile(path.join(bundle, "assistant/instructions.md"), "utf8"), "config");
     assert.equal(placed.files, 3);
     assert.equal(placed.treeDigest, await treeDigest(exported, await listFiles(exported)));
     assert.deepEqual(await compareTrees(bundle, exported), { identical: 3, differ: [], onlyLeft: [], onlyRight: [] });
@@ -203,7 +203,7 @@ test("materialize checks the handed-over digest and leaves the old folder whole 
     assert.equal(await readFile(path.join(bundle, "index.md"), "utf8"), "old");
     const right = await treeDigest(exported, await listFiles(exported));
     await materialize({ from: exported, bundleDir: bundle, expectedDigest: right });
-    assert.deepEqual(await listFiles(bundle), ["assistant/instructions.md", "guides/a.md", "index.md"]);
+    assert.deepEqual(await listFiles(bundle), ["guides/a.md", "index.md"]);
     const siblings = (await readdir(path.dirname(bundle))).filter((name) => name.startsWith(`${path.basename(bundle)}.`));
     assert.deepEqual(siblings, [], "no staging or retired folder is left behind");
   } finally {
@@ -212,17 +212,13 @@ test("materialize checks the handed-over digest and leaves the old folder whole 
   }
 });
 
-test("materialize refuses a configuration folder that holds a link", async () => {
+test("materialize cannot overwrite a bound or copied writer checkout", async () => {
   const exported = await folder({ "index.md": "i" });
-  const bundle = await folder({ "index.md": "old", "assistant/instructions.md": "config" });
+  const bundle = await folder({ "index.md": "unsent edit", ".superbee/checkout.json": "{}" });
   try {
-    await symlink("/etc/hosts", path.join(bundle, "assistant", "hosts.md"));
-    await assert.rejects(materialize({ from: exported, bundleDir: bundle }), /symbolic link/);
-    assert.equal(await readFile(path.join(bundle, "index.md"), "utf8"), "old");
-  } finally {
-    await rm(exported, { recursive: true, force: true });
-    await rm(bundle, { recursive: true, force: true });
-  }
+    await assert.rejects(materialize({ from: exported, bundleDir: bundle }), /writer checkout/);
+    assert.equal(await readFile(path.join(bundle, "index.md"), "utf8"), "unsent edit");
+  } finally { for (const dir of [exported, bundle]) await rm(dir, { recursive: true, force: true }); }
 });
 
 test("materialize refuses a linked bundle or configuration folder, a source inside it, and a differently cased config path", async () => {
@@ -238,9 +234,6 @@ test("materialize refuses a linked bundle or configuration folder, a source insi
     const bundle = path.join(parent, "bundle");
     await mkdir(path.join(bundle, "guides"), { recursive: true });
     await writeFile(path.join(bundle, "index.md"), "old");
-    await symlink(victim, path.join(bundle, "assistant"));
-    await assert.rejects(materialize({ from: exported, bundleDir: bundle }), /not a folder/);
-    await rm(path.join(bundle, "assistant"));
     await writeFile(path.join(bundle, "guides", "index.md"), "nested");
     await assert.rejects(materialize({ from: path.join(bundle, "guides"), bundleDir: bundle }), /is inside/);
     assert.equal(await readFile(path.join(bundle, "index.md"), "utf8"), "old");
@@ -298,4 +291,48 @@ test("the pinned CLI selects the workload host without a stored personal session
     assert.equal(new URL(request.url).origin, HOSTED_CONTENT.gateway);
     assert.equal(request.authorization, `Bearer ${token}`);
   } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+
+const trustedRun = {
+  id: 42, status: "completed", conclusion: "success", head_branch: "main", event: "workflow_dispatch",
+  path: ".github/workflows/verify-production.yml", head_sha: "a".repeat(40),
+  repository: { id: 1349797123 }, head_repository: { id: 1349797123 },
+};
+const retainedArtifact = { id: 123, name: "superbee-docs-hosted-content-42", expired: false, expires_at: "2099-01-01T00:00:00Z" };
+
+test("CI snapshot selects only a retained export from a successful trusted main production run", async () => {
+  const select = (run = trustedRun, artifact = retainedArtifact, ancestor = true) => selectSnapshot({
+    api: async (endpoint) => endpoint.includes("/artifacts?") ? { artifacts: [artifact] } : { workflow_runs: [run] },
+    isMainAncestor: async () => ancestor,
+  });
+  assert.deepEqual(await select(), { runId: 42, sourceCommit: "a".repeat(40), artifactId: 123, name: retainedArtifact.name });
+  for (const change of [{ event: "pull_request" }, { conclusion: "failure" }, { status: "in_progress" },
+    { head_branch: "feature" }, { path: ".github/workflows/other.yml" }, { head_repository: { id: 99 } },
+    { repository: { id: 99 } }]) await assert.rejects(select({ ...trustedRun, ...change }), /no retained verified main/);
+  for (const change of [{ expired: true }, { expires_at: "2000-01-01T00:00:00Z" }, { name: "other" }]) {
+    await assert.rejects(select(trustedRun, { ...retainedArtifact, ...change }), /no retained verified main/);
+  }
+  await assert.rejects(select(trustedRun, retainedArtifact, false), /no retained verified main/);
+});
+
+test("snapshot receipt and complete content bytes are checked before replacing the reader tree", async () => {
+  const root = await folder({ "export/index.md": "i", "export/guides/a.md": "page" });
+  const bundle = await folder({ "index.md": "keep" });
+  const receipt = {
+    schema: RECEIPT_SCHEMA, bundle: HOSTED_CONTENT.bundle, host: HOSTED_CONTENT.gateway,
+    revision: 3, exportedAt: "2026-10-16T00:00:00.000Z", documents: 1, reserved: 1, blobs: 0,
+    bytes: 5, files: 2, treeDigest: await treeDigest(path.join(root, "export"), ["guides/a.md", "index.md"]),
+  };
+  try {
+    for (const change of [{ host: "https://elsewhere" }, { bundle: "other" }, { files: 3 }, { bytes: 6 }, { treeDigest: V(0) }]) {
+      await writeFile(path.join(root, "receipt.json"), JSON.stringify({ ...receipt, ...change }));
+      await assert.rejects(materializeSnapshot({ directory: root, bundleDir: bundle }));
+      assert.equal(await readFile(path.join(bundle, "index.md"), "utf8"), "keep");
+    }
+    await writeFile(path.join(root, "receipt.json"), JSON.stringify(receipt));
+    const placed = await materializeSnapshot({ directory: root, bundleDir: bundle });
+    assert.equal(placed.revision, 3);
+    assert.deepEqual(await listFiles(bundle), ["guides/a.md", "index.md"]);
+  } finally { for (const dir of [root, bundle]) await rm(dir, { recursive: true, force: true }); }
 });
