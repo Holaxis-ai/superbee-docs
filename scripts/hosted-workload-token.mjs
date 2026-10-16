@@ -11,7 +11,8 @@
 //      in its environment, and exit with its status.
 // The bearer reaches only that command's process tree, never $GITHUB_ENV or a later step, and every
 // long step gets its own exchange (design m6: there is no refresh; a run may exchange 20 times). The
-// child does not get ACTIONS_ID_TOKEN_REQUEST_URL/_TOKEN, so nothing it runs can mint another token.
+// child does not get ACTIONS_ID_TOKEN_REQUEST_URL/_TOKEN in its environment. That is hygiene, not a
+// boundary: a same-user process can still read its parent's environment.
 //
 // Fixed here, never from an input (design §10 M3 condition 2): the audience, the gateway and the
 // workspace. The app id comes from the repository variable DOCS_HOSTED_APP_ID; it only names a row, and

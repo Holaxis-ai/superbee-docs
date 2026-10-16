@@ -222,3 +222,31 @@ test("materialize refuses a configuration folder that holds a link", async () =>
     await rm(bundle, { recursive: true, force: true });
   }
 });
+
+test("materialize refuses a linked bundle or configuration folder, a source inside it, and a differently cased config path", async () => {
+  const exported = await folder({ "index.md": "i" });
+  const victim = await folder({ "precious.txt": "keep" });
+  const parent = await folder({});
+  try {
+    const linked = path.join(parent, "linked");
+    await symlink(victim, linked);
+    await assert.rejects(materialize({ from: exported, bundleDir: linked }), /not a folder/);
+    assert.equal(await readFile(path.join(victim, "precious.txt"), "utf8"), "keep");
+
+    const bundle = path.join(parent, "bundle");
+    await mkdir(path.join(bundle, "guides"), { recursive: true });
+    await writeFile(path.join(bundle, "index.md"), "old");
+    await symlink(victim, path.join(bundle, "assistant"));
+    await assert.rejects(materialize({ from: exported, bundleDir: bundle }), /not a folder/);
+    await rm(path.join(bundle, "assistant"));
+    await writeFile(path.join(bundle, "guides", "index.md"), "nested");
+    await assert.rejects(materialize({ from: path.join(bundle, "guides"), bundleDir: bundle }), /is inside/);
+    assert.equal(await readFile(path.join(bundle, "index.md"), "utf8"), "old");
+
+    const cased = await folder({ "index.md": "i", "Assistant/instructions.md": "x" });
+    await assert.rejects(materialize({ from: cased, bundleDir: bundle }), /is configuration/);
+    await rm(cased, { recursive: true, force: true });
+  } finally {
+    for (const dir of [exported, victim, parent]) await rm(dir, { recursive: true, force: true });
+  }
+});

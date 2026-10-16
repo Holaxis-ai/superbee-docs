@@ -113,7 +113,7 @@ export async function checkExport(from) {
   const files = await listFiles(from);
   for (const file of files) {
     const [top] = file.split("/");
-    if (HOSTED_CONTENT.configPaths.includes(top)) fail(`the hosted bundle carries ${file}; ${top}/ is configuration and stays in git`);
+    if (HOSTED_CONTENT.configPaths.includes(top.toLowerCase())) fail(`the hosted bundle carries ${file}; ${top}/ is configuration and stays in git`);
     if (file.split("/").some((segment) => segment.startsWith("."))) fail(`the hosted bundle carries the dot entry ${file}`);
   }
   if (!files.includes("index.md")) fail("the export has no root index.md");
@@ -141,7 +141,9 @@ export async function materialize({ from, bundleDir = BUNDLE_PATH, expectedDiges
     fail(`${from} does not match tree digest ${JSON.stringify(expectedDigest)}`);
   }
   const info = await lstat(bundleDir).catch(() => null);
-  if (info && !info.isDirectory()) fail(`${bundleDir} is not a folder`);
+  if (info && !info.isDirectory()) fail(`${bundleDir} is not a folder (a link is refused)`);
+  const inside = path.relative(path.resolve(bundleDir), path.resolve(from));
+  if (!inside.startsWith("..") && !path.isAbsolute(inside)) fail(`${from} is inside ${bundleDir}`);
   const suffix = randomBytes(6).toString("hex");
   const staging = `${bundleDir}.staging-${suffix}`;
   const retired = `${bundleDir}.retired-${suffix}`;
@@ -149,7 +151,9 @@ export async function materialize({ from, bundleDir = BUNDLE_PATH, expectedDiges
     await cp(from, staging, { recursive: true, errorOnExist: true, force: false });
     for (const name of info ? HOSTED_CONTENT.configPaths : []) {
       const config = path.join(bundleDir, name);
-      if (!await lstat(config).catch(() => null)) continue;
+      const kept = await lstat(config).catch(() => null);
+      if (!kept) continue;
+      if (!kept.isDirectory()) fail(`${config} is not a folder (a link is refused)`);
       await listFiles(config);
       await cp(config, path.join(staging, name), { recursive: true, errorOnExist: true, force: false });
     }
