@@ -81,9 +81,8 @@ function superbeeCommand(env) {
 /** Run the pinned `superbee export` into a new folder and check its receipt. */
 export function exportHosted({ to, env = process.env, run = spawnSync }) {
   if (!to) fail("export needs --to <new folder>");
-  const args = ["export", HOSTED_CONTENT.bundle, "--to", to, "--json"];
-  // A workload bearer names its own gateway (SUPERBEE_HOST); a person's session needs the host.
-  if (!env.SUPERBEE_ACCESS_TOKEN) args.splice(2, 0, "--host", HOSTED_CONTENT.gateway);
+  // Token/host environment variables bind the credential, but do not select the host for a named bundle.
+  const args = ["export", HOSTED_CONTENT.bundle, "--host", HOSTED_CONTENT.gateway, "--to", to, "--json"];
   const [command, prefix] = superbeeCommand(env);
   const result = run(command, [...prefix, ...args], { encoding: "utf8", env, maxBuffer: 16 << 20 });
   let receipt;
