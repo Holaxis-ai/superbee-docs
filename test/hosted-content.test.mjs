@@ -250,3 +250,18 @@ test("materialize refuses a linked bundle or configuration folder, a source insi
     for (const dir of [exported, victim, parent]) await rm(dir, { recursive: true, force: true });
   }
 });
+
+test("materialize refuses a linked source export and leaves it untouched", async () => {
+  const exported = await folder({ "index.md": "i" });
+  const parent = await folder({});
+  const bundle = await folder({ "index.md": "old", "assistant/instructions.md": "config" });
+  try {
+    const linked = path.join(parent, "export");
+    await symlink(exported, linked);
+    await assert.rejects(materialize({ from: linked, bundleDir: bundle }), /not a folder/);
+    assert.deepEqual(await listFiles(exported), ["index.md"], "the source gains no assistant/");
+    assert.equal(await readFile(path.join(bundle, "index.md"), "utf8"), "old");
+  } finally {
+    for (const dir of [exported, parent, bundle]) await rm(dir, { recursive: true, force: true });
+  }
+});

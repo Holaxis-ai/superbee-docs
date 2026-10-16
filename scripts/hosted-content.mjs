@@ -17,7 +17,7 @@
 // entry, a symlink or anything but plain files and folders is refused before .superbee is touched.
 import { createHash } from "node:crypto";
 import { execFileSync, spawnSync } from "node:child_process";
-import { cp, lstat, mkdir, mkdtemp, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { cp, lstat, mkdir, mkdtemp, readdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
 import { randomBytes } from "node:crypto";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -135,6 +135,8 @@ export const TREE_DIGEST = /^sha256:[0-9a-f]{64}$/;
  * is copied.
  */
 export async function materialize({ from, bundleDir = BUNDLE_PATH, expectedDigest }) {
+  const source = await lstat(from).catch(() => null);
+  if (!source?.isDirectory()) fail(`${from} is not a folder (a link is refused)`);
   const files = await checkExport(from);
   const digest = await treeDigest(from, files);
   if (expectedDigest !== undefined && (!TREE_DIGEST.test(expectedDigest ?? "") || expectedDigest !== digest)) {
@@ -142,8 +144,10 @@ export async function materialize({ from, bundleDir = BUNDLE_PATH, expectedDiges
   }
   const info = await lstat(bundleDir).catch(() => null);
   if (info && !info.isDirectory()) fail(`${bundleDir} is not a folder (a link is refused)`);
-  const inside = path.relative(path.resolve(bundleDir), path.resolve(from));
-  if (!inside.startsWith("..") && !path.isAbsolute(inside)) fail(`${from} is inside ${bundleDir}`);
+  if (info) {
+    const inside = path.relative(await realpath(bundleDir), await realpath(from));
+    if (!inside.startsWith("..") && !path.isAbsolute(inside)) fail(`${from} is inside ${bundleDir}`);
+  }
   const suffix = randomBytes(6).toString("hex");
   const staging = `${bundleDir}.staging-${suffix}`;
   const retired = `${bundleDir}.retired-${suffix}`;
@@ -165,12 +169,18 @@ export async function materialize({ from, bundleDir = BUNDLE_PATH, expectedDiges
     try {
       await rename(staging, bundleDir);
     } catch (error) {
-      if (info) await rename(retired, bundleDir);
+      if (info) {
+        await rename(retired, bundleDir).catch((restore) => {
+          process.stderr.write(`hosted-content: could not restore ${bundleDir} from ${retired}: ${restore.message}\n`);
+        });
+      }
       throw error;
     }
-    await rm(retired, { recursive: true, force: true });
+    await rm(retired, { recursive: true, force: true }).catch((cleanup) => {
+      process.stderr.write(`hosted-content: ${bundleDir} is in place; could not remove ${retired}: ${cleanup.message}\n`);
+    });
   } finally {
-    await rm(staging, { recursive: true, force: true });
+    await rm(staging, { recursive: true, force: true }).catch(() => {});
   }
   return { files: files.length, treeDigest: digest };
 }
