@@ -34,7 +34,7 @@ test("consumer uses only public published package surfaces and nested versioned 
     "@superbee/docs-tooling": "0.2.4",
     "@superbee/portal": "0.2.13",
     "@superbee/portal-cloudflare": "0.2.15",
-    "@superbee/portal-docs": "0.2.7",
+    "@superbee/portal-docs": "0.2.8",
     "@superbee/portal-webmcp": "0.3.2",
     "@superbee/recipe-studio": "0.1.3",
     superbee: release.version,
