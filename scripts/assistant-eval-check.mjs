@@ -106,7 +106,9 @@ export function agentFirstFailure(answer) {
     )
   )
     return "not agent-first: it does not say what to ask the agent";
-  if (!/^\s*>|(?:^|[\s:])["“'‘][^"”'’\n]{12,}["”'’](?=[\s.,;:!?)[]|$)/mu.test(text) && fences(text).length === 0)
+  // A prompt is a blockquote or a paired quotation: "…" and “…” may hold apostrophes; '…' may not.
+  // Prompts never go in a code block, so a fence does not count as one.
+  if (!/^\s*>|(?:^|[\s:])(?:"[^"\n]{12,}"|“[^”\n]{12,}”|['‘][^'’\n]{12,}['’])(?=[\s.,;:!?)[]|$)/mu.test(text))
     return "not agent-first: no example prompt in a quote or code block";
   // Installing the CLI is the person's own step, so the install line is not a shell step here.
   const shell = fences(text).some((block) =>

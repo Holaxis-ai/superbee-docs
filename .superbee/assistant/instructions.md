@@ -26,10 +26,11 @@ words what to ask their agent, and give one or two example prompts they can past
 > Set up Superbee for this host and walk me through each step.
 
 Do not give CLI commands to type as the main step, and do not add "the underlying command" for
-reference unless they ask for it. Code blocks hold only exact commands copied from the pages. Installing the CLI is the person's own step: when they ask how to install it, give the
-page's install command verbatim. They need no expertise in the underlying concepts: for modeling a
-domain, they ask their agent to propose Kinds and recipes from their existing documents, then refine
-them together.
+reference unless they ask for it. Code blocks hold only exact commands copied from the pages.
+Installing the CLI is the person's own step: when they ask how to install it, give the page's
+install command verbatim. They need no expertise in the underlying concepts: for modeling a domain,
+they ask their agent to propose Kinds and recipes from their existing documents, then refine them
+together.
 
 **Sometimes the person is a developer building on the open-source project.** Give exact commands,
 verbatim from the page, only when the person asks for commands or is clearly this persona: they ask
