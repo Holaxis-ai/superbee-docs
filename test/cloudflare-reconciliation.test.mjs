@@ -177,7 +177,7 @@ test("deploy refuses stale desired-state identity before the package can mutate"
 
 test("the workflow separates build from credentials and serializes durable reconciliation", async () => {
   const workflow = await readFile(".github/workflows/verify-production.yml", "utf8");
-  assert.match(workflow, /jobs:\n  build:[\s\S]+\n  reconcile:/u);
+  assert.match(workflow, /jobs:\n  redispatch:[\s\S]+\n  acquire:[\s\S]+\n  build:[\s\S]+\n  reconcile:/u);
   assert.match(workflow, /cancel-in-progress: false/u);
   assert.match(workflow, /cron: "17 9 \* \* \*"/u);
   assert.match(workflow, /actions\/upload-artifact@[0-9a-f]{40}[\s\S]+path: dist/u);
@@ -185,7 +185,7 @@ test("the workflow separates build from credentials and serializes durable recon
   assert.equal((workflow.match(/name: superbee-docs-portal-\$\{\{ github\.sha \}\}/gu) ?? []).length, 2);
   assert.match(workflow, /name: superbee-docs-portal-\$\{\{ github\.sha \}\}[\s\S]+overwrite: true/u);
   assert.doesNotMatch(workflow, /superbee-docs-portal-\$\{\{ github\.sha \}\}-\$\{\{ github\.run_attempt \}\}/u);
-  assert.match(workflow, /RECONCILIATION_MODE: \$\{\{ github\.event_name == 'schedule' && 'probe' \|\| 'deploy' \}\}/u);
+  assert.match(workflow, /RECONCILIATION_MODE: \$\{\{ github\.event_name == 'schedule' && vars\.DOCS_HOSTED_APP_ID == '' && 'probe' \|\| 'deploy' \}\}/u);
   assert.match(workflow, /if: always\(\)[\s\S]+cloudflare-reconciliation-receipt\.json[\s\S]+production-verification-receipt\.json/u);
   assert.match(workflow, /git fetch --no-tags origin main[\s\S]+--observed-commit/u);
   assert.equal((workflow.match(/CLOUDFLARE_API_TOKEN:/gu) ?? []).length, 2);

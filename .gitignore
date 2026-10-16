@@ -8,3 +8,5 @@ deploy/
 *-receipt.json
 *.apply-intent.json
 .DS_Store
+/.superbee.staging-*
+/.superbee.retired-*

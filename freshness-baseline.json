@@ -1,0 +1,636 @@
+{
+  "schema": "https://getsuperbee.com/schemas/superbee-docs/freshness-baseline/v1",
+  "bundle": "holaxis-sites/superbee-docs",
+  "documents": [
+    {
+      "documentId": "architecture/architecture-at-a-glance",
+      "sourceVersion": "sha256:2a21b41914d4fea5affb2592e0b638c9470b46b6e6e65f8900fe1a5887e95bbf",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "architecture/bundle-engine-and-storage-seam",
+      "sourceVersion": "sha256:89fe344599bff971e3cc6b5242715c1c8c4482723dee80c637b7aa8539920a6a",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "architecture/document-mutation-lifecycle",
+      "sourceVersion": "sha256:86226a53c99901af80e2a539f6380af0b98bdec0dab8427a6fa102acb353c0c6",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "architecture/public-publication-boundary",
+      "sourceVersion": "sha256:db516e4f55db8942e2bf7c3170957f0a01862230e03e44e902c982784ddbed38",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "architecture/sharing-synchronization-and-freshness",
+      "sourceVersion": "sha256:bdd253c03b746a93cf30f8bac479d009bf97e5468aa1afcc56dc60041c65a10b",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "architecture/superbee-system-context",
+      "sourceVersion": "sha256:88f4524fbdd8474a2f71352524c16fcfe19eff922753a77de79a69da1bb91804",
+      "committedAt": "2026-08-29T22:07:58.000Z"
+    },
+    {
+      "documentId": "architecture/view-lifecycle-and-trust",
+      "sourceVersion": "sha256:d4b98dcfe3e1b11c5074def403a45ce4f761711f3387075ab6f49c405f51877d",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "concepts/bundles-documents-and-relationships",
+      "sourceVersion": "sha256:a0709d04c17f4eff1b207d99c302858942afc77eeee047c004ea78ceafb7b9e5",
+      "committedAt": "2026-09-22T22:35:21.000Z"
+    },
+    {
+      "documentId": "concepts/reusable-domain-structure",
+      "sourceVersion": "sha256:4bd9495a03fa0f18386f5cda1104168c7f00bec77defbb902f3bd04699624f6f",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "concepts/what-superbee-is",
+      "sourceVersion": "sha256:9bb9656a574351f56778f7028ab31104ec490dd99fafa9057c7c097f0a23d92e",
+      "committedAt": "2026-08-30T20:56:55.000Z"
+    },
+    {
+      "documentId": "contributing/quickstart",
+      "sourceVersion": "sha256:cde05670eff0e6479706fe52d402a709bd9f94a550313d47a250938e2d6fb5e4",
+      "committedAt": "2026-10-13T14:11:46.000Z"
+    },
+    {
+      "documentId": "conventions/documentation-publication",
+      "sourceVersion": "sha256:3f5a11f56c9fe19672774de9acdd9f1da7afcbbe0a79524da2a7bd229d3c38f8",
+      "committedAt": "2026-09-03T14:52:08.000Z"
+    },
+    {
+      "documentId": "conventions/documentation-section",
+      "sourceVersion": "sha256:43c3b4dbf9d2e618725167d39335f9f177600328050d661e4662bcb074e72bf7",
+      "committedAt": "2026-09-03T14:52:08.000Z"
+    },
+    {
+      "documentId": "conventions/documentation-system",
+      "sourceVersion": "sha256:ce6d9492dcc89a8692f283828c45b1d062b868719faf2b0f58e359382551c0b6",
+      "committedAt": "2026-09-03T14:52:08.000Z"
+    },
+    {
+      "documentId": "conventions/documentation-trigger",
+      "sourceVersion": "sha256:faa0dd2f9c577a57193f16ff5dc959452072aea883dac565cd4523ea0696a768",
+      "committedAt": "2026-09-03T14:52:08.000Z"
+    },
+    {
+      "documentId": "design/docs-operating-model",
+      "sourceVersion": "sha256:79c7603d68e5ab115c8f68a068c41b6bdc614e2cac3b26b2fb978eee89193928",
+      "committedAt": "2026-10-13T14:11:46.000Z"
+    },
+    {
+      "documentId": "design/site-experience-contract",
+      "sourceVersion": "sha256:881d98f411a338d5f2ff32effa4e4c9c8f666d4a7dca9468f28cf22e46303bdc",
+      "committedAt": "2026-08-29T22:07:58.000Z"
+    },
+    {
+      "documentId": "documentation-publications/current",
+      "sourceVersion": "sha256:d737c0c2d852c2d1857b2e081ad9f671530c9395f014986acc53f16f908bedc8",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "documentation-sections/architecture-and-contributing",
+      "sourceVersion": "sha256:1ade30c7ecfa323f5736509210383976becd3d994feb8d17e71f580e2d4a318c",
+      "committedAt": "2026-09-03T14:52:08.000Z"
+    },
+    {
+      "documentId": "documentation-sections/core-concepts",
+      "sourceVersion": "sha256:7ed0a67a356844e1fe8f5f98595de7ca8cec59c5d80646be3aeebd66843122ac",
+      "committedAt": "2026-09-03T14:52:08.000Z"
+    },
+    {
+      "documentId": "documentation-sections/get-started",
+      "sourceVersion": "sha256:f347fad2d7eaf36b6d53f5968f50b9282d560444fa51e21534caa357af0f5aba",
+      "committedAt": "2026-09-03T14:52:08.000Z"
+    },
+    {
+      "documentId": "documentation-sections/guides",
+      "sourceVersion": "sha256:63bc1d216a058250ac860df9d6b3f4f0cc077ec0b02fbf8068dad69d29f8d294",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "documentation-sections/reference",
+      "sourceVersion": "sha256:0f9fbba01178d5800033cb5e3be93fa5f879b19cb8b0114329f7c9734f93fab3",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "documentation-sections/releases-and-migrations",
+      "sourceVersion": "sha256:fc720e380b02c8644655217b04ef6adee899bd70f3df87c80082d57e32ab7a9b",
+      "committedAt": "2026-09-30T18:51:28.000Z"
+    },
+    {
+      "documentId": "documentation-sections/troubleshooting",
+      "sourceVersion": "sha256:8396dbdd41432e32475cadf549e3346d7920f9f46370a52eca3485590490f8b2",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "documentation-systems/main",
+      "sourceVersion": "sha256:181bcda89e2f1612c4dca5d4cadce7f8dc56b5587e28ceac9073656661ad29e9",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "examples/claims-and-evidence",
+      "sourceVersion": "sha256:0edec09304db7ebb1299211db57232fae83f2d373f26ca4eb3e55f752ec3aa54",
+      "committedAt": "2026-08-31T01:36:16.000Z"
+    },
+    {
+      "documentId": "get-started/first-durable-workspace",
+      "sourceVersion": "sha256:e02f1948660a1a3013c24b4cc710a4200c436ec7d326b6840a26a3e74db4fae2",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "get-started/install-and-setup",
+      "sourceVersion": "sha256:c10dadcb00436e946951c1b9953f4022a49a1ff95d061a0af37287d50512a5e5",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "get-started/verify-host-setup",
+      "sourceVersion": "sha256:707dc7916b7162f00868e37107e0cd6359e690f11d5801f30edc683232dbdd9e",
+      "committedAt": "2026-10-02T21:04:00.000Z"
+    },
+    {
+      "documentId": "guides/artifacts-and-byte-channels",
+      "sourceVersion": "sha256:a05eacc7c59ce07ab3cf5d801a900b88d6fa114266d6bf886b304880b3685330",
+      "committedAt": "2026-10-02T21:04:00.000Z"
+    },
+    {
+      "documentId": "guides/assigned-work-lifecycle",
+      "sourceVersion": "sha256:5840d29fb7c212ec79570f228ecf6cb1b0c1afa3c5345dfeb768b107e9211786",
+      "committedAt": "2026-09-22T22:35:21.000Z"
+    },
+    {
+      "documentId": "guides/choose-privacy-and-bundle-boundaries",
+      "sourceVersion": "sha256:1a5a4817a03e6f9b469bca794d9b120190b965e11407c6a7eff1e3b51e342295",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "guides/create-a-bundle-view",
+      "sourceVersion": "sha256:744f6809485afe5fb20aab2218c04f183a65dd772ee3c3ed8b0d2deb89b167d0",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "guides/evolve-installed-recipes",
+      "sourceVersion": "sha256:5f9bd2000b75eb820563915735591dffad27997b76d2f4143bddcc7acb657b0c",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "guides/migrate-or-upgrade-safely",
+      "sourceVersion": "sha256:115d7c93b84364302450a9f9d135b2c8e07aee8bdda2e1a4a04f698340ae1d38",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "guides/model-recurring-domain-concepts",
+      "sourceVersion": "sha256:d4c6e59c3ef5e72f59fc097e14a088a138a13121b202c1970609c9acc1337bd7",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "guides/move-bundle-between-local-and-hosted",
+      "sourceVersion": "sha256:0f6df6edf9d63a1eceb87fc3524cb9165db1681d1f8ff800bd52400dd5e4742e",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "guides/preserve-context-between-sessions",
+      "sourceVersion": "sha256:11afa5b4a11d0efa0e2c41524bc2396be9fef16c06406d172a101e91bfa3a0da",
+      "committedAt": "2026-08-30T18:17:56.000Z"
+    },
+    {
+      "documentId": "guides/query-links-and-backlinks",
+      "sourceVersion": "sha256:e9e28f43c77b588fb2cfded9e51b0aeb934a1ae06f28c4165c79ec820a57476b",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "guides/share-and-synchronize-git-bundle",
+      "sourceVersion": "sha256:e68af60d30dd1389432c9f097038e867884834c1a579b19a7f13ac167e783dbc",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "guides/show-documents-and-views",
+      "sourceVersion": "sha256:a57e2390f9672e47c01e4247dba388ee86f47cce29508c2d06388deb68df4569",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "guides/work-in-hosted-checkout",
+      "sourceVersion": "sha256:16f01102cf379317f8bbdb5c63bd7055fd5003db22ae5bfb77eed3b2fed66de7",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "learn/start-here",
+      "sourceVersion": "sha256:4adcbb6edde790c5dc36e912bee1468b4e98c66dbdf556dae5f6fa7c4f9dde8f",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/architecture-at-a-glance",
+      "sourceVersion": "sha256:9ad1744ccc0d449336ad77bfe0e415286966741961b135b2d12f41578af8d62e",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/artifacts-and-byte-channels",
+      "sourceVersion": "sha256:30d52c3c231d6ab3b87a73b30be447939bed58eee8a2a7e7921db7b2f63e72f6",
+      "committedAt": "2026-08-31T01:36:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/assigned-work-lifecycle",
+      "sourceVersion": "sha256:ba6bd482d30012373f4e554c5e8465f69ffcc8b26b04805d68248b3fa27e726c",
+      "committedAt": "2026-08-31T01:36:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/bundle-engine-and-storage-seam",
+      "sourceVersion": "sha256:99055060b4adf335485c9c1140e06ec4f28e4bcfdd7ade0792441b8fcf87d71a",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/bundles-documents-and-relationships",
+      "sourceVersion": "sha256:6048eabecb87961270681cbf0ca9ad66deeca31173c1ce9601340028475c08e1",
+      "committedAt": "2026-08-29T22:07:58.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/choose-privacy-and-bundle-boundaries",
+      "sourceVersion": "sha256:146b1cf1135ce87963e0bb45706a821419562496decbc9a500d446b1d9ec60dd",
+      "committedAt": "2026-08-30T05:10:56.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/claims-and-evidence",
+      "sourceVersion": "sha256:ff33eb4b3caac4881389cff770e0160864147cde9135953b34bee2efb793dc3d",
+      "committedAt": "2026-08-31T01:36:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/cli-commands-and-errors",
+      "sourceVersion": "sha256:bda6de15b249f95e805be5a1791f609f14b37677b324f6d996ef94055a9fb922",
+      "committedAt": "2026-08-31T01:36:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/cli-overview",
+      "sourceVersion": "sha256:0b4b8d62556cbd40649405e9197e787d3e311cbbd5b3c052e0f632c6e84b2809",
+      "committedAt": "2026-08-29T22:07:58.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/configuration-and-bundle-resolution",
+      "sourceVersion": "sha256:dab251cde61d7d74a8bc720378844d30788f32038208d1538309a85751cb16fc",
+      "committedAt": "2026-08-30T14:39:35.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/contributor-quickstart",
+      "sourceVersion": "sha256:1d650f2272b07bbaea3cb1f1ff1b93ffae273afd48f998da20cc91677ffd9c2b",
+      "committedAt": "2026-08-31T01:36:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/create-a-bundle-view",
+      "sourceVersion": "sha256:779815aff162c2897fbb48d981f4749851b455fa62f442b8673d1698b5174206",
+      "committedAt": "2026-08-31T01:36:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/document-mutation-lifecycle",
+      "sourceVersion": "sha256:a7c2f54ed1a22b6d3944c9f990baa2fac221a87f9a994a14f5f4670be268a934",
+      "committedAt": "2026-08-29T22:07:58.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/evolve-installed-recipes",
+      "sourceVersion": "sha256:285407b5410041a27706471abcedad2db8c251a45a545d0fbb8a84d567c4254b",
+      "committedAt": "2026-08-31T01:36:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/first-durable-workspace",
+      "sourceVersion": "sha256:cd3ffaefc2cf4311942369eb6460facefc729ac8c7580228151af8682acd7395",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/host-and-platform-support",
+      "sourceVersion": "sha256:f82edba52cff7442600ca8b767f6f420a7b00bd1a53a34035999ff45aeb5944d",
+      "committedAt": "2026-08-30T18:17:56.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/hosted-checkout",
+      "sourceVersion": "sha256:3adbb41aaae689060cda27aa56d75207bca0bb37871bd989764783e1f7fa33a7",
+      "committedAt": "2026-09-30T18:51:28.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/install-and-setup",
+      "sourceVersion": "sha256:85135847801b5e2ec458fa3d9c0f6e28bf87ba0944bb8e0197ec14411bf4ebbc",
+      "committedAt": "2026-08-30T18:17:56.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/kind-conventions-and-recipes",
+      "sourceVersion": "sha256:055a98724122a86eee72336e0c102a9f446691339e1291b52e22aed98584de5c",
+      "committedAt": "2026-08-30T14:44:25.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/migrate-or-upgrade-safely",
+      "sourceVersion": "sha256:44764ac7b3d202e2edae6370cf30e061e4e6e7774008c3baa8b868104cec85d3",
+      "committedAt": "2026-08-29T22:07:58.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/model-recurring-domain-concepts",
+      "sourceVersion": "sha256:e021baff6b64294eaedc94bb1b63d02fa5d2638f422dfa0587bb4488bcacbed9",
+      "committedAt": "2026-08-29T22:07:58.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/okf-compatibility",
+      "sourceVersion": "sha256:26c4952c5ad9d5475dd7ce1e233d1ce8adfe57ef4326c9d630be4741dab7491d",
+      "committedAt": "2026-08-30T14:52:39.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/preserve-context-between-sessions",
+      "sourceVersion": "sha256:628971b6782977cc1fbb77752d9e0344578bf879ee469ef51b028eeffa28885f",
+      "committedAt": "2026-08-29T22:07:58.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/public-publication-boundary",
+      "sourceVersion": "sha256:5270982757163c6dac65d112213bdf2c5bb1cb8a3450ba8b2f812d7ba3590039",
+      "committedAt": "2026-08-30T02:35:07.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/publication-snapshot-api",
+      "sourceVersion": "sha256:c100cb16d3aabc972ab7f9ca54337965dc6084028cd98d907c2bb92780a9510b",
+      "committedAt": "2026-08-31T01:36:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/query-links-and-backlinks",
+      "sourceVersion": "sha256:792e4572330011af0adc2a1a54af22d7faf4b782d3514c40e6fd1b5f8080cae2",
+      "committedAt": "2026-08-31T01:36:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/release-notes",
+      "sourceVersion": "sha256:85d6020304f0a6b5978139b53d12b505a760cad9659c5bb6789506b1b1267d58",
+      "committedAt": "2026-08-31T03:02:36.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/reusable-domain-structure",
+      "sourceVersion": "sha256:f7dad0c2c7821dbe6a7994233ffa661df88a4dd94ca555f24552dd55a481b85f",
+      "committedAt": "2026-08-29T22:07:58.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/security-and-trust-boundaries",
+      "sourceVersion": "sha256:21ff9ab154843520ca4eaa65079a23da1642339b203ecb5e2e9e871b31209eaf",
+      "committedAt": "2026-08-31T01:36:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/setup-and-bundle-resolution",
+      "sourceVersion": "sha256:d20ce5bc0bec40b487722be6558b7f9aa5857c1e8c8dc6fccb62c2c378d9b279",
+      "committedAt": "2026-08-29T22:07:58.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/share-and-synchronize-git-bundle",
+      "sourceVersion": "sha256:dceca6d69b753575d3919f553ed37d12be16e3ab052fe457d04d68a9ebdd2a43",
+      "committedAt": "2026-09-04T00:32:59.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/sharing-synchronization-and-freshness",
+      "sourceVersion": "sha256:e141c1db8fbdbb46f4616bd3d618458c99b525aa95e432b16ebbb79c5acc2fb9",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/show-documents-and-views",
+      "sourceVersion": "sha256:7c3f8c5bfb3208d4d18f0daec2e4d0133c4ec7d64c1e989532c0d8737d62f33d",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/superbee-system-context",
+      "sourceVersion": "sha256:629167a1a9bab8a4aa1781dd96bd25466c5a09fcd1d53d43714dc178374b3e4b",
+      "committedAt": "2026-08-29T22:07:58.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/verify-host-setup",
+      "sourceVersion": "sha256:646209b0d7cea571729d9a5f02bd20e485c08a7dd7660ed18eb58441482ad9f3",
+      "committedAt": "2026-08-30T05:10:56.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/view-contract-and-access",
+      "sourceVersion": "sha256:f3938087c7f23be16516ca351f9a56d3d87c202b4671aa651079c9e5bcfc20cc",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/view-lifecycle-and-trust",
+      "sourceVersion": "sha256:d8a90a3fa9626d5eb36e1f1b4b6500eb8f35fff984d4da6e85887e4e2f476f32",
+      "committedAt": "2026-08-29T22:07:58.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/what-superbee-is",
+      "sourceVersion": "sha256:eb0806d5aa7c961515b5cc952ad0d6736c48f94ae9b07d7f91ed5180bb3077ed",
+      "committedAt": "2026-08-30T20:56:55.000Z"
+    },
+    {
+      "documentId": "maintenance/documentation-triggers/wire-protocol-and-reference-server",
+      "sourceVersion": "sha256:2394f6cfa25732090aed184b099d31eda93833bd740270e2c5e41bddffd3a5d4",
+      "committedAt": "2026-08-31T01:36:16.000Z"
+    },
+    {
+      "documentId": "plans/docs-coverage",
+      "sourceVersion": "sha256:d95fef0f823f13aaaf0e595fa54e3dfd75cb3b066576f7e8db70f74c863072e0",
+      "committedAt": "2026-10-13T14:11:46.000Z"
+    },
+    {
+      "documentId": "reference/cli-commands",
+      "sourceVersion": "sha256:c7292176d083bb3fd70b517d336d51b71a7bc84fadcf3e921ffbca904b9f4dd0",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "reference/cli-errors-and-exit-codes",
+      "sourceVersion": "sha256:751ef23446ec953e8f5b4793f61789100bdaf5e262ecbba9b382ca5f9541db72",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "reference/cli-overview",
+      "sourceVersion": "sha256:92d7ee1528521a8155292da4c3ed68d1e1f32fd0e95134292476ee0973883e26",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "reference/configuration-and-bundle-resolution",
+      "sourceVersion": "sha256:68387f223ebaaf58780794d6cf986ac5bb241abf7c971e491024a1c86de20464",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "reference/host-and-platform-support",
+      "sourceVersion": "sha256:d4dcd83bf928d5307a3a70182c7e820c46b44c689fc2418b072f12c1f94f1336",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "reference/hosted-cli-access",
+      "sourceVersion": "sha256:f7a0327a9e69da7a6937f6c0baf9b2d1dba374a34112be4cb66f2a5aebfb3a9f",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "reference/kind-conventions-and-recipes",
+      "sourceVersion": "sha256:cf1542a15fd6b679fba40b7e2f79a069c48f7537eeaafb6ddda04a9afa61fd90",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "reference/okf-compatibility",
+      "sourceVersion": "sha256:510f29e6bef3562d828f255e88805416a662306a8e9422f8c28ce5e5565e4abd",
+      "committedAt": "2026-09-22T22:35:21.000Z"
+    },
+    {
+      "documentId": "reference/publication-snapshot-api",
+      "sourceVersion": "sha256:562330d357dcda0647535770921d855297d25f0549ff7430496b0528d5f6bb7f",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "reference/security-and-trust-boundaries",
+      "sourceVersion": "sha256:6f54b7ccec39ace4a7c2211e10cb525fcf7f8ddef5041ff0fe73002b9644ef61",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "reference/view-contract-and-access",
+      "sourceVersion": "sha256:57003af11671a9c1add4efcb7faf02add91cf2cb9347674e3e986ccfdeacb64b",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "reference/wire-protocol-and-reference-server",
+      "sourceVersion": "sha256:efbc5db23e3dfe17b116ce62d2d4b144a5e4043e3064e6c906e026e7cf849ee5",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "releases/0.1.3",
+      "sourceVersion": "sha256:cd54872d921305cb14f2f746b444f5cc45451a1683a94c2f455360b5699e482f",
+      "committedAt": "2026-08-29T18:09:57.000Z"
+    },
+    {
+      "documentId": "releases/0.1.4",
+      "sourceVersion": "sha256:eec56f4e568bdc7b80bd5545775141115290525960184cb4dd9276f801745ed3",
+      "committedAt": "2026-08-31T01:36:16.000Z"
+    },
+    {
+      "documentId": "releases/0.1.6",
+      "sourceVersion": "sha256:2c36d4dc36f25dc368abfc5ee15425b5238211af159153e8f636ba3597a46044",
+      "committedAt": "2026-09-10T13:20:07.000Z"
+    },
+    {
+      "documentId": "releases/0.2.1",
+      "sourceVersion": "sha256:bb78103ce6976c32f5000d017d04e7a59e018c159757eaa5c2d1933dd60a574e",
+      "committedAt": "2026-09-22T22:35:21.000Z"
+    },
+    {
+      "documentId": "releases/0.3.0",
+      "sourceVersion": "sha256:51c040ea85ad415d7d18e323c6684368c481f44d60ce0ba11d38d208b7444558",
+      "committedAt": "2026-09-30T20:01:00.000Z"
+    },
+    {
+      "documentId": "releases/0.4.0",
+      "sourceVersion": "sha256:02d6c2b06c7823e44dd53609e3720e86676887360e908500aa68c31a76d9c994",
+      "committedAt": "2026-10-02T21:04:00.000Z"
+    },
+    {
+      "documentId": "releases/0.4.1",
+      "sourceVersion": "sha256:9a1a19a61c764696ea1391d0b5ff7d2280a3f3e8cccf6f4dacfc5a89209995ab",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "releases/0.4.2",
+      "sourceVersion": "sha256:1e9461d789a84749b09382d5156247e86783c195121cc1e39653d3a715c1d201",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "releases/current",
+      "sourceVersion": "sha256:9069ab0a93b9816e1556dcf4c8623dfdc855f1e69db2dcac4f900a27b761f816",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "releases/next-release",
+      "sourceVersion": "sha256:e7db4d78144d6b95c716189cfa57294fde9a9f637cdfbc9fc6803fdfbe38fca1",
+      "committedAt": "2026-10-02T21:04:00.000Z"
+    },
+    {
+      "documentId": "releases/release-notes",
+      "sourceVersion": "sha256:7de6ede0a40193758b78009181a2b0cb5031d87ae2a88d3f1ef02e47c209389f",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "sources/current-release",
+      "sourceVersion": "sha256:d2c3507e708f0f1a33f205eec4a051a6682c9fb3276f01cabfaf9628fda33716",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "sources/next-release",
+      "sourceVersion": "sha256:b0b45fda5df868816dc23893c908c66b655dfb4dd876446c20921274b1d4f2a4",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "sources/superbee-codebase-main",
+      "sourceVersion": "sha256:4da4f8a8183aa40c97260b10b4042e255f900366dd79b8afe85eb19a030ff52c",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "sources/superbee-core",
+      "sourceVersion": "sha256:488863c23d74f628c26bc6bf5845d682bfab3d5df94b32a3728a0511200388e9",
+      "committedAt": "2026-08-29T18:09:57.000Z"
+    },
+    {
+      "documentId": "sources/superbee-portal",
+      "sourceVersion": "sha256:0e7b07dc793d10e5ac8c2e16ad916f0f709dc22e52f3cf6b1fb537a9195d2f0d",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "sources/superbee-release-0.1.3",
+      "sourceVersion": "sha256:15b3f044dd14361e2678bfd07539e89cdb44d6fb0ecda9a7dbbdc6c0c24860e5",
+      "committedAt": "2026-08-29T18:09:57.000Z"
+    },
+    {
+      "documentId": "sources/superbee-release-0.1.4",
+      "sourceVersion": "sha256:5adaf2f926b7836399ff5a2ccc09590244dc8aed60256d00f98c58cedda0aa66",
+      "committedAt": "2026-08-31T01:36:16.000Z"
+    },
+    {
+      "documentId": "sources/superbee-release-0.1.6",
+      "sourceVersion": "sha256:182bb24154c26bc9f41afb0224416022d28022da501d079a2f4a2bc5a7b6d289",
+      "committedAt": "2026-09-10T13:20:07.000Z"
+    },
+    {
+      "documentId": "sources/superbee-release-0.2.1",
+      "sourceVersion": "sha256:3879a42c8f75cd5c07258e13d7e3cd74c95734cccc048ea7029f3519b222f0b8",
+      "committedAt": "2026-09-22T22:35:21.000Z"
+    },
+    {
+      "documentId": "sources/superbee-release-0.3.0",
+      "sourceVersion": "sha256:7eadabd0021413e3fe456112362f9c929817da6c85f21db6dd43d6508adc3c79",
+      "committedAt": "2026-09-30T20:01:00.000Z"
+    },
+    {
+      "documentId": "sources/superbee-release-0.4.0",
+      "sourceVersion": "sha256:fbee6b152d255599c7aaeff9a9c1242794384bb2f880e6e3591cb53b57806e74",
+      "committedAt": "2026-10-02T21:04:00.000Z"
+    },
+    {
+      "documentId": "sources/superbee-release-0.4.1",
+      "sourceVersion": "sha256:4d0dfeabda161f8aa1987c01cb69df1d4ed64c50abd0f5af9db12d245c8419c1",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "sources/superbee-release-0.4.2",
+      "sourceVersion": "sha256:1e1c7d3ad9921e2d85f26d1bdea9c85bae978ef9e84a9c864e9df7249dd398de",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "troubleshooting/hosted-checkout",
+      "sourceVersion": "sha256:276e44ef4c6ad1bf5dc2d324b6ed26eebc50234bf930dbba911df840c5102027",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "troubleshooting/setup-and-bundle-resolution",
+      "sourceVersion": "sha256:28af72d0af42ca4043bf955471f2293daae572d2f597eeadfa7498395806bb77",
+      "committedAt": "2026-10-13T13:29:16.000Z"
+    },
+    {
+      "documentId": "views-registry/architecture-at-a-glance",
+      "sourceVersion": "sha256:143ccf935e73674cd2f83705ceaf32608f93ec0eb2b3e4c19541a8cb9cf27b4c",
+      "committedAt": "2026-08-29T05:17:51.000Z"
+    },
+    {
+      "documentId": "views-registry/document-mutation-lifecycle",
+      "sourceVersion": "sha256:3127eea8f0248ec3570e540ebbbc4feff35b2caed56f563b3d452555c6abe189",
+      "committedAt": "2026-08-29T03:07:08.000Z"
+    },
+    {
+      "documentId": "views-registry/superbee-system-context",
+      "sourceVersion": "sha256:42a8a4a54f685276e75585223ddeacda02c552e38d0d61b0adfca31ecab3df70",
+      "committedAt": "2026-08-28T17:49:17.000Z"
+    },
+    {
+      "documentId": "views-registry/view-lifecycle-and-trust",
+      "sourceVersion": "sha256:ef64314ed86b33a41f7c86a67115716dc290a70679f3fd5d7a3c025021623369",
+      "committedAt": "2026-08-29T05:43:41.000Z"
+    }
+  ]
+}

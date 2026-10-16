@@ -23,6 +23,7 @@ import {
 } from "@superbee/portal";
 
 import { validateDocumentationGuidance } from "./documentation-guidance.mjs";
+import { BASELINE_PATH, readFreshnessBaseline, withFreshnessBaseline } from "./hosted-content.mjs";
 import { assertSnapshotReleaseVersionLabel } from "./release-version-label.mjs";
 
 export const DOCUMENTATION_OUTPUTS_RESULT_V1 =
@@ -148,14 +149,17 @@ async function documentationCompositionOptions({
         let freshness;
         try {
           assertSnapshotReleaseVersionLabel(provisional.config, snapshot);
-          freshness = await deriveGitDocumentationFreshnessV1({
-            root: realRoot,
-            bundle: config.bundle,
+          const documentIds = [
+            ...provisional.config.navigation.flatMap((section) => section.documents),
+            ...provisional.config.supportingDocuments,
+          ];
+          // Content lives in the hosted bundle; Git history no longer covers it. The baseline keeps
+          // Git's last-commit time for each document whose exact bytes have not changed since.
+          freshness = withFreshnessBaseline({
+            facts: await deriveGitDocumentationFreshnessV1({ root: realRoot, bundle: config.bundle, snapshot, documentIds }),
+            baseline: await readFreshnessBaseline(BASELINE_PATH),
             snapshot,
-            documentIds: [
-              ...provisional.config.navigation.flatMap((section) => section.documents),
-              ...provisional.config.supportingDocuments,
-            ],
+            documentIds,
           });
         } finally {
           await provisional.projection.close();
