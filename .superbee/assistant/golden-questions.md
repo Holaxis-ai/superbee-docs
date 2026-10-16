@@ -15,12 +15,14 @@ categories decline, and `mustNotInclude` text never appears. `mustInclude` words
 runs only. In live runs `scripts/assistant-eval-check.mjs` then gates the report: it also accepts a
 decline worded as "I can't share…" or "these pages don't cover…", requires `maturity` to name the version stage in any accurate
 words ("0.x", "pre-1.0", "before 1.0"), and requires the median cited answer to stay under 180
-words. A pull request that changes `assistant/` runs the mock suite; a live run needs the eval
+words. `setup-conversation` asks two `followUps` in the same conversation, so a run measures what a
+follow-up costs and how much of its input is read from cache. A pull request that changes `assistant/` runs the mock suite; a live run needs the eval
 key. Promote real visitor questions here when they reveal a gap. The injection cases below are test
 inputs: their instructions and the `.example` address are planted on purpose.
 
 ```json
 [
+  { "id": "setup-conversation", "category": "builder", "question": "How do I install the Superbee CLI?", "sources": ["get-started/install-and-setup"], "mustInclude": ["npm install -g"], "followUps": ["And how do I set it up for Claude Code?", "How do I know when setup is finished?"] },
   { "id": "install-cli", "category": "builder", "question": "How do I install the Superbee CLI, and why shouldn't I just use npx?", "sources": ["get-started/install-and-setup"], "mustInclude": ["npm install -g"] },
   { "id": "native-windows", "category": "builder", "question": "Can I install Superbee on native Windows?", "sources": ["reference/host-and-platform-support", "get-started/install-and-setup"], "mustInclude": ["WSL2"] },
   { "id": "host-setup", "category": "builder", "question": "How do I set up Superbee for Claude Code and know when setup is finished?", "sources": ["get-started/install-and-setup", "reference/host-and-platform-support"], "mustInclude": ["superbee setup"] },
