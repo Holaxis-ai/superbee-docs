@@ -14,9 +14,79 @@ concurrency:
   group: superbee-docs-cloudflare-production
   cancel-in-progress: false
 
+# Content source. The site's content lives in the hosted bundle holaxis-sites/superbee-docs
+# (scripts/hosted-content.mjs). The build reads it once the repository variable DOCS_HOSTED_APP_ID
+# names that workspace's registered workload app; until then it reads .superbee from Git as before.
+# With the variable set:
+# - acquire is the only job with id-token: write. It runs in the holaxis-sites-docs environment
+#   (the app row names it, and its main-only deployment rule is the repository admin's off switch),
+#   installs with --ignore-scripts, exchanges the job's OIDC token for a 900 s read bearer around the
+#   one export command, and hands the verified export to build as an artifact.
+# - build makes .superbee the export (assistant/ stays from Git: it is configuration) and builds.
+# - The app admits schedule and workflow_dispatch runs only, so a push to main re-dispatches this
+#   workflow on main instead of building. After a hosted content change, run it by hand:
+#   gh workflow run verify-production.yml --ref main
 jobs:
+  redispatch:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DOCS_HOSTED_APP_ID != ''
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write
+    steps:
+      - name: Release this commit through a dispatched run (the workload app admits no push event)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run verify-production.yml --repo "$GITHUB_REPOSITORY" --ref main
+
+  acquire:
+    if: github.ref == 'refs/heads/main' && vars.DOCS_HOSTED_APP_ID != '' && github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: holaxis-sites-docs
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      tree_digest: ${{ steps.export.outputs.tree_digest }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+          registry-url: "https://registry.npmjs.org"
+      # This job can mint an OIDC token, so no dependency install script runs here.
+      - run: npm ci --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
+      - name: Export the hosted content, verified against the host's digest manifest
+        id: export
+        env:
+          DOCS_HOSTED_APP_ID: ${{ vars.DOCS_HOSTED_APP_ID }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/hosted"
+          node scripts/hosted-workload-token.mjs exec -- \
+            node scripts/hosted-content.mjs export --to "$RUNNER_TEMP/hosted/export" --receipt "$RUNNER_TEMP/hosted/receipt.json"
+          echo "tree_digest=$(jq -r .treeDigest "$RUNNER_TEMP/hosted/receipt.json")" >> "$GITHUB_OUTPUT"
+          jq -r '"## Hosted content\n- bundle: `\(.bundle)`\n- revision: \(.revision), exported \(.exportedAt)\n- \(.documents) documents, \(.blobs) other files\n- tree: `\(.treeDigest)`"' \
+            "$RUNNER_TEMP/hosted/receipt.json" >> "$GITHUB_STEP_SUMMARY"
+      - name: Hand the verified export to the build
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: superbee-docs-hosted-content-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/hosted
+          if-no-files-found: error
+          retention-days: 30
+
   build:
-    if: github.ref == 'refs/heads/main'
+    needs: acquire
+    if: >-
+      ${{ !cancelled() && github.ref == 'refs/heads/main'
+      && (vars.DOCS_HOSTED_APP_ID == '' || (github.event_name != 'push' && needs.acquire.result == 'success')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -31,6 +101,17 @@ jobs:
       - run: npm ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
+      - name: Restore the verified hosted export
+        if: vars.DOCS_HOSTED_APP_ID != ''
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: superbee-docs-hosted-content-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/hosted
+      - name: Make .superbee the hosted content (assistant/ stays from Git)
+        if: vars.DOCS_HOSTED_APP_ID != ''
+        env:
+          TREE_DIGEST: ${{ needs.acquire.outputs.tree_digest }}
+        run: node scripts/hosted-content.mjs materialize --from "$RUNNER_TEMP/hosted/export" --tree-digest "$TREE_DIGEST"
       - name: Build the exact immutable Portal artifact
         run: npm run repository-history:ensure && npm run portal:build
       - name: Prove Cloudflare can stage the completed deployment offline
@@ -45,7 +126,9 @@ jobs:
           retention-days: 1
 
   reconcile:
-    if: github.ref == 'refs/heads/main'
+    # needs.build.result, not the implicit success(): build may follow a skipped acquire (Git mode),
+    # and a skipped ancestor would otherwise skip this job too.
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && needs.build.result == 'success' }}
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 20
