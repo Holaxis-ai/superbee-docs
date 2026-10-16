@@ -6,7 +6,7 @@ import {
   endsWithQuestion,
   installCommandFailure,
   MEDIAN_WORDS,
-  setupPathFailure,
+  agentFirstFailure,
 } from "../scripts/assistant-eval-check.mjs";
 
 const words = (count) => Array.from({ length: count }, (_, index) => `word${index}`).join(" ");
@@ -84,7 +84,7 @@ test("live replies fail on an offer, a closing question or a second code block, 
       cited("question", "Is that what you meant?[[source:s1]]"),
       cited("two-blocks", `First:\n${fence}\nThen:\n${fence}`),
       { ...cited("follow", "Run the installer.[[source:s1]]"), followUps: [{ answer: "Shall I walk you through it." }] },
-      { ...cited("bare-yes", "Run superbee init.[[source:s2]]"), followUps: [{ answer: "What would you like to know next?" }] },
+      { ...cited("bare-yes", 'Ask your agent: "Create a new local bundle for this project."[[source:s2]]'), followUps: [{ answer: "What would you like to know next?" }] },
     ]),
   );
   assert.deepEqual(
@@ -107,9 +107,9 @@ test("live replies fail on an offer, a closing question or a second code block, 
 });
 
 test("a bare-yes follow-up must stay short and hold no code", () => {
-  const long = { ...cited("bare-yes", "Run superbee init.[[source:s2]]"), followUps: [{ answer: words(80) + "." }] };
+  const long = { ...cited("bare-yes", 'Ask your agent: "Create a new local bundle for this project."[[source:s2]]'), followUps: [{ answer: words(80) + "." }] };
   const code = {
-    ...cited("bare-yes", "Run superbee init.[[source:s2]]"),
+    ...cited("bare-yes", 'Ask your agent: "Create a new local bundle for this project."[[source:s2]]'),
     followUps: [{ answer: "Run this:\n```sh\nsuperbee init\n```" }],
   };
   for (const row of [long, code]) {
@@ -130,13 +130,53 @@ test("an install command keeps its guard or names a version, never a bare variab
   assert.equal(row.ok, false);
 });
 
-test("a setup reply gives the agent path only", () => {
-  const ask = "In your host, ask your agent to set up Superbee; it runs `superbee setup` and asks before each change.";
-  assert.equal(setupPathFailure(ask), undefined);
-  assert.match(setupPathFailure(`${ask}\n\`\`\`sh\nsuperbee setup --host claude-code --scope user\n\`\`\``), /also gives/u);
-  assert.match(setupPathFailure("Run `superbee setup --host claude-code`."), /primary path/u);
+test("agent-first replies give a prompt for the agent and no shell command as the step", () => {
+  const ask = 'Ask your agent: "Set up Superbee for this host and walk me through each step."';
+  assert.equal(agentFirstFailure(ask), undefined);
+  assert.equal(agentFirstFailure("Ask your agent:\n> Propose Kinds for my lab from my existing notes."), undefined);
+  assert.match(agentFirstFailure(`${ask}\n\`\`\`sh\nsuperbee setup --host claude-code --scope user\n\`\`\``), /shell command/u);
+  assert.match(agentFirstFailure("Run `superbee setup --host claude-code`."), /what to ask the agent/u);
+  assert.match(agentFirstFailure("Ask your agent to set it up."), /no example prompt/u);
   const verdict = checkAssistantEval(
     report([{ ...cited("setup-conversation", "Install it.[[source:a]]"), followUps: [{ answer: "Run `superbee setup`." }] }]),
   );
-  assert.match(verdict.results[0].failures.join(), /setup-conversation#1: setup reply/u);
+  assert.match(verdict.results[0].failures.join(), /setup-conversation#1: not agent-first/u);
+});
+
+test("a commands follow-up must give the page's command in a code block", () => {
+  const row = (answer) => ({ ...cited("join-shared-bundle", 'Ask your agent: "Join the shared bundle without publishing."'), followUps: [{ answer }] });
+  assert.equal(checkAssistantEval(report([row("```sh\nsuperbee sync --pull-only\n```")])).results[0].ok, true);
+  assert.match(checkAssistantEval(report([row("Run `superbee sync --pull-only`.")])).results[0].failures.join(), /no command block/u);
+});
+
+test("an ambiguous case asks one short clarifying question first, then answers agent-first", () => {
+  const base = { id: "get-started", category: "builder", checks: [{ name: "completed", ok: true }, { name: "expected_source_cited", ok: false }] };
+  const good = { ...base, answer: "Are you setting it up to use with your agent, or building on Superbee itself?", followUps: [{ answer: 'Ask your agent: "Install Superbee and set it up for this host."[[source:a]]' }] };
+  assert.equal(checkAssistantEval(report([good])).results[0].ok, true);
+  const answered = { ...good, answer: "Install the CLI first. The full steps are on Install and set up Superbee." };
+  assert.match(checkAssistantEval(report([answered])).results[0].failures.join(), /does not ask a clarifying question/u);
+});
+
+test("review cases: clarifying wordings, a pasted agent prompt, empty and inline-command replies", () => {
+  const clarify = (answer) => ({ ...cited("bare-yes", 'Ask your agent: "Create a new local bundle for this project."[[source:s2]]'), followUps: [{ answer }] });
+  for (const answer of ["What do you want to know next?", "Which part would you like to know about next?"])
+    assert.equal(checkAssistantEval(report([clarify(answer)])).results[0].ok, true, answer);
+  assert.match(checkAssistantEval(report([clarify("")])).results[0].failures.join(), /bare-yes#1: empty reply/u);
+  assert.match(checkAssistantEval(report([clarify(words(60) + ".")])).results[0].failures.join(), /not short/u);
+  const prompt =
+    "Ask your agent in Claude Code:\n```text\nSet up Superbee for this host. Run `superbee setup`, explain the next proposed command.\n```";
+  assert.equal(agentFirstFailure(prompt), undefined);
+  assert.match(agentFirstFailure(`${prompt}\nOr run \`superbee setup --host claude-code --scope user\` yourself.`), /shell command/u);
+  // Offers that do not end with a question, and plain conditions that are not offers.
+  for (const offer of ["If you'd like the full walkthrough, just ask.", "I can also walk you through the next steps."])
+    assert.equal(checkAssistantEval(report([cited("x", offer)])).results[0].ok, false, offer);
+  for (const plain of ["If you want more control, pass `--scope user`.", "Use it if you want the stable release."])
+    assert.equal(checkAssistantEval(report([cited("x", plain)])).results[0].ok, true, plain);
+  // A version named elsewhere does not excuse an unpinned install line; ~~~ and unclosed fences count.
+  assert.match(installCommandFailure("The current release is superbee@0.4.2.\n`npm install -g superbee`"), /neither/u);
+  const tilde = "~~~sh\nsuperbee version\n~~~\nThen:\n```sh\nsuperbee home";
+  assert.match(checkAssistantEval(report([cited("x", tilde)])).results[0].failures.join(), /more than one code block/u);
+  assert.ok(endsWithQuestion("**Ready?**"));
+  // Mock reports skip the reply checks.
+  assert.equal(checkAssistantEval(report([cited("x", "Want the steps?")], "mock")).results[0].ok, true);
 });

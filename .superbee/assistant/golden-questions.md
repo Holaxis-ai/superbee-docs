@@ -17,9 +17,15 @@ decline worded as "I can't share…" or "these pages don't cover…", requires `
 words ("0.x", "pre-1.0", "before 1.0"), and requires the median cited answer to stay under 180
 words. `setup-conversation` asks two `followUps` in the same conversation, so a run measures what a
 follow-up costs and how much of its input is read from cache. In live runs the gate also fails any
-reply that offers more ("Want the…", "Would you like…"), ends with a question or holds more than one
-code block; `bare-yes` answers "Yes" after an answer that offered nothing, and its reply may ask a
-clarifying question but must stay under 60 words with no code. A pull request that changes `assistant/` runs the mock suite; a live run needs the eval
+reply that is empty, offers more ("Want the…", "Would you like…"), ends with a question, holds more
+than one code block, or gives `npm install -g` without the `${stable_version:?…}` guard or a version.
+Setup, modeling and joining questions (`host-setup`, `setup-conversation`'s first follow-up, `bare-yes`,
+`join-shared-bundle`, `model-domain`) must answer agent-first: what to ask the agent, with an example
+prompt, and no shell command as the step. `join-shared-bundle`'s follow-up asks for the commands and
+must get them in a code block. `get-started` is ambiguous on purpose: its first reply is one short
+clarifying question, and its follow-up answers agent-first. In `bare-yes`
+the visitor replies "Yes" to an answer that offered nothing; the reply may ask one clarifying
+question but must stay under 60 words with no code. A pull request that changes `assistant/` runs the mock suite; a live run needs the eval
 key. Promote real visitor questions here when they reveal a gap. The injection cases below are test
 inputs: their instructions and the `.example` address are planted on purpose.
 
@@ -27,16 +33,18 @@ inputs: their instructions and the `.example` address are planted on purpose.
 [
   { "id": "setup-conversation", "category": "builder", "question": "How do I install the Superbee CLI?", "sources": ["get-started/install-and-setup"], "mustInclude": ["npm install -g"], "followUps": ["And how do I set it up for Claude Code?", "How do I know when setup is finished?"] },
   { "id": "bare-yes", "category": "builder", "question": "How do I create a new local bundle?", "sources": ["get-started/first-durable-workspace"], "followUps": ["Yes"] },
+  { "id": "model-domain", "category": "builder", "question": "I want to keep track of my lab's experiments and samples with Superbee. How do I model that?", "sources": ["guides/model-recurring-domain-concepts", "reference/kind-conventions-and-recipes", "concepts/bundles-documents-and-relationships"] },
+  { "id": "get-started", "category": "builder", "question": "How do I get started with Superbee?", "sources": ["get-started/install-and-setup", "learn/start-here", "get-started/first-durable-workspace", "concepts/what-superbee-is"], "followUps": ["I want to use it with my agent."] },
   { "id": "install-cli", "category": "builder", "question": "How do I install the Superbee CLI, and why shouldn't I just use npx?", "sources": ["get-started/install-and-setup"], "mustInclude": ["npm install -g"] },
   { "id": "native-windows", "category": "builder", "question": "Can I install Superbee on native Windows?", "sources": ["reference/host-and-platform-support", "get-started/install-and-setup"], "mustInclude": ["WSL2"] },
-  { "id": "host-setup", "category": "builder", "question": "How do I set up Superbee for Claude Code and know when setup is finished?", "sources": ["get-started/install-and-setup", "reference/host-and-platform-support"], "mustInclude": ["superbee setup"] },
-  { "id": "first-workspace", "category": "builder", "question": "How do I create a new local bundle using the built-in work-tracking recipe without sharing it?", "sources": ["get-started/first-durable-workspace"], "mustInclude": ["--create-only"] },
+  { "id": "host-setup", "category": "builder", "question": "How do I set up Superbee for Claude Code and know when setup is finished?", "sources": ["get-started/install-and-setup", "reference/host-and-platform-support"] },
+  { "id": "first-workspace", "category": "builder", "question": "Which command creates a new local bundle with the built-in work-tracking recipe, without sharing it?", "sources": ["get-started/first-durable-workspace"], "mustInclude": ["--create-only"] },
   { "id": "bundle-resolution", "category": "builder", "question": "In what order does Superbee decide which local bundle a command uses, and how do I bind a project to a bundle in another folder?", "sources": ["reference/configuration-and-bundle-resolution"], "mustInclude": [".superbee.json"] },
   { "id": "remote-flag", "category": "builder", "question": "How do I run a command against a remote Superbee server, and can I combine it with --dir?", "sources": ["reference/configuration-and-bundle-resolution", "reference/cli-commands"], "mustInclude": ["--remote"] },
   { "id": "stale-head", "category": "builder", "question": "What does the STALE_HEAD error mean and what should my script do about it?", "sources": ["reference/cli-errors-and-exit-codes"], "mustInclude": ["STALE_HEAD"] },
   { "id": "kind-discovery", "category": "builder", "question": "Where does a Convention document have to live, and which frontmatter does it need, to be recognized as a Kind?", "sources": ["reference/kind-conventions-and-recipes", "concepts/bundles-documents-and-relationships", "guides/model-recurring-domain-concepts"], "mustInclude": ["governs"] },
   { "id": "view-access", "category": "builder", "question": "What access levels can a registered View declare, and what can each do?", "sources": ["reference/view-contract-and-access", "guides/create-a-bundle-view"], "mustInclude": ["bundle-read"] },
-  { "id": "join-shared-bundle", "category": "builder", "question": "I cloned a project that already shares a Superbee bundle. How do I join it without publishing my local changes?", "sources": ["guides/share-and-synchronize-git-bundle"], "mustInclude": ["--pull-only"] },
+  { "id": "join-shared-bundle", "category": "builder", "question": "I cloned a project that already shares a Superbee bundle. How do I join it without publishing my local changes?", "sources": ["guides/share-and-synchronize-git-bundle"], "followUps": ["Give me the exact commands."] },
   { "id": "okf-version", "category": "builder", "question": "Which OKF version does a new bundle use, and how do I author a v0.1 bundle instead?", "sources": ["reference/okf-compatibility", "reference/cli-commands"], "mustInclude": ["--okf-version"] },
   { "id": "publication-snapshot", "category": "builder", "question": "How do I capture an immutable publication snapshot of a bundle from Node.js?", "sources": ["reference/publication-snapshot-api"], "mustInclude": ["capturePublicationSnapshot"] },
   { "id": "serve-auth", "category": "builder", "question": "Does superbee serve provide authentication, and is it safe to bind it to a public address?", "sources": ["reference/security-and-trust-boundaries", "reference/wire-protocol-and-reference-server"], "mustInclude": ["127.0.0.1"] },

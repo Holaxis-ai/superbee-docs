@@ -16,8 +16,12 @@
  *   none holds more than one code block.
  * - A reply that gives the install command keeps the page's `${stable_version:?…}` guard or names a
  *   literal version, never a bare `${stable_version}`.
- * - A reply listed in SETUP_REPLIES gives the page's primary path (ask your agent) and not, as a
- *   second instruction for the same step, a fenced `superbee setup` command to run yourself.
+ * - A reply listed in AGENT_FIRST answers the default person: it says what to ask their agent, with an
+ *   example prompt (quoted or in a code block), and gives no shell command to type as the step.
+ * - A reply listed in COMMANDS (a "give me the commands" follow-up) gives a code block holding each
+ *   listed text; the runner's code_verbatim checks the commands are the page's.
+ * - A case in CLARIFY_FIRST is ambiguous on purpose: its first reply is one short clarifying question
+ *   (cited sources are not expected), and its follow-up then answers agent-first.
  * - A follow-up listed in SHORT_FOLLOW_UPS (a bare "Yes" after an answer) stays under its word limit
  *   and holds no code block: it must not turn into a walkthrough.
  *
@@ -34,61 +38,104 @@ export const REQUIRED_ANY = Object.freeze({
 });
 
 /** Replies that may end with a question, as `<case id>` or `<case id>#<follow-up number>`. */
-export const CLARIFYING = Object.freeze(["bare-yes#1"]);
+export const CLARIFYING = Object.freeze(["bare-yes#1", "get-started"]);
 
 /** Follow-ups that must stay short, as `<case id>#<follow-up number>`, with their word limit. */
 export const SHORT_FOLLOW_UPS = Object.freeze({ "bare-yes#1": 60 });
 
-/** Replies that answer "how do I set up Superbee", as `<case id>` or `<case id>#<follow-up number>`. */
-export const SETUP_REPLIES = Object.freeze(["host-setup", "setup-conversation#1"]);
+/** Replies that must answer agent-first, as `<case id>` or `<case id>#<follow-up number>`. */
+export const AGENT_FIRST = Object.freeze([
+  "host-setup",
+  "setup-conversation#1",
+  "bare-yes",
+  "join-shared-bundle",
+  "model-domain",
+  "get-started#1",
+]);
 
-const fences = (answer) => [...String(answer ?? "").matchAll(/^\s*```[^\n]*\n([\s\S]*?)^\s*```/gmu)].map((m) => m[1]);
+/** "Give me the commands" replies and the texts their code must hold. */
+export const COMMANDS = Object.freeze({ "join-shared-bundle#1": ["--pull-only"] });
 
-/** The install command keeps its guard or names a version: a bare `${stable_version}` installs latest. */
+/** Cases whose question is ambiguous on purpose: the first reply is a clarifying question. */
+export const CLARIFY_FIRST = Object.freeze(["get-started"]);
+
+/** Most words a clarifying question may take. */
+export const CLARIFY_WORDS = 40;
+
+/** Fenced code: ``` or ~~~ fences of any length; an unclosed fence runs to the end of the reply. */
+const fences = (answer) =>
+  [...String(answer ?? "").matchAll(/^[ \t]*(`{3,}|~{3,})[^\n]*\n([\s\S]*?)(?:^[ \t]*\1[ \t]*$|(?![\s\S]))/gmu)].map(
+    (match) => match[2],
+  );
+
+/**
+ * Every line that runs `npm install -g` keeps the page's guard or names a version: a bare
+ * `${stable_version}` (or `$stable_version`) installs whatever npm `latest` is.
+ */
 export function installCommandFailure(answer) {
-  const text = String(answer ?? "");
-  if (!/npm install -g/u.test(text)) return undefined;
-  if (/\$\{stable_version\}/u.test(text)) return "install command drops the ${stable_version:?…} guard";
-  if (!/\$\{stable_version:\?/u.test(text) && !/superbee@\d+\.\d+\.\d+/u.test(text))
-    return "install command names neither the guarded variable nor a version";
+  const lines = String(answer ?? "")
+    .split("\n")
+    .filter((line) => /npm install -g/u.test(line));
+  for (const line of lines) {
+    if (/\$\{stable_version\}|\$stable_version\b/u.test(line)) return "install command drops the ${stable_version:?…} guard";
+    if (!/\$\{stable_version:\?/u.test(line) && !/superbee@\d+\.\d+\.\d+/u.test(line))
+      return "install command names neither the guarded variable nor a version";
+  }
   return undefined;
 }
 
-/** A setup reply gives the agent path only, not a raw setup command to run as well. */
-export function setupPathFailure(answer) {
+const SHELL = /^\s*(?:\$\s*)?(?:superbee|npm|npx|git|node|cd|mkdir)\b/u;
+
+/**
+ * An agent-first reply says what to ask the agent, with an example prompt (a quote, a blockquote or a
+ * code block), and no fenced shell command and no `superbee setup --host` as the step. A prompt that
+ * itself names a command ("Run `superbee setup`, explain…") is fine.
+ */
+export function agentFirstFailure(answer) {
   const text = String(answer ?? "");
-  if (!/\bagent\b/iu.test(text)) return "setup reply does not give the primary path (ask your agent)";
-  if (fences(text).some((block) => /\bsuperbee setup\b/u.test(block)))
-    return "setup reply also gives a raw superbee setup command to run";
+  if (!/\bask (?:your|the|an) (?:AI )?agents?\b|\byour agents?\b/iu.test(text))
+    return "not agent-first: it does not say what to ask the agent";
+  if (!/^\s*>|["“][^"”]{12,}["”]/mu.test(text) && fences(text).length === 0)
+    return "not agent-first: no example prompt in a quote or code block";
+  const shell = fences(text).some((block) => block.split("\n").some((line) => SHELL.test(line)));
+  if (shell || /superbee setup --host/u.test(text)) return "not agent-first: gives a shell command to type as the step";
   return undefined;
 }
 
+/** Offers of more ("Want the…?", "Would you like…", "If you'd like…, just ask"), not plain conditions. */
 const OFFER =
-  /\b(?:want (?:the|me|to see|more)|(?<!what )would you like|do you want|shall i|should i (?:show|walk|give)|let me know if|happy to (?:walk|show))\b/iu;
+  /(?:^|[.!?:]\s+|\n)(?:want|wanted) (?:the|me|to see|more)\b|\b(?:(?<!what |which [\w ]{0,20})would you like|do you want (?:me|the|more|to see)|shall i|should i (?:show|walk|give)|let me know if|happy to (?:walk|show)|if you(?:'d| would) like|just ask|i can (?:also )?(?:walk|show|give) you)\b/iu;
 
-/** The reply's last sentence ends with a question mark (citation markers and closing marks aside). */
+/** The reply's last sentence ends with a question mark (citations, quotes, brackets and emphasis aside). */
 export function endsWithQuestion(answer) {
-  return /\?["'’”)\]]*$/u.test(String(answer ?? "").replace(CITATION, "").trimEnd());
+  return /\?["'’”)\]*_]*$/u.test(String(answer ?? "").replace(CITATION, "").trimEnd());
 }
 
 const codeBlocks = (answer) => fences(answer).length;
 
 /** The behaviour checks every reply gets: no offer, no closing question, at most one code block. */
 function replyFailures(key, answer) {
+  if (!answer.trim()) return [`${key}: empty reply`];
   const failures = [];
-  if (!answer) return failures;
-  const lower = answer.replace(/[‘’]/gu, "'");
-  const offer = lower.match(OFFER);
-  if (offer) failures.push(`${key}: offers more ("${offer[0]}")`);
-  if (endsWithQuestion(answer) && !CLARIFYING.includes(key)) failures.push(`${key}: ends with a question`);
+  const clarifying = CLARIFYING.includes(key);
+  const offer = clarifying ? null : answer.replace(/[‘’]/gu, "'").match(OFFER);
+  if (offer) failures.push(`${key}: offers more ("${offer[0].trim()}")`);
+  if (endsWithQuestion(answer) && !clarifying) failures.push(`${key}: ends with a question`);
   if (codeBlocks(answer) > 1) failures.push(`${key}: more than one code block`);
   const install = installCommandFailure(answer);
   if (install) failures.push(`${key}: ${install}`);
-  const setup = SETUP_REPLIES.includes(key) ? setupPathFailure(answer) : undefined;
-  if (setup) failures.push(`${key}: ${setup}`);
+  const agentFirst = AGENT_FIRST.includes(key) ? agentFirstFailure(answer) : undefined;
+  if (agentFirst) failures.push(`${key}: ${agentFirst}`);
+  for (const text of COMMANDS[key] ?? [])
+    if (!fences(answer).some((block) => block.includes(text))) failures.push(`${key}: no command block with ${text}`);
+  if (CLARIFY_FIRST.includes(key)) {
+    if (!endsWithQuestion(answer)) failures.push(`${key}: does not ask a clarifying question first`);
+    if (answerWords(answer) > CLARIFY_WORDS || codeBlocks(answer) > 0)
+      failures.push(`${key}: the clarifying question is not short`);
+  }
   const limit = SHORT_FOLLOW_UPS[key];
-  if (limit !== undefined && (answerWords(answer) > limit || codeBlocks(answer) > 0))
-    failures.push(`${key}: not short (${answerWords(answer)} words, limit ${limit}, no code)`);
+  if (limit !== undefined && (answerWords(answer) >= limit || codeBlocks(answer) > 0))
+    failures.push(`${key}: not short (${answerWords(answer)} words, under ${limit} and no code)`);
   return failures;
 }
 
@@ -122,6 +169,9 @@ export function checkAssistantEval(report) {
     for (const check of row.checks ?? []) {
       if (check.ok) continue;
       if (check.name === "declined" && SITE_DECLINE.test(lower)) continue;
+      // A clarifying question first cites nothing; its follow-up's answer is checked instead.
+      if (CLARIFY_FIRST.includes(row.id) && (check.name === "expected_source_cited" || check.name === "citations_resolve"))
+        continue;
       failures.push(check.name + (check.detail ? `: ${String(check.detail).slice(0, 120)}` : ""));
     }
     const any = REQUIRED_ANY[row.id];
