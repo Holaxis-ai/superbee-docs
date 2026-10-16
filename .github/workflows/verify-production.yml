@@ -30,6 +30,9 @@ concurrency:
 #   workflow on main instead of building. After a hosted content change, run it by hand:
 #   gh workflow run verify-production.yml --ref main
 # - The daily schedule deploys (instead of only probing), so hosted edits reach production within a day.
+# - This repository is public, so its Actions logs and artifacts are public: the token client masks the
+#   sbw_ bearer (::add-mask::) before anything runs, and the export artifact is the only content upload,
+#   kept 1 day.
 jobs:
   redispatch:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DOCS_HOSTED_APP_ID != ''
