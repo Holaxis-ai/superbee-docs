@@ -44,7 +44,8 @@
     "docs:release:finalize": "node scripts/release-conductor.mjs finalize",
     "release-package:check": "node scripts/release-package-journeys.mjs",
     "package-verification:check": "node scripts/check-package-verification.mjs",
-    "assistant:eval": "superbee-portal-assistant-eval --artifact dist --config scripts/assistant-config.mjs --questions .superbee/assistant/golden-questions.md"
+    "assistant:eval": "superbee-portal-assistant-eval --artifact dist --config scripts/assistant-config.mjs --questions .superbee/assistant/golden-questions.md",
+    "assistant:eval:check": "node scripts/assistant-eval-check.mjs"
   },
   "dependencies": {
     "@superbee/agent-operations": "0.1.0-pre.4",

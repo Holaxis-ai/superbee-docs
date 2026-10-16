@@ -49,11 +49,15 @@ jobs:
       - if: steps.key.outputs.present == 'true'
         run: npm run portal:build
       # The cap stops runaway spend; size it from assistant-eval.json after the first live run.
+      # The runner's own verdict is advisory here: the site gate below decides, from its report.
       - name: Ask every golden question of the real model (capped at $3)
         if: steps.key.outputs.present == 'true'
-        run: npm run assistant:eval -- --live --max-usd 3 --json assistant-eval.json
+        run: npm run assistant:eval -- --live --max-usd 3 --json assistant-eval.json || true
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_EVAL_API_KEY }}
+      - name: Apply the site's acceptance gate (accepted phrasings, declines, median length)
+        if: steps.key.outputs.present == 'true'
+        run: npm run assistant:eval:check -- assistant-eval.json
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always() && steps.key.outputs.present == 'true'
         with:
