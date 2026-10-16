@@ -79,7 +79,7 @@ export function installCommandFailure(answer) {
   const lines = String(answer ?? "")
     .replace(/\\\r?\n[ \t]*/gu, " ")
     .split("\n")
-    .filter((line) => /npm install -g\s+["']?superbee\b/u.test(line));
+    .filter((line) => INSTALL_LINE.test(line));
   for (const line of lines) {
     if (/\$\{stable_version\}|\$stable_version\b/u.test(line))
       return "install command drops the ${stable_version:?…} guard";
@@ -88,6 +88,8 @@ export function installCommandFailure(answer) {
   }
   return undefined;
 }
+
+const INSTALL_LINE = /npm (?:install|i) (?:-g|--global)\s+["']?superbee\b/u;
 
 const SHELL = /^\s*(?:\$\s*)?(?:sudo\s+)?(?:superbee|npm|npx|pnpm|yarn|brew|git|node|cd|mkdir|export|curl)\b/u;
 
@@ -104,9 +106,12 @@ export function agentFirstFailure(answer) {
     )
   )
     return "not agent-first: it does not say what to ask the agent";
-  if (!/^\s*>|["“'‘][^"”'’]{12,}["”'’]/mu.test(text) && fences(text).length === 0)
+  if (!/^\s*>|(?:^|[\s:])["“'‘][^"”'’\n]{12,}["”'’](?=[\s.,;:!?)[]|$)/mu.test(text) && fences(text).length === 0)
     return "not agent-first: no example prompt in a quote or code block";
-  const shell = fences(text).some((block) => block.split("\n").some((line) => SHELL.test(line)));
+  // Installing the CLI is the person's own step, so the install line is not a shell step here.
+  const shell = fences(text).some((block) =>
+    block.split("\n").some((line) => SHELL.test(line) && !INSTALL_LINE.test(line)),
+  );
   if (shell || /superbee setup --host/u.test(text)) return "not agent-first: gives a shell command to type as the step";
   return undefined;
 }
@@ -183,7 +188,8 @@ export function checkAssistantEval(report) {
     for (const check of row.checks ?? []) {
       if (check.ok) continue;
       if (check.name === "declined" && SITE_DECLINE.test(lower)) continue;
-      // A clarifying question first cites nothing; its follow-up must cite instead (below).
+      // A clarifying question first cites nothing; its follow-up must carry a citation marker instead
+      // (below; the report holds no document ids for follow-ups, so the marker is what is checked).
       if (CLARIFY_FIRST.includes(row.id) && check.name === "expected_source_cited" && !CITATION_MARK.test(answer))
         continue;
       failures.push(check.name + (check.detail ? `: ${String(check.detail).slice(0, 120)}` : ""));

@@ -316,3 +316,15 @@ test("second review: citations after a clarifying question, prose about npm, pla
     /shell command/u,
   );
 });
+
+test("third review: install lines in agent-first replies, apostrophes, npm i and --global", () => {
+  const install =
+    '```sh\nnpm install -g "superbee@${stable_version:?Set stable_version}"\n```\nThen ask your agent:\n> Set up Superbee for this host and walk me through each step.';
+  assert.equal(agentFirstFailure(install), undefined);
+  assert.match(
+    agentFirstFailure("Ask your agent to set it up; Superbee's setup doesn't need more."),
+    /no example prompt/u,
+  );
+  assert.match(installCommandFailure("```sh\nnpm i -g superbee\n```"), /neither/u);
+  assert.match(installCommandFailure("```sh\nnpm install --global superbee\n```"), /neither/u);
+});
