@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { answerWords, checkAssistantEval, MEDIAN_WORDS } from "../scripts/assistant-eval-check.mjs";
+import {
+  answerWords,
+  checkAssistantEval,
+  endsWithQuestion,
+  installCommandFailure,
+  MEDIAN_WORDS,
+  setupPathFailure,
+} from "../scripts/assistant-eval-check.mjs";
 
 const words = (count) => Array.from({ length: count }, (_, index) => `word${index}`).join(" ");
 const cited = (id, answer, checks = []) => ({
@@ -65,4 +72,71 @@ test("live answers fail the gate when the median cited answer runs long; code an
 test("an empty or skipped report never passes", () => {
   assert.equal(checkAssistantEval(report([])).ok, false);
   assert.equal(checkAssistantEval({ ...report([cited("a", "Yes.")]), skipped: 1 }).ok, false);
+});
+
+test("live replies fail on an offer, a closing question or a second code block, follow-ups included", () => {
+  const fence = "```sh\nsuperbee setup\n```";
+  const verdict = checkAssistantEval(
+    report([
+      cited("clean", "Run the installer. The full steps are on Install and set up Superbee.[[source:s1]]"),
+      cited("offer", "Run the installer.[[source:s1]] Want the commands to set up a first workspace?"),
+      cited("would", "Run the installer. Would you like more detail."),
+      cited("question", "Is that what you meant?[[source:s1]]"),
+      cited("two-blocks", `First:\n${fence}\nThen:\n${fence}`),
+      { ...cited("follow", "Run the installer.[[source:s1]]"), followUps: [{ answer: "Shall I walk you through it." }] },
+      { ...cited("bare-yes", "Run superbee init.[[source:s2]]"), followUps: [{ answer: "What would you like to know next?" }] },
+    ]),
+  );
+  assert.deepEqual(
+    verdict.results.map((row) => [row.id, row.ok]),
+    [
+      ["clean", true],
+      ["offer", false],
+      ["would", false],
+      ["question", false],
+      ["two-blocks", false],
+      ["follow", false],
+      ["bare-yes", true],
+    ],
+  );
+  assert.match(verdict.results[5].failures.join(), /follow#1: offers more/u);
+  assert.equal(verdict.replies, 9);
+  assert.equal(verdict.endingInQuestion, 3);
+  assert.ok(endsWithQuestion("Really?”[[source:a]] "));
+  assert.ok(!endsWithQuestion("It works."));
+});
+
+test("a bare-yes follow-up must stay short and hold no code", () => {
+  const long = { ...cited("bare-yes", "Run superbee init.[[source:s2]]"), followUps: [{ answer: words(80) + "." }] };
+  const code = {
+    ...cited("bare-yes", "Run superbee init.[[source:s2]]"),
+    followUps: [{ answer: "Run this:\n```sh\nsuperbee init\n```" }],
+  };
+  for (const row of [long, code]) {
+    const [result] = checkAssistantEval(report([row])).results;
+    assert.equal(result.ok, false);
+    assert.match(result.failures.join(), /bare-yes#1: not short/u);
+  }
+});
+
+test("an install command keeps its guard or names a version, never a bare variable", () => {
+  const guarded = '```sh\nnpm install -g "superbee@${stable_version:?Set stable_version to the version in the verified stable release}"\n```';
+  assert.equal(installCommandFailure(`Set stable_version to 0.4.2.\n${guarded}`), undefined);
+  assert.equal(installCommandFailure("```sh\nnpm install -g superbee@0.4.2\n```"), undefined);
+  assert.match(installCommandFailure('```sh\nnpm install -g "superbee@${stable_version}"\n```'), /drops the/u);
+  assert.match(installCommandFailure("```sh\nnpm install -g superbee\n```"), /neither/u);
+  assert.equal(installCommandFailure("Superbee is a CLI."), undefined);
+  const [row] = checkAssistantEval(report([cited("install-cli", 'Run `npm install -g "superbee@${stable_version}"`.')])).results;
+  assert.equal(row.ok, false);
+});
+
+test("a setup reply gives the agent path only", () => {
+  const ask = "In your host, ask your agent to set up Superbee; it runs `superbee setup` and asks before each change.";
+  assert.equal(setupPathFailure(ask), undefined);
+  assert.match(setupPathFailure(`${ask}\n\`\`\`sh\nsuperbee setup --host claude-code --scope user\n\`\`\``), /also gives/u);
+  assert.match(setupPathFailure("Run `superbee setup --host claude-code`."), /primary path/u);
+  const verdict = checkAssistantEval(
+    report([{ ...cited("setup-conversation", "Install it.[[source:a]]"), followUps: [{ answer: "Run `superbee setup`." }] }]),
+  );
+  assert.match(verdict.results[0].failures.join(), /setup-conversation#1: setup reply/u);
 });
