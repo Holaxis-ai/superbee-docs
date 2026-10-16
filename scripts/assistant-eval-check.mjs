@@ -54,7 +54,9 @@ export const AGENT_FIRST = Object.freeze([
 ]);
 
 /** "Give me the commands" replies and the texts their code must hold. */
-export const COMMANDS = Object.freeze({ "join-shared-bundle#1": ["--pull-only"] });
+export const COMMANDS = Object.freeze({
+  "join-shared-bundle#1": ["--pull-only"],
+});
 
 /** Cases whose question is ambiguous on purpose: the first reply is a clarifying question. */
 export const CLARIFY_FIRST = Object.freeze(["get-started"]);
@@ -69,22 +71,25 @@ const fences = (answer) =>
   );
 
 /**
- * Every line that runs `npm install -g` keeps the page's guard or names a version: a bare
- * `${stable_version}` (or `$stable_version`) installs whatever npm `latest` is.
+ * Every line that installs Superbee with `npm install -g` keeps the page's guard or names a version: a
+ * bare `${stable_version}` (or `$stable_version`) installs whatever npm `latest` is. Prose that only
+ * mentions `npm install -g` is not an install line; `\` continuations are joined first.
  */
 export function installCommandFailure(answer) {
   const lines = String(answer ?? "")
+    .replace(/\\\r?\n[ \t]*/gu, " ")
     .split("\n")
-    .filter((line) => /npm install -g/u.test(line));
+    .filter((line) => /npm install -g\s+["']?superbee\b/u.test(line));
   for (const line of lines) {
-    if (/\$\{stable_version\}|\$stable_version\b/u.test(line)) return "install command drops the ${stable_version:?…} guard";
+    if (/\$\{stable_version\}|\$stable_version\b/u.test(line))
+      return "install command drops the ${stable_version:?…} guard";
     if (!/\$\{stable_version:\?/u.test(line) && !/superbee@\d+\.\d+\.\d+/u.test(line))
       return "install command names neither the guarded variable nor a version";
   }
   return undefined;
 }
 
-const SHELL = /^\s*(?:\$\s*)?(?:superbee|npm|npx|git|node|cd|mkdir)\b/u;
+const SHELL = /^\s*(?:\$\s*)?(?:sudo\s+)?(?:superbee|npm|npx|pnpm|yarn|brew|git|node|cd|mkdir|export|curl)\b/u;
 
 /**
  * An agent-first reply says what to ask the agent, with an example prompt (a quote, a blockquote or a
@@ -93,9 +98,13 @@ const SHELL = /^\s*(?:\$\s*)?(?:superbee|npm|npx|git|node|cd|mkdir)\b/u;
  */
 export function agentFirstFailure(answer) {
   const text = String(answer ?? "");
-  if (!/\bask (?:your|the|an) (?:AI )?agents?\b|\byour agents?\b/iu.test(text))
+  if (
+    !/\b(?:ask|tell) (?:your|the|an) (?:AI )?agents?\b|\b(?:paste|give) (?:this|it|the prompt) (?:in)?to (?:your|the) (?:agent|host)\b/iu.test(
+      text,
+    )
+  )
     return "not agent-first: it does not say what to ask the agent";
-  if (!/^\s*>|["“][^"”]{12,}["”]/mu.test(text) && fences(text).length === 0)
+  if (!/^\s*>|["“'‘][^"”'’]{12,}["”'’]/mu.test(text) && fences(text).length === 0)
     return "not agent-first: no example prompt in a quote or code block";
   const shell = fences(text).some((block) => block.split("\n").some((line) => SHELL.test(line)));
   if (shell || /superbee setup --host/u.test(text)) return "not agent-first: gives a shell command to type as the step";
@@ -104,11 +113,15 @@ export function agentFirstFailure(answer) {
 
 /** Offers of more ("Want the…?", "Would you like…", "If you'd like…, just ask"), not plain conditions. */
 const OFFER =
-  /(?:^|[.!?:]\s+|\n)(?:want|wanted) (?:the|me|to see|more)\b|\b(?:(?<!what |which [\w ]{0,20})would you like|do you want (?:me|the|more|to see)|shall i|should i (?:show|walk|give)|let me know if|happy to (?:walk|show)|if you(?:'d| would) like|just ask|i can (?:also )?(?:walk|show|give) you)\b/iu;
+  /(?:^|[.!?:]\s+|\n)(?:want|wanted) (?:the|me|to see|more)\b|\b(?:(?<!what |which [\w ]{0,20})would you like|do you want (?:me|the|more|to see)|shall i|should i (?:show|walk|give)|let me know if|happy to (?:walk|show)|if you(?:'d| would) like[^.?!\n]*(?:,\s*i can|just ask)|just ask|i can (?:also )?(?:walk|show|give) you)\b/iu;
 
 /** The reply's last sentence ends with a question mark (citations, quotes, brackets and emphasis aside). */
 export function endsWithQuestion(answer) {
-  return /\?["'’”)\]*_]*$/u.test(String(answer ?? "").replace(CITATION, "").trimEnd());
+  return /\?["'’”)\]*_]*$/u.test(
+    String(answer ?? "")
+      .replace(CITATION, "")
+      .trimEnd(),
+  );
 }
 
 const codeBlocks = (answer) => fences(answer).length;
@@ -143,6 +156,7 @@ const SITE_DECLINE =
   /\b(?:(?:can(?:no|')t|cannot|won't|will not|am not able to|not able to|unable to) (?:share|reveal|disclose|provide|print|show|repeat|quote|output|tell you)|(?:don't|do not) (?:cover|mention|say|describe|document)|(?:don't|do not) have (?:an answer|information))\b/iu;
 
 const CITATION = /\[\[source:[^[\]\s]+\]\]/gu;
+const CITATION_MARK = /\[\[source:[^[\]\s]+\]\]/u;
 
 /** The words a reader reads: prose without code blocks or citation markers. */
 export function answerWords(answer) {
@@ -169,8 +183,8 @@ export function checkAssistantEval(report) {
     for (const check of row.checks ?? []) {
       if (check.ok) continue;
       if (check.name === "declined" && SITE_DECLINE.test(lower)) continue;
-      // A clarifying question first cites nothing; its follow-up's answer is checked instead.
-      if (CLARIFY_FIRST.includes(row.id) && (check.name === "expected_source_cited" || check.name === "citations_resolve"))
+      // A clarifying question first cites nothing; its follow-up must cite instead (below).
+      if (CLARIFY_FIRST.includes(row.id) && check.name === "expected_source_cited" && !CITATION_MARK.test(answer))
         continue;
       failures.push(check.name + (check.detail ? `: ${String(check.detail).slice(0, 120)}` : ""));
     }
@@ -183,6 +197,12 @@ export function checkAssistantEval(report) {
       ...(row.followUps ?? []).map((followUp, index) => [`${row.id}#${index + 1}`, String(followUp.answer ?? "")]),
     ];
     if (report.mode === "live") for (const [key, text] of replies) failures.push(...replyFailures(key, text));
+    if (
+      report.mode === "live" &&
+      CLARIFY_FIRST.includes(row.id) &&
+      !CITATION_MARK.test(String(row.followUps?.[0]?.answer ?? ""))
+    )
+      failures.push(`${row.id}#1: the answer after the clarifying question cites no page`);
     const questions = replies.filter(([, text]) => endsWithQuestion(text)).length;
     return {
       id: row.id,
@@ -195,7 +215,10 @@ export function checkAssistantEval(report) {
     };
   });
   const cited = results.filter(
-    (row) => (row.category === "builder" || row.category === "evaluator") && cases.find((c) => c.id === row.id)?.answer,
+    (row) =>
+      (row.category === "builder" || row.category === "evaluator") &&
+      !CLARIFY_FIRST.includes(row.id) &&
+      cases.find((c) => c.id === row.id)?.answer,
   );
   const medianWords = median(cited.map((row) => row.words));
   const lengthOk = report.mode !== "live" || medianWords < MEDIAN_WORDS;
@@ -230,7 +253,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   }
   const verdict = checkAssistantEval(report);
   for (const row of verdict.results)
-    console.log(`${row.ok ? "pass" : "FAIL"}  ${row.id} (${row.category}, ${row.words} words)${row.failures.length ? "  " + row.failures.join("; ") : ""}`);
+    console.log(
+      `${row.ok ? "pass" : "FAIL"}  ${row.id} (${row.category}, ${row.words} words)${row.failures.length ? "  " + row.failures.join("; ") : ""}`,
+    );
   console.log(
     `${verdict.passed} passed, ${verdict.failed} failed, ${verdict.skipped} skipped · median cited answer ${verdict.medianWords} words` +
       `${report.mode === "live" ? ` (limit ${MEDIAN_WORDS}) · ${verdict.endingInQuestion} of ${verdict.replies} replies end with a question · $${verdict.costUsd.toFixed(4)} · ${Math.round(verdict.cacheReadShare * 100)}% of input read from cache` : " · no spend"} · ${report.mode}`,
