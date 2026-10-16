@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
+import { pathToFileURL } from "node:url";
 import { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -80,7 +82,7 @@ test("materialize refuses an export that carries configuration, dot entries, lin
   }
 });
 
-test("export names the qualified hosted bundle, adds the host only for a person's session, and checks the receipt", () => {
+test("export names the qualified hosted bundle and explicit host for both sessions and workloads, and checks the receipt", () => {
   const calls = [];
   const ok = { export: "created", bundle_id: "superbee-docs", host: HOSTED_CONTENT.gateway, revision: 3, documents: 2, reserved: 1, blobs: 0, bytes: 9, root_index: true };
   const fake = (answer, status = 0) => (command, args, options) => {
@@ -90,7 +92,7 @@ test("export names the qualified hosted bundle, adds the host only for a person'
   assert.deepEqual(exportHosted({ to: "/x", env: {}, run: fake(ok) }), ok);
   assert.deepEqual(calls.at(-1).args, ["export", HOSTED_CONTENT.bundle, "--host", HOSTED_CONTENT.gateway, "--to", "/x", "--json"]);
   exportHosted({ to: "/x", env: { SUPERBEE_ACCESS_TOKEN: "sbw_x", SUPERBEE_HOST: HOSTED_CONTENT.gateway }, run: fake(ok) });
-  assert.deepEqual(calls.at(-1).args, ["export", HOSTED_CONTENT.bundle, "--to", "/x", "--json"]);
+  assert.deepEqual(calls.at(-1).args, ["export", HOSTED_CONTENT.bundle, "--host", HOSTED_CONTENT.gateway, "--to", "/x", "--json"]);
   assert.throws(() => exportHosted({ to: "/x", env: {}, run: fake({ ...ok, bundle_id: "other" }) }), /no export of superbee-docs/);
   assert.throws(() => exportHosted({ to: "/x", env: {}, run: fake({ ...ok, documents: 0 }) }), /no documents/);
   assert.throws(() => exportHosted({ to: "/x", env: {}, run: fake({ error: { message: "denied" } }, 4) }), /exit 4\): denied/);
@@ -264,4 +266,36 @@ test("materialize refuses a linked source export and leaves it untouched", async
   } finally {
     for (const dir of [exported, parent, bundle]) await rm(dir, { recursive: true, force: true });
   }
+});
+
+
+test("the pinned CLI selects the workload host without a stored personal session", async () => {
+  const root = await folder({});
+  const trace = path.join(root, "request.json");
+  const preload = path.join(root, "transport.mjs");
+  const token = "sbw_synthetic_docs_workload_token";
+  try {
+    // Exercise the shipped CLI's host selection and credential binding, with no local sign-in
+    // and no network. The synthetic host denies the first authenticated request on purpose.
+    await writeFile(preload, `
+      import os from "node:os";
+      import { syncBuiltinESMExports } from "node:module";
+      import { writeFileSync } from "node:fs";
+      os.homedir = () => ${JSON.stringify(path.join(root, "home"))};
+      syncBuiltinESMExports();
+      globalThis.fetch = async (input, init) => {
+        const request = new Request(input, init);
+        writeFileSync(${JSON.stringify(trace)}, JSON.stringify({ url: request.url, authorization: request.headers.get("authorization") }));
+        return new Response(JSON.stringify({ error: "synthetic_denial" }), { status: 403, headers: { "Content-Type": "application/json" } });
+      };
+    `);
+    assert.throws(() => exportHosted({
+      to: path.join(root, "export"),
+      env: { ...process.env, SUPERBEE_ACCESS_TOKEN: token, SUPERBEE_HOST: HOSTED_CONTENT.gateway },
+      run: (command, args, options) => spawnSync(command, ["--import", pathToFileURL(preload).href, ...args], options),
+    }), /superbee export .* failed/);
+    const request = JSON.parse(await readFile(trace, "utf8"));
+    assert.equal(new URL(request.url).origin, HOSTED_CONTENT.gateway);
+    assert.equal(request.authorization, `Bearer ${token}`);
+  } finally { await rm(root, { recursive: true, force: true }); }
 });
