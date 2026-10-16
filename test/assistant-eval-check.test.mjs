@@ -231,7 +231,7 @@ test("review cases: clarifying wordings, a pasted agent prompt, empty and inline
   assert.match(checkAssistantEval(report([clarify("")])).results[0].failures.join(), /bare-yes#1: empty reply/u);
   assert.match(checkAssistantEval(report([clarify(words(60) + ".")])).results[0].failures.join(), /not short/u);
   const prompt =
-    "Ask your agent in Claude Code:\n```text\nSet up Superbee for this host. Run `superbee setup`, explain the next proposed command.\n```";
+    "Ask your agent in Claude Code:\n> Set up Superbee for this host. Run `superbee setup`, explain the next proposed command.";
   assert.equal(agentFirstFailure(prompt), undefined);
   assert.match(
     agentFirstFailure(`${prompt}\nOr run \`superbee setup --host claude-code --scope user\` yourself.`),
@@ -327,4 +327,9 @@ test("third review: install lines in agent-first replies, apostrophes, npm i and
   );
   assert.match(installCommandFailure("```sh\nnpm i -g superbee\n```"), /neither/u);
   assert.match(installCommandFailure("```sh\nnpm install --global superbee\n```"), /neither/u);
+});
+
+test("fourth review: apostrophes inside a double-quoted prompt; a fenced prompt is not a prompt", () => {
+  assert.equal(agentFirstFailure('Ask your agent: "Propose Kinds from my lab\'s existing notes."'), undefined);
+  assert.match(agentFirstFailure("Ask your agent to do this:\n```text\nPropose Kinds from my existing notes.\n```"), /no example prompt/u);
 });
