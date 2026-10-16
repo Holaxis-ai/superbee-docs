@@ -76,6 +76,7 @@ export function checkAssistantEval(report) {
     medianWords,
     lengthOk,
     costUsd: (report.costMicroUsd ?? 0) / 1_000_000,
+    cacheReadShare: report.usage?.cacheReadShare ?? 0,
     results,
   };
 }
@@ -98,7 +99,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     console.log(`${row.ok ? "pass" : "FAIL"}  ${row.id} (${row.category}, ${row.words} words)${row.failures.length ? "  " + row.failures.join("; ") : ""}`);
   console.log(
     `${verdict.passed} passed, ${verdict.failed} failed, ${verdict.skipped} skipped · median cited answer ${verdict.medianWords} words` +
-      `${report.mode === "live" ? ` (limit ${MEDIAN_WORDS}) · $${verdict.costUsd.toFixed(4)}` : " · no spend"} · ${report.mode}`,
+      `${report.mode === "live" ? ` (limit ${MEDIAN_WORDS}) · $${verdict.costUsd.toFixed(4)} · ${Math.round(verdict.cacheReadShare * 100)}% of input read from cache` : " · no spend"} · ${report.mode}`,
   );
   process.exitCode = verdict.ok ? 0 : 1;
 }

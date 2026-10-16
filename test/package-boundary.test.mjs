@@ -27,7 +27,7 @@ test("consumer uses only public published package surfaces and nested versioned 
     // Restricted peers of the portal-cloudflare agentAccess endpoint; exact pins.
     "@superbee/agent-operations": "0.1.0-pre.4",
     // The assistant's runtime, a restricted optional peer of portal-cloudflare's assistant option.
-    "@superbee/assistant-runtime": "0.1.0-pre.15",
+    "@superbee/assistant-runtime": "0.1.0-pre.16",
     "@superbee/core": "0.2.0-pre.11",
     "@superbee/docs-mkdocs": "0.2.2",
     "@superbee/docs-projection": "0.2.5",
