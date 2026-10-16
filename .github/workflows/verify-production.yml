@@ -17,6 +17,9 @@ concurrency:
 # Content source. The site's content lives in the hosted bundle holaxis-sites/superbee-docs
 # (scripts/hosted-content.mjs). The build reads it once the repository variable DOCS_HOSTED_APP_ID
 # names that workspace's registered workload app; until then it reads .superbee from Git as before.
+# DO NOT set DOCS_HOSTED_APP_ID until production workload admission accepts this public repository
+# for a read-only app row (superbee-hosted appClaimChecks); before that every exchange is refused
+# (403 claim_repository_visibility) and production stops deploying.
 # With the variable set:
 # - acquire is the only job with id-token: write. It runs in the holaxis-sites-docs environment
 #   (the app row names it, and its main-only deployment rule is the repository admin's off switch),
@@ -26,6 +29,7 @@ concurrency:
 # - The app admits schedule and workflow_dispatch runs only, so a push to main re-dispatches this
 #   workflow on main instead of building. After a hosted content change, run it by hand:
 #   gh workflow run verify-production.yml --ref main
+# - The daily schedule deploys (instead of only probing), so hosted edits reach production within a day.
 jobs:
   redispatch:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && vars.DOCS_HOSTED_APP_ID != ''
@@ -34,7 +38,7 @@ jobs:
     permissions:
       actions: write
     steps:
-      - name: Release this commit through a dispatched run (the workload app admits no push event)
+      - name: Re-run this workflow on main as a dispatch (the workload app admits no push event)
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run verify-production.yml --repo "$GITHUB_REPOSITORY" --ref main
@@ -80,7 +84,7 @@ jobs:
           name: superbee-docs-hosted-content-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/hosted
           if-no-files-found: error
-          retention-days: 30
+          retention-days: 1
 
   build:
     needs: acquire
@@ -172,7 +176,7 @@ jobs:
         continue-on-error: true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          RECONCILIATION_MODE: ${{ github.event_name == 'schedule' && 'probe' || 'deploy' }}
+          RECONCILIATION_MODE: ${{ github.event_name == 'schedule' && vars.DOCS_HOSTED_APP_ID == '' && 'probe' || 'deploy' }}
         run: >-
           node scripts/reconcile-cloudflare.mjs
           --mode "$RECONCILIATION_MODE"

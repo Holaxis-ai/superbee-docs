@@ -5,8 +5,9 @@ import path from "node:path";
 import test from "node:test";
 
 import {
-  BASELINE_FILE,
+  BASELINE_PATH,
   HOSTED_CONTENT,
+  checkCounts,
   compareTrees,
   exportHosted,
   listFiles,
@@ -81,18 +82,23 @@ test("materialize refuses an export that carries configuration, dot entries, lin
 
 test("export names the qualified hosted bundle, adds the host only for a person's session, and checks the receipt", () => {
   const calls = [];
-  const ok = { export: "created", bundle_id: "superbee-docs", host: "h", revision: 3, documents: 2, reserved: 1, blobs: 0, bytes: 9 };
+  const ok = { export: "created", bundle_id: "superbee-docs", host: HOSTED_CONTENT.gateway, revision: 3, documents: 2, reserved: 1, blobs: 0, bytes: 9, root_index: true };
   const fake = (answer, status = 0) => (command, args, options) => {
     calls.push({ args: args.slice(1), env: options.env });
     return { status, stdout: JSON.stringify(answer), stderr: "" };
   };
   assert.deepEqual(exportHosted({ to: "/x", env: {}, run: fake(ok) }), ok);
   assert.deepEqual(calls.at(-1).args, ["export", HOSTED_CONTENT.bundle, "--host", HOSTED_CONTENT.gateway, "--to", "/x", "--json"]);
-  exportHosted({ to: "/x", env: { SUPERBEE_ACCESS_TOKEN: "sbw_x", SUPERBEE_HOST: "https://g" }, run: fake(ok) });
+  exportHosted({ to: "/x", env: { SUPERBEE_ACCESS_TOKEN: "sbw_x", SUPERBEE_HOST: HOSTED_CONTENT.gateway }, run: fake(ok) });
   assert.deepEqual(calls.at(-1).args, ["export", HOSTED_CONTENT.bundle, "--to", "/x", "--json"]);
   assert.throws(() => exportHosted({ to: "/x", env: {}, run: fake({ ...ok, bundle_id: "other" }) }), /no export of superbee-docs/);
   assert.throws(() => exportHosted({ to: "/x", env: {}, run: fake({ ...ok, documents: 0 }) }), /no documents/);
   assert.throws(() => exportHosted({ to: "/x", env: {}, run: fake({ error: { message: "denied" } }, 4) }), /exit 4\): denied/);
+  assert.throws(() => exportHosted({ to: "/x", env: {}, run: fake({ ...ok, root_index: false }) }), /no root index/);
+  assert.throws(() => exportHosted({ to: "/x", env: {}, run: fake({ ...ok, host: "https://elsewhere" }) }), /not https:\/\/mcp/);
+  assert.throws(() => exportHosted({ to: "/x", env: { SUPERBEE_ACCESS_TOKEN: "sbw_x", SUPERBEE_HOST: "https://elsewhere" }, run: fake(ok) }), /not https:\/\/mcp/);
+  checkCounts(ok, ["a", "b", "index.md"]);
+  assert.throws(() => checkCounts(ok, ["a", "index.md"]), /holds 2 files, but its receipt counts 3/);
 });
 
 const snapshot = (documents) => ({ manifest: { documents } });
@@ -123,7 +129,7 @@ test("the freshness baseline fills only documents with no clock whose bytes are 
 });
 
 test("the committed freshness baseline is well formed and names the hosted bundle", async () => {
-  const rows = await readFreshnessBaseline(BASELINE_FILE);
+  const rows = await readFreshnessBaseline(BASELINE_PATH);
   assert.ok(rows.size > 100);
   for (const id of rows.keys()) assert.ok(!id.startsWith("assistant/"), `${id} is configuration, not hosted content`);
   const bad = await folder({ "b.json": JSON.stringify({ schema: "x", bundle: HOSTED_CONTENT.bundle, documents: [] }) });
@@ -140,7 +146,7 @@ test("the workload token client runs one command with the bearer and without Git
   const token = `sbw_${"a".repeat(43)}`;
   const jwt = "aaa.bbb.ccc";
   const request = async (url) => {
-    if (String(url).startsWith("https://token.actions")) return new Response(JSON.stringify({ value: jwt }));
+    if (new URL(url).hostname === "token.actions.example") return new Response(JSON.stringify({ value: jwt }));
     return new Response(JSON.stringify({
       version: 1, token, expiresAt: Date.now() + 900_000,
       workspace: { origin: "https://holaxis-sites.getsuperbee.com", slug: "holaxis-sites" }, bundles: ["superbee-docs"],
@@ -182,5 +188,37 @@ test("only the acquire job can mint an OIDC token, in its environment, with no i
   const names = (await readdir(".github/workflows")).filter((name) => name !== "verify-production.yml");
   for (const name of names) {
     assert.doesNotMatch(await readFile(path.join(".github/workflows", name), "utf8"), /id-token|DOCS_HOSTED_APP_ID/u, name);
+  }
+});
+
+test("materialize checks the handed-over digest and leaves the old folder whole when it refuses", async () => {
+  const exported = await folder({ "index.md": "i", "guides/a.md": "hosted" });
+  const bundle = await folder({ "index.md": "old", "assistant/instructions.md": "config" });
+  try {
+    for (const expectedDigest of ["", "sha256:abc", `sha256:${"0".repeat(64)}`]) {
+      await assert.rejects(materialize({ from: exported, bundleDir: bundle, expectedDigest }), /does not match tree digest/);
+    }
+    assert.equal(await readFile(path.join(bundle, "index.md"), "utf8"), "old");
+    const right = await treeDigest(exported, await listFiles(exported));
+    await materialize({ from: exported, bundleDir: bundle, expectedDigest: right });
+    assert.deepEqual(await listFiles(bundle), ["assistant/instructions.md", "guides/a.md", "index.md"]);
+    const siblings = (await readdir(path.dirname(bundle))).filter((name) => name.startsWith(`${path.basename(bundle)}.`));
+    assert.deepEqual(siblings, [], "no staging or retired folder is left behind");
+  } finally {
+    await rm(exported, { recursive: true, force: true });
+    await rm(bundle, { recursive: true, force: true });
+  }
+});
+
+test("materialize refuses a configuration folder that holds a link", async () => {
+  const exported = await folder({ "index.md": "i" });
+  const bundle = await folder({ "index.md": "old", "assistant/instructions.md": "config" });
+  try {
+    await symlink("/etc/hosts", path.join(bundle, "assistant", "hosts.md"));
+    await assert.rejects(materialize({ from: exported, bundleDir: bundle }), /symbolic link/);
+    assert.equal(await readFile(path.join(bundle, "index.md"), "utf8"), "old");
+  } finally {
+    await rm(exported, { recursive: true, force: true });
+    await rm(bundle, { recursive: true, force: true });
   }
 });

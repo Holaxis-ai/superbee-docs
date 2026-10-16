@@ -17,7 +17,8 @@
 // entry, a symlink or anything but plain files and folders is refused before .superbee is touched.
 import { createHash } from "node:crypto";
 import { execFileSync, spawnSync } from "node:child_process";
-import { cp, lstat, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, lstat, mkdir, mkdtemp, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { randomBytes } from "node:crypto";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -34,14 +35,17 @@ export const HOSTED_CONTENT = Object.freeze({
 
 export const RECEIPT_SCHEMA = "https://getsuperbee.com/schemas/superbee-docs/hosted-content-receipt/v1";
 export const BASELINE_SCHEMA = "https://getsuperbee.com/schemas/superbee-docs/freshness-baseline/v1";
+/** The repository root, from this script's location (never the working directory). */
+export const ROOT = fileURLToPath(new URL("..", import.meta.url));
 export const BASELINE_FILE = "freshness-baseline.json";
+export const BASELINE_PATH = path.join(ROOT, BASELINE_FILE);
 const BUNDLE_DIR = ".superbee";
+export const BUNDLE_PATH = path.join(ROOT, BUNDLE_DIR);
 const VERSION = /^sha256:[0-9a-f]{64}$/;
 const SAFE_ID = /^(?![-!])(?=.{1,512}$)[A-Za-z0-9._-]+(?:\/[A-Za-z0-9._-]+)*$/;
 
 const sha256 = (bytes) => `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
 const fail = (message) => { throw Object.assign(new Error(message), { exit: 1 }); };
-const posix = (relative) => relative.split(path.sep).join("/");
 
 /** Every regular file under `root` as sorted posix paths; refuses links and special files. */
 export async function listFiles(root, { skipTop = [] } = {}) {
@@ -95,6 +99,12 @@ export function exportHosted({ to, env = process.env, run = spawnSync }) {
     if (!Number.isSafeInteger(receipt[field]) || receipt[field] < 0) fail(`superbee export reported no ${field}`);
   }
   if (receipt.documents === 0) fail("the hosted bundle exported no documents");
+  if (receipt.root_index !== true || receipt.reserved < 1) fail("superbee export reported no root index.md");
+  // A person's session targets the gateway; a workload bearer's SUPERBEE_HOST names the same one.
+  const expectedHost = env.SUPERBEE_ACCESS_TOKEN ? env.SUPERBEE_HOST : HOSTED_CONTENT.gateway;
+  if (receipt.host !== HOSTED_CONTENT.gateway || expectedHost !== HOSTED_CONTENT.gateway) {
+    fail(`superbee export read ${JSON.stringify(receipt.host ?? null)}, not ${HOSTED_CONTENT.gateway}`);
+  }
   return receipt;
 }
 
@@ -110,21 +120,53 @@ export async function checkExport(from) {
   return files;
 }
 
-/** Make `bundleDir` exactly the export plus the configuration paths it already holds. */
-export async function materialize({ from, bundleDir = BUNDLE_DIR }) {
+/** Check that an export receipt's counts describe exactly the files in the folder. */
+export function checkCounts(receipt, files) {
+  const expected = receipt.documents + receipt.reserved + receipt.blobs;
+  if (files.length !== expected) fail(`the export holds ${files.length} files, but its receipt counts ${expected}`);
+}
+
+export const TREE_DIGEST = /^sha256:[0-9a-f]{64}$/;
+
+/**
+ * Make `bundleDir` exactly the export plus the configuration paths it already holds. The new tree is
+ * assembled and verified in a sibling staging folder, then swapped in by rename, so a failure leaves
+ * the old folder whole. An `expectedDigest` (the acquire job's) must match the export before anything
+ * is copied.
+ */
+export async function materialize({ from, bundleDir = BUNDLE_PATH, expectedDigest }) {
   const files = await checkExport(from);
   const digest = await treeDigest(from, files);
-  await mkdir(bundleDir, { recursive: true });
-  for (const name of await readdir(bundleDir)) {
-    if (HOSTED_CONTENT.configPaths.includes(name)) continue;
-    await rm(path.join(bundleDir, name), { recursive: true, force: true });
+  if (expectedDigest !== undefined && (!TREE_DIGEST.test(expectedDigest ?? "") || expectedDigest !== digest)) {
+    fail(`${from} does not match tree digest ${JSON.stringify(expectedDigest)}`);
   }
-  for (const name of await readdir(from)) {
-    await cp(path.join(from, name), path.join(bundleDir, name), { recursive: true, errorOnExist: true, force: false });
-  }
-  const placed = await listFiles(bundleDir, { skipTop: HOSTED_CONTENT.configPaths });
-  if (placed.join("\n") !== files.join("\n") || await treeDigest(bundleDir, placed) !== digest) {
-    fail(`${bundleDir} does not equal the export after materializing`);
+  const info = await lstat(bundleDir).catch(() => null);
+  if (info && !info.isDirectory()) fail(`${bundleDir} is not a folder`);
+  const suffix = randomBytes(6).toString("hex");
+  const staging = `${bundleDir}.staging-${suffix}`;
+  const retired = `${bundleDir}.retired-${suffix}`;
+  try {
+    await cp(from, staging, { recursive: true, errorOnExist: true, force: false });
+    for (const name of info ? HOSTED_CONTENT.configPaths : []) {
+      const config = path.join(bundleDir, name);
+      if (!await lstat(config).catch(() => null)) continue;
+      await listFiles(config);
+      await cp(config, path.join(staging, name), { recursive: true, errorOnExist: true, force: false });
+    }
+    const placed = await listFiles(staging, { skipTop: HOSTED_CONTENT.configPaths });
+    if (placed.join("\n") !== files.join("\n") || await treeDigest(staging, placed) !== digest) {
+      fail(`${bundleDir} would not equal the export after materializing`);
+    }
+    if (info) await rename(bundleDir, retired);
+    try {
+      await rename(staging, bundleDir);
+    } catch (error) {
+      if (info) await rename(retired, bundleDir);
+      throw error;
+    }
+    await rm(retired, { recursive: true, force: true });
+  } finally {
+    await rm(staging, { recursive: true, force: true });
   }
   return { files: files.length, treeDigest: digest };
 }
@@ -162,7 +204,7 @@ function git(root, args) {
  * clock of its own whose bytes are still exactly that version; anything else is omitted, as Git
  * omits a dirty or untracked file.
  */
-export async function freshnessBaseline({ root = "." } = {}) {
+export async function freshnessBaseline({ root = ROOT } = {}) {
   if (git(root, ["rev-parse", "--is-shallow-repository"]) !== "false") fail("the freshness baseline needs complete Git history");
   const tracked = git(root, ["ls-files", "--", `${BUNDLE_DIR}/`]).split("\n").filter(Boolean);
   const rows = [];
@@ -251,6 +293,7 @@ export async function main(argv, { env = process.env, log = (line) => process.st
     const to = option(args, "--to");
     const receipt = exportHosted({ to, env });
     const files = await checkExport(to);
+    checkCounts(receipt, files);
     const result = {
       schema: RECEIPT_SCHEMA,
       bundle: HOSTED_CONTENT.bundle,
@@ -277,11 +320,11 @@ export async function main(argv, { env = process.env, log = (line) => process.st
         temporary = await temporaryExport(env);
         from = temporary.to;
         exported = exportHosted({ to: from, env });
+        checkCounts(exported, await checkExport(from));
       }
       if (!from) fail("materialize needs --from <export folder>");
-      const expected = option(args, "--tree-digest");
-      if (expected && await treeDigest(from, await checkExport(from)) !== expected) fail(`${from} does not match tree digest ${expected}`);
-      const placed = await materialize({ from });
+      const expectedDigest = args.includes("--tree-digest") ? option(args, "--tree-digest") ?? "" : undefined;
+      const placed = await materialize({ from, expectedDigest });
       const result = { schema: RECEIPT_SCHEMA, bundle: HOSTED_CONTENT.bundle, materialized: BUNDLE_DIR, ...placed,
         ...(exported ? { host: exported.host, revision: exported.revision, exportedAt: exported.exported_at } : {}) };
       log(JSON.stringify(result));
@@ -297,10 +340,10 @@ export async function main(argv, { env = process.env, log = (line) => process.st
       if (!from) {
         temporary = await temporaryExport(env);
         from = temporary.to;
-        exportHosted({ to: from, env });
+        checkCounts(exportHosted({ to: from, env }), await checkExport(from));
       }
       await checkExport(from);
-      const result = await compareTrees(BUNDLE_DIR, from);
+      const result = await compareTrees(BUNDLE_PATH, from);
       log(JSON.stringify({ compared: `${BUNDLE_DIR} vs ${HOSTED_CONTENT.bundle}`, ...result }));
       return result.differ.length || result.onlyLeft.length || result.onlyRight.length ? 1 : 0;
     } finally {
@@ -311,12 +354,12 @@ export async function main(argv, { env = process.env, log = (line) => process.st
     const value = await freshnessBaseline();
     const text = `${JSON.stringify(value, null, 2)}\n`;
     if (args.includes("--check")) {
-      const current = await readFile(BASELINE_FILE, "utf8").catch(() => "");
+      const current = await readFile(BASELINE_PATH, "utf8").catch(() => "");
       if (current !== text) { log(`${BASELINE_FILE} is not current; run node scripts/hosted-content.mjs baseline`); return 1; }
       log(`${BASELINE_FILE}: current (${value.documents.length} documents)`);
       return 0;
     }
-    await writeFile(BASELINE_FILE, text);
+    await writeFile(BASELINE_PATH, text);
     log(`${BASELINE_FILE}: ${value.documents.length} documents`);
     return 0;
   }

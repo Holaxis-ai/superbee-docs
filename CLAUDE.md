@@ -42,7 +42,9 @@ questions): it stays in Git and is never published to the hosted bundle.
   by file. `acquire` makes `.superbee` the hosted content (keeping `assistant/`); `export --to` and
   `materialize --from` are its two halves, which CI runs in separate jobs.
 - Production builds from the hosted export once the repository variable `DOCS_HOSTED_APP_ID` names
-  the registered workload app (`verify-production.yml`); until then it builds from Git.
+  the registered workload app (`verify-production.yml`); until then it builds from Git. **Do not set
+  the variable** until production workload admission accepts this public repository for a read-only
+  app row: before that, every exchange is refused and production stops deploying.
 - `freshness-baseline.json` freezes each document's Git last-commit time against its exact bytes, so
   `Last updated` survives the content leaving Git. Regenerate it with
   `node scripts/hosted-content.mjs baseline` from a clean, complete clone right before content leaves Git.
