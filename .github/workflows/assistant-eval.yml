@@ -7,7 +7,7 @@ name: Assistant golden questions (live)
 on:
   pull_request:
     paths:
-      - ".superbee/assistant/**"
+      - "assistant/**"
       - "scripts/assistant-config.mjs"
       # Package bumps can change the platform prompt and tools.
       - "package.json"
@@ -16,6 +16,7 @@ on:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: assistant-eval-${{ github.ref }}
@@ -46,6 +47,11 @@ jobs:
         run: npm ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
+      - name: Restore public content from a verified main production export
+        if: steps.key.outputs.present == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/hosted-content.mjs snapshot
       - if: steps.key.outputs.present == 'true'
         run: npm run portal:build
       # The cap stops runaway spend; size it from assistant-eval.json after the first live run.

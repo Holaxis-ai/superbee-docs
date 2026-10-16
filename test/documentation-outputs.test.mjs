@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { cp, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -72,8 +72,17 @@ test("one owned projection drives exact Portal and MkDocs documentation outputs"
     const startHerePage = Buffer.from(artifact.files.get("docs/learn/start-here/index.html")).toString("utf8");
     assert.match(startHerePage, /Last updated <time datetime="[^"]+">[^<]+<\/time>/);
     assert.doesNotMatch(startHerePage, /Last verified/);
+    for (const file of ["instructions.md", "golden-questions.md"]) {
+      assert.deepEqual(
+        Buffer.from(artifact.files.get(`bundle/assistant/${file}`)),
+        await readFile(path.join("assistant", file)),
+        `published assistant/${file} retains the Git-owned bytes`,
+      );
+    }
+    assert.equal((await readdir(".superbee")).includes("assistant"), false,
+      "composition must never copy Git configuration into the content checkout");
     const bundleMarkdown = (await readdir(".superbee", { recursive: true })).filter((file) => file.endsWith(".md"));
-    assert.equal(artifact.manifest.counts.documents, bundleMarkdown.length - 1, "the root index is reserved rather than a publication document");
+    assert.equal(artifact.manifest.counts.documents, bundleMarkdown.length + 2 - 1, "Git assistant documents join the content; the root index is reserved");
     for (const omitted of ["index", ...config.portal.views.map((row) => row.id)]) {
       assert.equal(projectionManifest.selectedDocuments.includes(omitted), false, omitted);
       assert.ok(artifact.files.has(`bundle/${omitted}.md`), omitted);
@@ -210,6 +219,7 @@ test("the publication path rejects a release label that disagrees with its captu
   const root = await mkdtemp(path.join(tmpdir(), "superbee-docs-release-label-"));
   try {
     await cp(".superbee", path.join(root, ".superbee"), { recursive: true });
+    await cp("assistant", path.join(root, "assistant"), { recursive: true });
     await cp("diagrams", path.join(root, "diagrams"), { recursive: true });
     await writeFile(path.join(root, "portal.config.json"), await readFile("portal.config.json"));
     const system = path.join(root, ".superbee", "documentation-systems", "main.md");
@@ -225,6 +235,20 @@ test("the publication path rejects a release label that disagrees with its captu
     await assert.rejects(
       composeDocumentationOutputs({ root, mkdocsOutput: path.join(root, "mkdocs") }),
       (error) => error.message.includes(`versionLabel must equal v${version} from releases/current`),
+    );
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("composition rejects assistant configuration in the content checkout", async () => {
+  const root = await mkdtemp(path.join(tmpdir(), "superbee-docs-config-boundary-"));
+  try {
+    await mkdir(path.join(root, ".superbee", "assistant"), { recursive: true });
+    await writeFile(path.join(root, "portal.config.json"), await readFile("portal.config.json"));
+    await assert.rejects(
+      composeDocumentationOutputs({ root, mkdocsOutput: path.join(root, "mkdocs") }),
+      /content must not contain Git-owned assistant configuration/,
     );
   } finally {
     await rm(root, { recursive: true, force: true });

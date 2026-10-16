@@ -9,7 +9,8 @@ into this repository or its `.superbee/` bundle.
 
 - Product behavior answers to exact Superbee source, tests, schemas, packed packages, and verified
   release receipts. Documentation interprets those sources; it never overrides them.
-- `.superbee/` is the public documentation bundle and documentation authority.
+- Hosted `holaxis-sites/superbee-docs` owns public content. `.superbee/` is a local writer checkout
+  or a verified read projection of that bundle; Git owns code and `assistant/` configuration.
 - The installed `codebase-documentation` recipe and the linked Documentation System, Publication,
   and Section records in `.superbee/` own renderer-neutral product identity, navigation,
   supporting-document selection, and operational exclusions. `portal.config.json` names that
@@ -25,8 +26,8 @@ into this repository or its `.superbee/` bundle.
   hand-edit generated `_redirects` or `_headers`, add a file to the inventory-exact `dist` artifact,
   or treat a bare Wrangler command as deployment agreement.
 - Page freshness is a derived publication fact, never hand-authored display text. `Last updated`
-  means the document's OKF meaningful-change clock when one exists; otherwise it is the last commit
-  time for the exact clean, tracked source file in a full Git history. `Last verified` is reserved
+  means the document's OKF meaningful-change clock when one exists; otherwise it is the frozen last commit
+  time for the exact source bytes in `freshness-baseline.json`. `Last verified` is reserved
   for a separately modeled immutable verification fact. Release applicability remains the product
   version label and is not a freshness date. Unknown facts are omitted.
 - Use Superbee commands for bundle documents and byte promotion. Keep ordinary source and tooling
@@ -34,21 +35,32 @@ into this repository or its `.superbee/` bundle.
 
 ## Content lives in the hosted bundle
 
-The site's content is moving to the hosted bundle `holaxis-sites/superbee-docs`; Git keeps code and
-configuration. `.superbee/assistant/` is configuration (the docs assistant's instructions and golden
-questions): it stays in Git and is never published to the hosted bundle.
+The production site builds from hosted `holaxis-sites/superbee-docs`. `assistant/` contains the
+assistant instructions and golden questions in Git; composition copies them into a disposable build
+bundle, never into a hosted writer checkout.
 
-- `node scripts/hosted-content.mjs compare` checks `.superbee` against a fresh verified export, file
-  by file. `acquire` makes `.superbee` the hosted content (keeping `assistant/`); `export --to` and
-  `materialize --from` are its two halves, which CI runs in separate jobs.
-- Production builds from the hosted export once the repository variable `DOCS_HOSTED_APP_ID` names
-  the registered workload app (`verify-production.yml`); until then it builds from Git. **Do not set
-  the variable** until production workload admission accepts this public repository for a read-only
-  app row: before that, every exchange is refused and production stops deploying.
-- `freshness-baseline.json` freezes each document's Git last-commit time against its exact bytes, so
-  `Last updated` survives the content leaving Git. Regenerate it with
-  `node scripts/hosted-content.mjs baseline` from a clean, complete clone right before content leaves Git.
-  A document edited later through the CLI carries its own `generated.at` clock instead.
+- CI checks, assistant evaluation and freshness jobs run `npm run content:snapshot`. It downloads
+  the retained export of a successful main `verify-production.yml` run, validates its identity,
+  counts and full tree digest, and materializes a reader projection. No workload token reaches PRs.
+  The snapshot is the last verified production content revision, not necessarily the latest edit.
+  Run the production workflow on main to verify and publish newer hosted edits.
+- Production's environment-bound acquire job alone has OIDC permission. `DOCS_HOSTED_APP_ID` must
+  identify the existing read-only app; missing configuration fails closed. There is no Git fallback.
+  Exports are retained for 30 days. If none remain, dispatch the production workflow and retry.
+- For document authoring, use a separate clean code clone without a `.superbee` folder, then run
+  `npm run content:checkout`. It binds this exact workspace/bundle through the public CLI. Use normal
+  Superbee document verbs with `--dir .superbee`, then `npm run content:sync` once per edit batch.
+  Existing folders are preserved and must already be registered to the exact target. Read acquisition
+  refuses any checkout marker, so it cannot overwrite unsent edits. Run builds directly on a writer
+  checkout; do not run `content:snapshot` or `acquire` there.
+- **Final removal of the Git content copy is pending platform non-document writes.** The current
+  hosted checkout supports document sync but refuses blob/reserved/convention promotion; consequently
+  `diagram:build`, static upgrade/rollback and recipe changes cannot yet publish through that path.
+  Keep the tracked copy as migration evidence; do not edit or merge new content there. Complete the
+  shared platform write capability before deleting it. Do not add a site-specific upload bypass.
+- `freshness-baseline.json` freezes Git commit times against exact document bytes. Keep it across
+  cutover; do not regenerate it after content leaves Git. Later hosted edits carry their own clock.
+  Release review/reuse receipts include the full ignored content tree as well as Git inputs.
 
 ## Diagrams do not render from Markdown
 

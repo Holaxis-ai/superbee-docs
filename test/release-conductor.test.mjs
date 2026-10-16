@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
 import test from "node:test";
-import { conduct, manifestSkeleton, assertReview, assertPackageIdentity, sourceDiff, installEvidence, journeyVerification } from "../scripts/release-conductor.mjs";
+import { conduct, checkoutIdentity, manifestSkeleton, assertReview, assertPackageIdentity, sourceDiff, installEvidence, journeyVerification } from "../scripts/release-conductor.mjs";
 
 const exec = promisify(execFile);
 const realRun = async (bin, args, cwd) => (await exec(bin, args, { cwd })).stdout;
@@ -147,6 +147,35 @@ test("apply resumes after interruption, then verification reuses only exact chec
   const manifest = await read(path.join(f.state, "release.json"));
   await write(path.join(f.state, "release.json"), { ...manifest, summary: "Different account of this release." });
   await assert.rejects(conduct("apply", f.options, f.dependencies), /applied review changed/);
+});
+
+test("checkout identity includes ignored hosted content and excludes only coordination metadata", async (t) => {
+  const f = await fixture(t);
+  await writeFile(path.join(f.root, ".gitignore"), ".superbee/\n");
+  await realRun("git", ["rm", "--cached", "-r", ".superbee"], f.root);
+  const identity = () => checkoutIdentity(f.root, realRun);
+  const original = await identity();
+  const current = path.join(f.root, ".superbee/releases/current.md");
+  const bytes = await readFile(current);
+  await writeFile(current, "edited hosted page\n");
+  assert.notEqual((await identity()).tree, original.tree);
+  await writeFile(current, bytes);
+  assert.deepEqual(await identity(), original);
+  const added = path.join(f.root, ".superbee/new.md");
+  await writeFile(added, "new hosted page\n");
+  assert.notEqual((await identity()).tree, original.tree);
+  await rm(added);
+  await rm(current);
+  assert.notEqual((await identity()).tree, original.tree);
+  await writeFile(current, bytes);
+  await mkdir(path.join(f.root, ".superbee/.superbee"));
+  await writeFile(path.join(f.root, ".superbee/.superbee/checkout.json"), "coordination state\n");
+  assert.deepEqual(await identity(), original);
+  await mkdir(path.join(f.root, ".superbee/.other"));
+  await writeFile(path.join(f.root, ".superbee/.other/content"), "included hidden content\n");
+  assert.notEqual((await identity()).tree, original.tree);
+  await symlink(current, added);
+  await assert.rejects(identity(), /unsupported checkout entry/);
 });
 
 test("state containment and the single-writer lock fail closed", async (t) => {

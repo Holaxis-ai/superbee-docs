@@ -10,3 +10,6 @@ deploy/
 .DS_Store
 /.superbee.staging-*
 /.superbee.retired-*
+
+# Hosted content checkout or verified CI reader projection (never a Git content source).
+/.superbee/

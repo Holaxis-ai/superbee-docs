@@ -70,11 +70,16 @@ Node.js 22.12 or newer is required.
 ```bash
 node scripts/release-dependency-preflight.mjs
 npm ci
+npm run content:snapshot
 npm run source:sync
 npm run portal:build
 npm run mkdocs:sync
 npm run check
 ```
+
+`content:snapshot` needs read-only GitHub Actions access through `gh auth login` locally; CI supplies
+its read token. It reuses the last successful main production export without hosted credentials.
+For hosted authoring and the remaining non-document writer cutover, see `CLAUDE.md`.
 
 `npm ci` installs the exact Portal and Superbee packages recorded by the lockfile. The source sync
 keeps an exact Superbee checkout only for source-grounded architecture checks. The Portal build

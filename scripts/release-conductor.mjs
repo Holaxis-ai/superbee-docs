@@ -53,8 +53,23 @@ export async function checkoutIdentity(root, run = command) {
   const head = (await run("git", ["rev-parse", "HEAD"], root)).trim();
   const names = (await run("git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"], root))
     .split("\0").filter(Boolean).sort();
+  // Hosted content is ignored by Git, but remains an input to authored review and verification.
+  // Only the checkout's private coordination directory is outside the content identity.
+  const coordination = path.join(".superbee", ".superbee");
+  const isCoordination = (file) => file === coordination || file.startsWith(`${coordination}${path.sep}`);
+  async function contentFiles(file) {
+    if (isCoordination(file)) return;
+    let stat;
+    try { stat = await lstat(path.join(root, file)); }
+    catch (error) { if (error.code === "ENOENT") return; throw error; }
+    if (stat.isDirectory()) {
+      for (const name of (await readdir(path.join(root, file))).sort()) await contentFiles(path.join(file, name));
+    } else if (stat.isFile()) names.push(file);
+    else fail(`unsupported checkout entry: ${file}`);
+  }
+  await contentFiles(".superbee");
   const rows = [];
-  for (const file of [...new Set(names)]) {
+  for (const file of [...new Set(names)].filter((file) => !isCoordination(file)).sort()) {
     try {
       const stat = await lstat(path.join(root, file));
       if (!stat.isFile()) fail(`unsupported checkout entry: ${file}`);

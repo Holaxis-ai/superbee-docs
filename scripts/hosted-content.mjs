@@ -2,7 +2,7 @@
 // (superbee-dev decision sites-content-lives-in-hosted-2026-10-16). Git keeps code and config.
 //
 //   node scripts/hosted-content.mjs export --to <new folder>    verified export of the hosted bundle
-//   node scripts/hosted-content.mjs materialize --from <export>  make .superbee the export (+ git config)
+//   node scripts/hosted-content.mjs materialize --from <export>  make .superbee exactly the export
 //   node scripts/hosted-content.mjs acquire                      export, then materialize
 //   node scripts/hosted-content.mjs compare [--from <export>]    hosted versus .superbee, file by file
 //   node scripts/hosted-content.mjs baseline [--check]           write or check freshness-baseline.json
@@ -11,10 +11,9 @@
 // manifest before it writes a file. A person's session needs nothing more; CI wraps the command in
 // scripts/hosted-workload-token.mjs, which supplies SUPERBEE_ACCESS_TOKEN and SUPERBEE_HOST.
 //
-// `materialize` replaces everything in .superbee except CONFIG_PATHS (the assistant's instructions and
-// golden questions, which are configuration and stay in git) with the export, so every script that
-// reads .superbee builds the hosted content unchanged. An export that carries a config path, a dot
-// entry, a symlink or anything but plain files and folders is refused before .superbee is touched.
+// `materialize` replaces a reader projection with the exact export. It refuses writer checkouts.
+// Assistant policy lives in Git assistant/ and is combined only in a disposable build input.
+// `snapshot` lets CI readers reuse a complete successful main production run's public export.
 import { createHash } from "node:crypto";
 import { execFileSync, spawnSync } from "node:child_process";
 import { cp, lstat, mkdir, mkdtemp, readdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
@@ -29,7 +28,7 @@ export const HOSTED_CONTENT = Object.freeze({
   bundleId: "superbee-docs",
   /** The gateway a person's session targets; a workload bearer arrives with SUPERBEE_HOST set. */
   gateway: "https://mcp.getsuperbee.com",
-  /** Top-level .superbee entries that are configuration: kept from git, never hosted. */
+  /** Reserved top-level content paths: assistant policy is Git-owned, never hosted. */
   configPaths: Object.freeze(["assistant"]),
 });
 
@@ -128,7 +127,7 @@ export function checkCounts(receipt, files) {
 export const TREE_DIGEST = /^sha256:[0-9a-f]{64}$/;
 
 /**
- * Make `bundleDir` exactly the export plus the configuration paths it already holds. The new tree is
+ * Make a reader `bundleDir` exactly the export. Registered writer checkouts are refused. The tree is
  * assembled and verified in a sibling staging folder, then swapped in by rename, so a failure leaves
  * the old folder whole. An `expectedDigest` (the acquire job's) must match the export before anything
  * is copied.
@@ -144,6 +143,9 @@ export async function materialize({ from, bundleDir = BUNDLE_PATH, expectedDiges
   const info = await lstat(bundleDir).catch(() => null);
   if (info && !info.isDirectory()) fail(`${bundleDir} is not a folder (a link is refused)`);
   if (info) {
+    if (await lstat(path.join(bundleDir, ".superbee", "checkout.json")).catch(() => null)) {
+      fail(`${bundleDir} is a writer checkout; use superbee sync, or acquire into a separate clone`);
+    }
     const inside = path.relative(await realpath(bundleDir), await realpath(from));
     if (!inside.startsWith("..") && !path.isAbsolute(inside)) fail(`${from} is inside ${bundleDir}`);
   }
@@ -152,15 +154,7 @@ export async function materialize({ from, bundleDir = BUNDLE_PATH, expectedDiges
   const retired = `${bundleDir}.retired-${suffix}`;
   try {
     await cp(from, staging, { recursive: true, errorOnExist: true, force: false });
-    for (const name of info ? HOSTED_CONTENT.configPaths : []) {
-      const config = path.join(bundleDir, name);
-      const kept = await lstat(config).catch(() => null);
-      if (!kept) continue;
-      if (!kept.isDirectory()) fail(`${config} is not a folder (a link is refused)`);
-      await listFiles(config);
-      await cp(config, path.join(staging, name), { recursive: true, errorOnExist: true, force: false });
-    }
-    const placed = await listFiles(staging, { skipTop: HOSTED_CONTENT.configPaths });
+    const placed = await listFiles(staging);
     if (placed.join("\n") !== files.join("\n") || await treeDigest(staging, placed) !== digest) {
       fail(`${bundleDir} would not equal the export after materializing`);
     }
@@ -220,6 +214,7 @@ function git(root, args) {
 export async function freshnessBaseline({ root = ROOT } = {}) {
   if (git(root, ["rev-parse", "--is-shallow-repository"]) !== "false") fail("the freshness baseline needs complete Git history");
   const tracked = git(root, ["ls-files", "--", `${BUNDLE_DIR}/`]).split("\n").filter(Boolean);
+  if (!tracked.length) fail("content has left Git; retain the frozen baseline rather than regenerating it from a checkout");
   const rows = [];
   for (const file of tracked.sort()) {
     const relative = file.slice(BUNDLE_DIR.length + 1);
@@ -295,6 +290,62 @@ async function writeJson(file, value) {
   await writeFile(file, `${JSON.stringify(value, null, 2)}\n`);
 }
 
+
+/** Read-only CI consumers use an export from a successful main production run, never PR OIDC. */
+export const SNAPSHOT_REPOSITORY = "Holaxis-ai/superbee-docs";
+const SNAPSHOT_REPOSITORY_ID = 1349797123;
+const SNAPSHOT_WORKFLOW = ".github/workflows/verify-production.yml";
+
+export async function selectSnapshot({ api, isMainAncestor, now = Date.now() }) {
+  const listing = await api(`repos/${SNAPSHOT_REPOSITORY}/actions/workflows/verify-production.yml/runs?branch=main&status=success&per_page=30`);
+  for (const run of listing.workflow_runs ?? []) {
+    if (run.status !== "completed" || run.conclusion !== "success" || run.head_branch !== "main"
+      || !["schedule", "workflow_dispatch"].includes(run.event) || run.path !== SNAPSHOT_WORKFLOW
+      || run.repository?.id !== SNAPSHOT_REPOSITORY_ID || run.head_repository?.id !== SNAPSHOT_REPOSITORY_ID
+      || !Number.isSafeInteger(run.id) || !/^[a-f0-9]{40}$/.test(run.head_sha ?? "")) continue;
+    if (!await isMainAncestor(run.head_sha)) continue;
+    const artifacts = await api(`repos/${SNAPSHOT_REPOSITORY}/actions/runs/${run.id}/artifacts?per_page=100`);
+    const name = `superbee-docs-hosted-content-${run.id}`;
+    const matches = (artifacts.artifacts ?? []).filter((a) => a.name === name && !a.expired
+      && Date.parse(a.expires_at) > now && Number.isSafeInteger(a.id));
+    if (matches.length === 1) return { runId: run.id, sourceCommit: run.head_sha, artifactId: matches[0].id, name };
+  }
+  fail("no retained verified main hosted-content export; dispatch verify-production.yml on main, then retry");
+}
+
+/** Check both the receipt identity and every exported byte before changing the local reader tree. */
+export async function materializeSnapshot({ directory, bundleDir = BUNDLE_PATH }) {
+  const receipt = JSON.parse(await readFile(path.join(directory, "receipt.json"), "utf8"));
+  if (receipt.schema !== RECEIPT_SCHEMA || receipt.bundle !== HOSTED_CONTENT.bundle
+    || receipt.host !== HOSTED_CONTENT.gateway || !TREE_DIGEST.test(receipt.treeDigest ?? "")
+    || !Number.isSafeInteger(receipt.revision) || receipt.revision < 0
+    || !["documents", "reserved", "blobs", "bytes", "files"].every((key) => Number.isSafeInteger(receipt[key]) && receipt[key] >= 0)
+    || receipt.documents < 1 || receipt.reserved < 1 || !Number.isFinite(Date.parse(receipt.exportedAt))) {
+    fail("snapshot receipt is not a verified docs hosted-content export");
+  }
+  const from = path.join(directory, "export");
+  const files = await checkExport(from);
+  checkCounts(receipt, files);
+  if (receipt.files !== files.length) fail("snapshot receipt file count differs");
+  let bytes = 0;
+  for (const file of files) bytes += (await lstat(path.join(from, file))).size;
+  if (bytes !== receipt.bytes) fail("snapshot receipt byte count differs");
+  return { ...await materialize({ from, bundleDir, expectedDigest: receipt.treeDigest }), revision: receipt.revision };
+}
+
+export async function acquireSnapshot({ env = process.env, bundleDir = BUNDLE_PATH } = {}) {
+  const gh = (args) => execFileSync("gh", args, { encoding: "utf8", env, maxBuffer: 16 << 20 });
+  const selected = await selectSnapshot({
+    api: async (endpoint) => JSON.parse(gh(["api", endpoint])),
+    isMainAncestor: async (commit) => spawnSync("git", ["-C", ROOT, "merge-base", "--is-ancestor", commit, "origin/main"]).status === 0,
+  });
+  const temporary = await mkdtemp(path.join(env.RUNNER_TEMP || tmpdir(), "superbee-docs-snapshot-"));
+  try {
+    gh(["run", "download", String(selected.runId), "--repo", SNAPSHOT_REPOSITORY, "--name", selected.name, "--dir", temporary]);
+    return { ...selected, ...await materializeSnapshot({ directory: temporary, bundleDir }) };
+  } finally { await rm(temporary, { recursive: true, force: true }); }
+}
+
 function option(args, name) {
   const index = args.indexOf(name);
   return index === -1 ? undefined : args[index + 1];
@@ -302,6 +353,10 @@ function option(args, name) {
 
 export async function main(argv, { env = process.env, log = (line) => process.stdout.write(`${line}\n`) } = {}) {
   const [command, ...args] = argv;
+  if (command === "snapshot") {
+    log(JSON.stringify(await acquireSnapshot({ env })));
+    return 0;
+  }
   if (command === "export") {
     const to = option(args, "--to");
     const receipt = exportHosted({ to, env });
@@ -376,7 +431,7 @@ export async function main(argv, { env = process.env, log = (line) => process.st
     log(`${BASELINE_FILE}: ${value.documents.length} documents`);
     return 0;
   }
-  fail("usage: hosted-content.mjs export --to <dir> [--receipt <file>] | materialize --from <dir> [--tree-digest <d>] | acquire | compare [--from <dir>] | baseline [--check]");
+  fail("usage: hosted-content.mjs snapshot | export --to <dir> [--receipt <file>] | materialize --from <dir> [--tree-digest <d>] | acquire | compare [--from <dir>] | baseline [--check]");
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

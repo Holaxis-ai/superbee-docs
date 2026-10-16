@@ -195,7 +195,7 @@ test("the assistant is wired but off until the owner turns it on", async () => {
   assert.deepEqual(wrangler.durable_objects.bindings, [{ name: "SUPERBEE_ASSISTANT", class_name: "SuperbeeAssistant" }]);
   assert.ok(wrangler.migrations.some((row) => row.new_sqlite_classes?.includes("SuperbeeAssistant")));
   assert.ok(wrangler.assets.run_worker_first.includes("/__superbee/assistant/*"));
-  const instructions = await readFile(path.join(".superbee", ASSISTANT.instructions), "utf8");
+  const instructions = await readFile(ASSISTANT.instructions, "utf8");
   assert.match(instructions, /^---\ntype: Assistant Instructions\n/u);
   assert.ok(new TextEncoder().encode(instructions).byteLength < 8192);
   const env = environment();
