@@ -133,7 +133,7 @@ export function exportThroughCli({ to, env, run = spawnSync }) {
  * Download the verified export through `@superbee/core`'s hosted client with the environment's
  * bearer, then place it at `to`: staged in a private sibling by `materializeExport` and renamed onto
  * `to` in one step, so `to` is either absent or complete. The receipt has the CLI receipt's fields,
- * each from the verified result; it is checked before any file is written.
+ * each from the verified result; it and the entries' paths are checked before any file is written.
  */
 export async function exportThroughLibrary({ to, env, fetch }) {
   const token = env.SUPERBEE_ACCESS_TOKEN;
@@ -171,6 +171,8 @@ export async function exportThroughLibrary({ to, env, fetch }) {
     bytes: verified.bytes,
     root_index: verified.entries.some((entry) => entry.path === "index.md"),
   });
+  // The folder rule, applied to the verified entries so a refused export never creates `to`.
+  checkExportPaths(verified.entries.map((entry) => entry.path));
   const parent = path.dirname(target);
   await mkdir(parent, { recursive: true });
   const staged = await materializeExport(verified, parent);
@@ -253,14 +255,19 @@ export async function exportReceipt(receipt, to) {
   };
 }
 
-/** Check an export folder's shape: plain files only, no dot entries, no configuration paths. */
-export async function checkExport(from) {
-  const files = await listFiles(from);
+/** Refuse an export path the reader tree may not hold: a configuration path or a dot entry. */
+export function checkExportPaths(files) {
   for (const file of files) {
     const [top] = file.split("/");
     if (HOSTED_CONTENT.configPaths.includes(top.toLowerCase())) fail(`the hosted bundle carries ${file}; ${top}/ is configuration and stays in git`);
     if (file.split("/").some((segment) => segment.startsWith("."))) fail(`the hosted bundle carries the dot entry ${file}`);
   }
+}
+
+/** Check an export folder's shape: plain files only, no dot entries, no configuration paths. */
+export async function checkExport(from) {
+  const files = await listFiles(from);
+  checkExportPaths(files);
   if (!files.includes("index.md")) fail("the export has no root index.md");
   return files;
 }

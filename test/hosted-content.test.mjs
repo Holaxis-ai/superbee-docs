@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
-import { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
+import { lstat, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -15,6 +15,7 @@ import {
   HOSTED_CONTENT,
   checkCounts,
   checkExport,
+  checkExportPaths,
   checkReceipt,
   compareTrees,
   exportHosted,
@@ -32,7 +33,7 @@ import {
   withFreshnessBaseline,
 } from "../scripts/hosted-content.mjs";
 import { exchange, run as runWithToken } from "../scripts/hosted-workload-token.mjs";
-import { exportArchive, exportHost } from "./hosted-export-fixture.mjs";
+import { exportArchive, exportHost, exportPages } from "./hosted-export-fixture.mjs";
 
 async function folder(files) {
   const root = await mkdtemp(path.join(tmpdir(), "superbee-docs-hosted-test-"));
@@ -298,9 +299,9 @@ const WORKLOAD = { SUPERBEE_ACCESS_TOKEN: TOKEN, SUPERBEE_HOST: HOSTED_CONTENT.g
 const SITE = { "index.md": "# Docs\n", "guides/a.md": "---\ntype: Guide\n---\n# A\n", "guides/index.md": "# Guides\n", "visuals/x.svg": "<svg/>" };
 
 /** The export folder and receipt.json the library path writes for `archive`, or its refusal. */
-async function libraryExport(archive, { env = WORKLOAD, answer } = {}) {
+async function libraryExport(archive, { env = WORKLOAD, answer, pages } = {}) {
   const parent = await folder({});
-  const host = exportHost(archive, { answer });
+  const host = exportHost(archive, { answer, pages });
   const to = path.join(parent, "export");
   try {
     const receipt = await exportReceipt(await exportHosted({ to, env, fetch: host.fetch, run: () => assert.fail("no CLI with a bearer") }), to);
@@ -320,6 +321,7 @@ test("with a bearer, export downloads through the library from the gateway const
       assert.equal(new URL(request.url).origin, HOSTED_CONTENT.gateway);
       assert.equal(new URL(request.url).pathname, "/sync/v1/export");
       assert.equal(request.authorization, `Bearer ${TOKEN}`);
+      assert.equal(request.redirect, "error", "a redirect could carry the bearer elsewhere");
       assert.equal(request.body.bundleId, HOSTED_CONTENT.bundle, "the bundle is qualified by its workspace");
     }
     assert.deepEqual(await listFiles(to), ["guides/a.md", "guides/index.md", "index.md", "visuals/x.svg"]);
@@ -339,6 +341,26 @@ test("with a bearer, export downloads through the library from the gateway const
       assert.equal(placed.treeDigest, receipt.treeDigest);
     } finally { await rm(bundle, { recursive: true, force: true }); }
   } finally { await rm(parent, { recursive: true, force: true }); }
+});
+
+test("a paged export is joined page by page into the same tree and receipt as the whole archive", async () => {
+  const whole = await libraryExport(exportArchive(SITE));
+  const paged = await libraryExport(exportArchive(SITE), { pages: exportPages(SITE, 2) });
+  try {
+    assert.equal(whole.error, undefined);
+    assert.equal(paged.error, undefined);
+    assert.deepEqual(paged.requests.map((request) => [request.body.paged, request.body.cursor]), [[true, undefined], [true, "p1"]]);
+    for (const request of paged.requests) assert.equal(request.redirect, "error");
+    assert.deepEqual(paged.receipt, whole.receipt);
+    assert.deepEqual(await compareTrees(paged.to, whole.to), { identical: 4, differ: [], onlyLeft: [], onlyRight: [] });
+    // A page that leaves a gap is refused, and nothing is written.
+    const pages = exportPages(SITE, 1);
+    const gap = await libraryExport(exportArchive(SITE), { pages: [pages[0], pages[2], pages[2], pages[3]] });
+    try {
+      assert.match(gap.error?.message ?? "", /verification: manifest_mismatch/);
+      assert.deepEqual(await readdir(gap.parent), []);
+    } finally { await rm(gap.parent, { recursive: true, force: true }); }
+  } finally { for (const dir of [whole.parent, paged.parent]) await rm(dir, { recursive: true, force: true }); }
 });
 
 test("the library and the pinned CLI write the same tree, tree digest and receipt for the same hosted export", async () => {
@@ -391,12 +413,22 @@ test("the library path refuses each receipt invariant and the configuration and 
     [exportArchive(SITE, { tamper: "guides/a.md" }), /verification: manifest_mismatch/],
   ];
   for (const [archive, message] of cases) {
-    const { parent, error } = await libraryExport(archive);
+    const { parent, to, error } = await libraryExport(archive);
     try {
       assert.match(error?.message ?? "", message);
-      if (!/configuration/.test(message.source)) assert.deepEqual(await readdir(parent), [], "nothing is written for a refused export");
+      assert.equal(await lstat(to).catch(() => null), null, `${message}: --to is never created`);
+      assert.deepEqual(await readdir(parent), [], "nothing is written for a refused export");
     } finally { await rm(parent, { recursive: true, force: true }); }
   }
+  // The pre-check is the folder check's own rule (configuration case-folded, as checkExport folds it).
+  const cased = await libraryExport(exportArchive({ ...SITE, "Assistant/x.md": "# x\n" }));
+  try {
+    assert.match(cased.error?.message ?? "", /Assistant\/ is configuration/);
+    assert.deepEqual(await readdir(cased.parent), []);
+  } finally { await rm(cased.parent, { recursive: true, force: true }); }
+  assert.throws(() => checkExportPaths(["index.md", "assistant/a.md"]), /is configuration/);
+  assert.throws(() => checkExportPaths(["index.md", "a/.b"]), /dot entry/);
+  checkExportPaths(["index.md", "guides/a.md"]);
   // A dot entry that reached the folder is refused by the folder check as well.
   const dotted = await folder({ "index.md": "i", "guides/.x.md": "x" });
   try { await assert.rejects(checkExport(dotted), /dot entry/); } finally { await rm(dotted, { recursive: true, force: true }); }
