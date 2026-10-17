@@ -47,20 +47,53 @@ bundle, never into a hosted writer checkout.
 - Production's environment-bound acquire job alone has OIDC permission. `DOCS_HOSTED_APP_ID` must
   identify the existing read-only app; missing configuration fails closed. There is no Git fallback.
   Exports are retained for 30 days. If none remain, dispatch the production workflow and retry.
-- For document authoring, use a separate clean code clone without a `.superbee` folder, then run
-  `npm run content:checkout`. It binds this exact workspace/bundle through the public CLI. Use normal
-  Superbee document verbs with `--dir .superbee`, then `npm run content:sync` once per edit batch.
-  Existing folders are preserved and must already be registered to the exact target. Read acquisition
-  refuses any checkout marker, so it cannot overwrite unsent edits. Run builds directly on a writer
-  checkout; do not run `content:snapshot` or `acquire` there.
-- **Final removal of the Git content copy is pending platform non-document writes.** The current
-  hosted checkout supports document sync but refuses blob/reserved/convention promotion; consequently
-  `diagram:build`, static upgrade/rollback and recipe changes cannot yet publish through that path.
-  Keep the tracked copy as migration evidence; do not edit or merge new content there. Complete the
-  shared platform write capability before deleting it. Do not add a site-specific upload bypass.
-- `freshness-baseline.json` freezes Git commit times against exact document bytes. Keep it across
-  cutover; do not regenerate it after content leaves Git. Later hosted edits carry their own clock.
-  Release review/reuse receipts include the full ignored content tree as well as Git inputs.
+- Git no longer tracks content: `.superbee/` is ignored. It is either a reader projection or a
+  writer checkout, never a source of truth. Rollback uses hosted history, not Git. A clone that
+  predates this change loses its tracked copy when it pulls; run `content:snapshot` or
+  `content:checkout` afterwards. Never pull that change into a clone whose `.superbee` is a writer
+  checkout: sync first, run `npx superbee checkout --release .superbee` with that clone's own CLI,
+  then pull and check out again.
+- **Two CLIs.** The `superbee` dependency is the documented stable release: readers, exports and
+  the CLI reference are checked against it. Writers use the separately pinned `superbee-writer`
+  alias. `scripts/content-writer.mjs` runs it for `content:checkout` and `content:sync`, and puts it
+  first on `PATH` as `superbee` and names it in `DOCS_CONTENT_SUPERBEE` for wrapped commands. Under
+  that wrapper, every repository script that runs the CLI on `.superbee` honors the name, including
+  nested `npm run`; unwrapped, scripts use the stable CLI.
+  Do not touch a writer checkout with any other Superbee CLI: run checks and builds there as
+  `npm run content:run -- npm run check`. Writer commands are POSIX-only.
+- **Writing content**, in a separate clean code clone without a `.superbee` folder:
+  1. `npm ci`, then `npm run content:checkout` to bind `.superbee` to this exact workspace and
+     bundle. An existing folder must already be this registered checkout; it is never replaced.
+  2. Edit documents with `npm run content:run -- superbee doc update <id> ... --dir .superbee`
+     (or any other document verb). Edit an ordinary file that no command generates, such as an
+     image, in place.
+  3. Create a new ordinary file at its final path, then send it with
+     `npm run content:run -- superbee promote .superbee/<key> --doc-key <key> --dir .superbee`.
+     It delivers at once; the source must already be at that path inside the checkout.
+  4. Publish diagrams with `npm run diagram:build`; each promote delivers at once.
+  5. `npm run content:sync` once per edit batch. Sync sends exact bytes, keeps hosted MIME types,
+     and refuses a stale write with a version conflict that preserves your local bytes.
+  Do not run `content:snapshot` or `acquire` on a writer checkout.
+  Read acquisition refuses any checkout marker, so it cannot overwrite unsent edits.
+- Every content-writing script (`content:run`, `docs:release*` writers, `cli-reference:build`,
+  `diagram:build`, `diagram:upgrade-static`, `diagram:rollback`) runs through
+  `scripts/content-writer.mjs`, which refuses unless `.superbee` is this site's registered hosted
+  checkout. A write to a reader projection would otherwise be silently lost. Published diagram
+  source and SVG change only through `diagram:build`; never edit them in place.
+- Diagram publication through a hosted checkout needs `@superbee/docs-tooling` 0.2.5 or newer,
+  which this repository pins. It writes each staged file at its checkout path before promoting it,
+  and `diagram:rollback` settles an interrupted promote before restoring the host; rerun rollback
+  until it succeeds. Sync before `diagram:build`. Do not hand-place compiled SVG, and do not add a
+  site-specific upload bypass.
+- A blob version conflict currently stays held in that checkout: no edit, restore or promote
+  clears it. Send any unsent document edits, copy your bytes out, run
+  `npm run content:run -- superbee checkout --release .superbee`, then check out again and reapply.
+  A send that never reached the host can likewise stay `unknown`; keep the receipt and recover the
+  same way.
+- `freshness-baseline.json` freezes Git commit times against exact document bytes, regenerated
+  from Git immediately before the content left it. Keep it; it cannot be regenerated now. Later
+  hosted edits carry their own clock. Release review/reuse receipts include the full ignored
+  content tree as well as Git inputs.
 
 ## Diagrams do not render from Markdown
 
@@ -77,7 +110,8 @@ npm run portal:preview
 ```
 
 `diagram:build` compiles declared Mermaid source at build time, promotes the exact source and
-admitted static SVG into the public bundle, and writes the exact v3 publication receipt.
+admitted static SVG to the hosted bundle through the writer checkout, and writes the exact v3
+publication receipt, which lands in Git by pull request. See the docs-tooling caveat above.
 `diagram:check` recompiles to verify safety and accessibility, then rejects source-bound projection
 or exact source/SVG/receipt drift without requiring browser geometry to be byte-identical across
 operating systems. Retained View HTML and registrations are legacy predecessor evidence only; the

@@ -40,9 +40,11 @@ for (const path of await files(root)) {
   }
 }
 
+// On a hosted writer checkout, content-writer names the writer CLI; nested npm runs keep the name.
+const superbee = process.env.DOCS_CONTENT_SUPERBEE || "superbee";
 const [statusResult, publicationResult] = await Promise.all([
-  execFileAsync("superbee", ["status", "--dir", resolve(root, ".superbee"), "--json"], { maxBuffer: 4 * 1024 * 1024 }),
-  execFileAsync("superbee", ["doc", "read", "documentation-publications/current", "--dir", resolve(root, ".superbee"), "--json"], { maxBuffer: 4 * 1024 * 1024 }),
+  execFileAsync(superbee, ["status", "--dir", resolve(root, ".superbee"), "--json"], { maxBuffer: 4 * 1024 * 1024 }),
+  execFileAsync(superbee, ["doc", "read", "documentation-publications/current", "--dir", resolve(root, ".superbee"), "--json"], { maxBuffer: 4 * 1024 * 1024 }),
 ]);
 const status = JSON.parse(statusResult.stdout);
 const publication = JSON.parse(publicationResult.stdout);

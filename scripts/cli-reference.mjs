@@ -100,7 +100,10 @@ async function main() {
     process.stdout.write(usage());
     return;
   }
-  const versionLabel = (await run(options.bin, [
+  // The reference describes the stable binary's help; bundle reads and writes go through the
+  // content writer's CLI when scripts/content-writer.mjs runs this in a hosted checkout.
+  const contentBin = process.env.DOCS_CONTENT_SUPERBEE || options.bin;
+  const versionLabel = (await run(contentBin, [
     "doc", "read", "documentation-systems/main", "--field", "version_label", "--dir", resolve(root, ".superbee"),
   ])).trim();
   const version = versionLabel.replace(/^v/, "");
@@ -109,7 +112,7 @@ async function main() {
     throw new Error(`reference binary must be npm-package superbee@${version}`);
   }
   const help = await run(options.bin, ["--help"]);
-  const body = await run(options.bin, ["doc", "read", documentId, "--body-out", "-", "--dir", resolve(root, ".superbee")]);
+  const body = await run(contentBin, ["doc", "read", documentId, "--body-out", "-", "--dir", resolve(root, ".superbee")]);
   const expected = replaceGenerated(body, generatedBlock(help, version));
   if (options.mode === "check") {
     if (body !== expected) throw new Error(`${documentId} generated command inventory is stale; run npm run cli-reference:build`);
@@ -120,12 +123,12 @@ async function main() {
     process.stdout.write(`cli_reference: unchanged\nversion: ${version}\n`);
     return;
   }
-  const versionToken = (await run(options.bin, ["doc", "read", documentId, "--field", "head_version", "--dir", resolve(root, ".superbee")])).trim();
+  const versionToken = (await run(contentBin, ["doc", "read", documentId, "--field", "head_version", "--dir", resolve(root, ".superbee")])).trim();
   const scratch = await mkdtemp(resolve(tmpdir(), "superbee-cli-reference-"));
   try {
     const bodyFile = resolve(scratch, "body.md");
     await writeFile(bodyFile, expected);
-    await run(options.bin, [
+    await run(contentBin, [
       "doc", "update", documentId,
       "--body-file", bodyFile,
       "--expected-version", versionToken,

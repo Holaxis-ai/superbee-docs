@@ -31,13 +31,15 @@ test("consumer uses only public published package surfaces and nested versioned 
     "@superbee/core": "0.2.0-pre.11",
     "@superbee/docs-mkdocs": "0.2.2",
     "@superbee/docs-projection": "0.2.5",
-    "@superbee/docs-tooling": "0.2.4",
+    "@superbee/docs-tooling": "0.2.5",
     "@superbee/portal": "0.2.13",
     "@superbee/portal-cloudflare": "0.2.15",
     "@superbee/portal-docs": "0.2.11",
     "@superbee/portal-webmcp": "0.3.2",
     "@superbee/recipe-studio": "0.1.3",
     superbee: release.version,
+    // Hosted content writers' own CLI; the stable superbee pin stays the documented release.
+    "superbee-writer": "npm:superbee@0.4.3-pre.9",
   });
   assert.equal(consumer.scripts["tools:bootstrap"], undefined);
   assert.equal(
@@ -75,7 +77,16 @@ test("consumer uses only public published package surfaces and nested versioned 
   // caught here rather than at deploy time.
   assert.match(import.meta.resolve("@superbee/portal-webmcp/asset/v2"), /\/node_modules\/@superbee\/portal-webmcp\//);
   assert.match(import.meta.resolve("@superbee/agent-operations/read-tools"), /\/node_modules\/@superbee\/agent-operations\//);
-  assert.equal(consumer.scripts["diagram:build"], "superbee-docs diagram apply --root . --config portal.config.json");
+  assert.equal(consumer.scripts["diagram:build"], "node scripts/content-writer.mjs -- superbee-docs diagram apply --root . --config portal.config.json");
+  // Content is hosted and ignored by Git, so every script that writes it must run in the writer checkout.
+  assert.equal(consumer.scripts["content:run"], "node scripts/content-writer.mjs --");
+  // Writers use their own pinned CLI; the superbee dependency stays the documented stable release.
+  assert.match(consumer.dependencies["superbee-writer"], /^npm:superbee@\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?$/);
+  assert.match(consumer.dependencies.superbee, /^\d+\.\d+\.\d+$/);
+  for (const writer of ["docs:release", "docs:release:archive", "docs:release:apply", "docs:release:finalize", "docs:release:verify",
+    "cli-reference:build", "diagram:build", "diagram:upgrade-static", "diagram:rollback"]) {
+    assert.match(consumer.scripts[writer], /^node scripts\/content-writer\.mjs -- /, writer);
+  }
   assert.equal(
     consumer.scripts["portal:build"],
     "node scripts/documentation-outputs.mjs build && node scripts/deployment-assets.mjs",
