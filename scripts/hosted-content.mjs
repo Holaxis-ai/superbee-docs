@@ -8,9 +8,12 @@
 //   node scripts/hosted-content.mjs baseline [--check]           write or check freshness-baseline.json;
 //                                                                retired: it refuses now that content has left Git
 //
-// `export` runs the pinned `superbee export`, which verifies every entry against the host's digest
-// manifest before it writes a file. A person's session needs nothing more; CI wraps the command in
-// scripts/hosted-workload-token.mjs, which supplies SUPERBEE_ACCESS_TOKEN and SUPERBEE_HOST.
+// `export` has two paths, chosen by the environment. With a bearer (SUPERBEE_ACCESS_TOKEN, which CI's
+// scripts/hosted-workload-token.mjs supplies with SUPERBEE_HOST), it downloads through
+// `@superbee/core`'s hosted client, which verifies every entry against the host's digest manifests
+// before anything is returned; the bearer is sent only to the gateway constant below. Without one, a
+// person's `superbee login` session is used through the pinned `superbee export`, because the library
+// has no sign-in. Both paths yield the same receipt and are checked by the same invariants.
 //
 // `materialize` replaces a reader projection with the exact export. It refuses writer checkouts.
 // Assistant policy lives in Git assistant/ and is combined only in a disposable build input.
@@ -18,6 +21,16 @@
 import { createHash } from "node:crypto";
 import { execFileSync, spawnSync } from "node:child_process";
 import { cp, lstat, mkdir, mkdtemp, readdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
+import {
+  bearerCredentials,
+  createHostedClient,
+  HostedCarrierError,
+  HostedRouteNotServed,
+  isMalformedAnswer,
+  RemoteError,
+} from "@superbee/core/hosted-client";
+import { downloadExport, EXPORT_WINDOW_MS, ExportArchiveError, HostedExportError } from "@superbee/core/hosted-client/node";
+import { materializeExport } from "@superbee/core/portable-export";
 import { randomBytes } from "node:crypto";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -26,9 +39,15 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 export const HOSTED_CONTENT = Object.freeze({
   /** The hosted bundle, qualified by its workspace (one reference for a person and a workload). */
   bundle: "holaxis-sites/superbee-docs",
+  workspace: "holaxis-sites",
   bundleId: "superbee-docs",
-  /** The gateway a person's session targets; a workload bearer arrives with SUPERBEE_HOST set. */
+  /**
+   * The production gateway: a person's session targets it, and it is the only origin a workload
+   * bearer is ever sent to. Never read from the environment; SUPERBEE_HOST must name this same one.
+   */
   gateway: "https://mcp.getsuperbee.com",
+  /** The hosted sync route family on the gateway. */
+  syncPrefix: "/sync/v1",
   /** Reserved top-level content paths: assistant policy is Git-owned, never hosted. */
   configPaths: Object.freeze(["assistant"]),
 });
@@ -72,15 +91,31 @@ export async function treeDigest(root, files) {
   return sha256(rows.join(""));
 }
 
+/** The person-run CLI, or HOSTED_CONTENT_SUPERBEE in its place (a test or a local CLI build). */
 function superbeeCommand(env) {
   if (env.HOSTED_CONTENT_SUPERBEE) return [process.execPath, [env.HOSTED_CONTENT_SUPERBEE]];
   const bin = fileURLToPath(new URL("../node_modules/superbee/dist/superbee.mjs", import.meta.url));
   return [process.execPath, [bin]];
 }
 
-/** Run the pinned `superbee export` into a new folder and check its receipt. */
-export function exportHosted({ to, env = process.env, run = spawnSync }) {
+/** Which export path runs: a bearer in the environment is a workload's ("library"); none is a person's ("cli"). */
+export function exportPath(env) {
+  return env.SUPERBEE_ACCESS_TOKEN ? "library" : "cli";
+}
+
+/**
+ * Export the hosted bundle into the new folder `to` and check its receipt. A bearer in the
+ * environment selects the library path; otherwise the pinned CLI runs with the person's session.
+ * `fetch` is the library path's transport (a test's); `run` is the CLI path's process runner.
+ */
+export async function exportHosted({ to, env = process.env, run = spawnSync, fetch } = {}) {
   if (!to) fail("export needs --to <new folder>");
+  const receipt = exportPath(env) === "library" ? await exportThroughLibrary({ to, env, fetch }) : exportThroughCli({ to, env, run });
+  return checkReceipt(receipt);
+}
+
+/** Run the pinned `superbee export` into a new folder; the person's `superbee login` session authenticates. */
+export function exportThroughCli({ to, env, run = spawnSync }) {
   // Token/host environment variables bind the credential, but do not select the host for a named bundle.
   const args = ["export", HOSTED_CONTENT.bundle, "--host", HOSTED_CONTENT.gateway, "--to", to, "--json"];
   const [command, prefix] = superbeeCommand(env);
@@ -91,6 +126,97 @@ export function exportHosted({ to, env = process.env, run = spawnSync }) {
     const why = receipt?.error?.message ?? (result.stderr || result.stdout || "").trim().split("\n").at(-1);
     fail(`superbee export ${HOSTED_CONTENT.bundle} failed (exit ${result.status}): ${why || "no output"}`);
   }
+  return receipt;
+}
+
+/**
+ * Download the verified export through `@superbee/core`'s hosted client with the environment's
+ * bearer, then place it at `to`: staged in a private sibling by `materializeExport` and renamed onto
+ * `to` in one step, so `to` is either absent or complete. The receipt has the CLI receipt's fields,
+ * each from the verified result; it is checked before any file is written.
+ */
+export async function exportThroughLibrary({ to, env, fetch }) {
+  const token = env.SUPERBEE_ACCESS_TOKEN;
+  // The library sends the bearer to whatever origin it is given; only the constant is ever given.
+  if (env.SUPERBEE_HOST !== HOSTED_CONTENT.gateway) {
+    fail(`SUPERBEE_HOST is ${JSON.stringify(env.SUPERBEE_HOST ?? null)}, not ${HOSTED_CONTENT.gateway}; the workload bearer is sent only to ${HOSTED_CONTENT.gateway}`);
+  }
+  const target = path.resolve(to);
+  const inside = path.relative(BUNDLE_PATH, target);
+  if (!inside.startsWith("..") && !path.isAbsolute(inside)) fail(`${to} is inside ${BUNDLE_PATH}; export to a folder outside the bundle`);
+  const existing = await lstat(target).catch(() => null);
+  if (existing && (!existing.isDirectory() || (await readdir(target)).length > 0)) fail(`${to} exists; export needs a new folder`);
+  const client = createHostedClient({
+    target: { origin: HOSTED_CONTENT.gateway, syncPrefix: HOSTED_CONTENT.syncPrefix },
+    credentials: bearerCredentials(() => token),
+    deadlineMs: EXPORT_WINDOW_MS,
+    ...(fetch ? { fetch } : {}),
+  }).within(HOSTED_CONTENT.workspace);
+  let verified;
+  try {
+    verified = await downloadExport(client, HOSTED_CONTENT.bundleId);
+  } catch (error) {
+    // A new error carrying no `cause`, so nothing from the transport reaches a log unredacted.
+    fail(redact(libraryFailure(error), token));
+  }
+  const receipt = checkReceipt({
+    export: "created",
+    bundle_id: verified.source.bundleId,
+    host: client.target.origin,
+    revision: verified.source.revision,
+    exported_at: verified.exportedAt,
+    documents: verified.counts.documents,
+    reserved: verified.counts.reserved,
+    blobs: verified.counts.blobs,
+    bytes: verified.bytes,
+    root_index: verified.entries.some((entry) => entry.path === "index.md"),
+  });
+  const parent = path.dirname(target);
+  await mkdir(parent, { recursive: true });
+  const staged = await materializeExport(verified, parent);
+  try {
+    await rename(staged, target);
+  } catch (error) {
+    await rm(staged, { recursive: true, force: true }).catch(() => {});
+    if (["ENOTEMPTY", "EEXIST", "ENOTDIR"].includes(error.code)) fail(`${to} is no longer empty; nothing was written`);
+    throw error;
+  }
+  return receipt;
+}
+
+const redact = (message, token) => (token ? message.split(token).join("[redacted]") : message);
+
+/** The user-facing failure a typed library error is: auth, route not served, deadline, verification, or the host's refusal. */
+export function libraryFailure(error) {
+  const what = `hosted export of ${HOSTED_CONTENT.bundle} from ${HOSTED_CONTENT.gateway} failed`;
+  const nothing = "nothing was written";
+  if (error instanceof HostedRouteNotServed) return `${what} (route not served): the host does not serve ${HOSTED_CONTENT.syncPrefix}/export; ${nothing}`;
+  if (isMalformedAnswer(error)) return `${what} (verification): the host's answer is malformed; ${nothing}`;
+  if (error instanceof RemoteError) {
+    const answered = `${error.status} ${error.code}`;
+    if (error.status === 401) return `${what} (auth): the host refused the workload bearer (${answered}); mint a new one and retry`;
+    if (error.status === 403) return `${what} (auth): the workload bearer may not export this bundle (${answered})`;
+    if (error.code === "bundle_not_found") return `${what} (not found): no hosted bundle ${HOSTED_CONTENT.bundle} is visible to the workload (${answered})`;
+    return `${what} (refused): the host answered ${answered}; ${nothing}`;
+  }
+  if (error instanceof HostedCarrierError) {
+    if (error.code === "denied") return `${what} (auth): no credential could be sent`;
+    if (["AbortError", "TimeoutError"].includes(error.cause?.name)) {
+      return `${what} (deadline): no answer within ${EXPORT_WINDOW_MS / 1000} s; ${nothing}`;
+    }
+    return `${what} (unavailable): the host could not be reached or did not answer; ${nothing}`;
+  }
+  if (error instanceof HostedExportError) {
+    if (error.problem === "stopped") return `${what} (deadline): the export stopped part way; ${nothing}`;
+    if (error.problem === "too_large") return `${what} (verification): the export is larger than ${error.maximum} bytes; ${nothing}`;
+    return `${what} (source changed): the bundle kept changing while it was exported; ${nothing}`;
+  }
+  if (error instanceof ExportArchiveError) return `${what} (verification: ${error.problem}): ${error.message}; ${nothing}`;
+  return `${what}: ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}`;
+}
+
+/** The invariants every export receipt meets, from either path. */
+export function checkReceipt(receipt) {
   if (receipt?.export !== "created" || receipt.bundle_id !== HOSTED_CONTENT.bundleId) {
     fail(`superbee export answered no export of ${HOSTED_CONTENT.bundleId}`);
   }
@@ -99,12 +225,32 @@ export function exportHosted({ to, env = process.env, run = spawnSync }) {
   }
   if (receipt.documents === 0) fail("the hosted bundle exported no documents");
   if (receipt.root_index !== true || receipt.reserved < 1) fail("superbee export reported no root index.md");
-  // A person's session targets the gateway; a workload bearer's SUPERBEE_HOST names the same one.
-  const expectedHost = env.SUPERBEE_ACCESS_TOKEN ? env.SUPERBEE_HOST : HOSTED_CONTENT.gateway;
-  if (receipt.host !== HOSTED_CONTENT.gateway || expectedHost !== HOSTED_CONTENT.gateway) {
+  if (receipt.host !== HOSTED_CONTENT.gateway) {
     fail(`superbee export read ${JSON.stringify(receipt.host ?? null)}, not ${HOSTED_CONTENT.gateway}`);
   }
   return receipt;
+}
+
+/**
+ * The receipt.json of an export at `to` (the snapshot artifact's, which `materialize --tree-digest`
+ * and `materializeSnapshot` consume): the folder's shape and counts checked, and its tree digest.
+ */
+export async function exportReceipt(receipt, to) {
+  const files = await checkExport(to);
+  checkCounts(receipt, files);
+  return {
+    schema: RECEIPT_SCHEMA,
+    bundle: HOSTED_CONTENT.bundle,
+    host: receipt.host,
+    revision: receipt.revision,
+    exportedAt: receipt.exported_at,
+    documents: receipt.documents,
+    reserved: receipt.reserved,
+    blobs: receipt.blobs,
+    bytes: receipt.bytes,
+    files: files.length,
+    treeDigest: await treeDigest(to, files),
+  };
 }
 
 /** Check an export folder's shape: plain files only, no dot entries, no configuration paths. */
@@ -360,22 +506,7 @@ export async function main(argv, { env = process.env, log = (line) => process.st
   }
   if (command === "export") {
     const to = option(args, "--to");
-    const receipt = exportHosted({ to, env });
-    const files = await checkExport(to);
-    checkCounts(receipt, files);
-    const result = {
-      schema: RECEIPT_SCHEMA,
-      bundle: HOSTED_CONTENT.bundle,
-      host: receipt.host,
-      revision: receipt.revision,
-      exportedAt: receipt.exported_at,
-      documents: receipt.documents,
-      reserved: receipt.reserved,
-      blobs: receipt.blobs,
-      bytes: receipt.bytes,
-      files: files.length,
-      treeDigest: await treeDigest(to, files),
-    };
+    const result = await exportReceipt(await exportHosted({ to, env }), to);
     if (option(args, "--receipt")) await writeJson(option(args, "--receipt"), result);
     log(JSON.stringify(result));
     return 0;
@@ -388,7 +519,7 @@ export async function main(argv, { env = process.env, log = (line) => process.st
       if (command === "acquire") {
         temporary = await temporaryExport(env);
         from = temporary.to;
-        exported = exportHosted({ to: from, env });
+        exported = await exportHosted({ to: from, env });
         checkCounts(exported, await checkExport(from));
       }
       if (!from) fail("materialize needs --from <export folder>");
@@ -409,7 +540,7 @@ export async function main(argv, { env = process.env, log = (line) => process.st
       if (!from) {
         temporary = await temporaryExport(env);
         from = temporary.to;
-        checkCounts(exportHosted({ to: from, env }), await checkExport(from));
+        checkCounts(await exportHosted({ to: from, env }), await checkExport(from));
       }
       await checkExport(from);
       const result = await compareTrees(BUNDLE_PATH, from);

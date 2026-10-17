@@ -28,7 +28,9 @@ test("consumer uses only public published package surfaces and nested versioned 
     "@superbee/agent-operations": "0.1.0-pre.4",
     // The assistant's runtime, a restricted optional peer of portal-cloudflare's assistant option.
     "@superbee/assistant-runtime": "0.1.0-pre.21",
-    "@superbee/core": "0.2.0-pre.11",
+    // The hosted export's client (hosted-client, hosted-client/node, portable-export), and the
+    // single core the overrides give recipe-studio; exact pin.
+    "@superbee/core": "0.2.0-pre.17",
     "@superbee/docs-mkdocs": "0.2.2",
     "@superbee/docs-projection": "0.2.5",
     "@superbee/docs-tooling": "0.2.5",
@@ -72,6 +74,9 @@ test("consumer uses only public published package surfaces and nested versioned 
   assert.match(import.meta.resolve("@superbee/portal-cloudflare/static-assets"), /\/node_modules\/@superbee\/portal-cloudflare\//);
   assert.match(import.meta.resolve("@superbee/portal-cloudflare/reconcile"), /\/node_modules\/@superbee\/portal-cloudflare\//);
   assert.match(import.meta.resolve("@superbee/portal"), /\/node_modules\/@superbee\/portal\//);
+  for (const surface of ["hosted-client", "hosted-client/node", "portable-export"]) {
+    assert.match(import.meta.resolve(`@superbee/core/${surface}`), /\/node_modules\/@superbee\/core\//, surface);
+  }
   // The fixed forwarder this site contributes and the descriptors its tool list is built from.
   // Resolved through their own subpath exports so a package that stopped publishing either is
   // caught here rather than at deploy time.

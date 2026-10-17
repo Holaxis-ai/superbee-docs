@@ -54,7 +54,7 @@
   "dependencies": {
     "@superbee/agent-operations": "0.1.0-pre.4",
     "@superbee/assistant-runtime": "0.1.0-pre.21",
-    "@superbee/core": "0.2.0-pre.11",
+    "@superbee/core": "0.2.0-pre.17",
     "@superbee/docs-mkdocs": "0.2.2",
     "@superbee/docs-projection": "0.2.5",
     "@superbee/docs-tooling": "0.2.5",
