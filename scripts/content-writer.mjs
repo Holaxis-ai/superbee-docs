@@ -1,5 +1,5 @@
 import { execFile, spawn } from "node:child_process";
-import { lstat, mkdtemp, realpath, rm, symlink } from "node:fs/promises";
+import { lstat, mkdtemp, realpath, rm, stat, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -18,7 +18,7 @@ const missingWriter = () => new Error("the pinned writer CLI is not installed (n
 const refusal = () => new Error("content writes require this site's registered hosted checkout; use content:checkout in a workspace without an existing .superbee folder");
 
 export async function assertHostedWriter({ root = ROOT, bin = pinnedBin(root) } = {}) {
-  if (!(await lstat(bin).catch(() => null))) throw missingWriter();
+  if (!(await stat(bin).catch(() => null))) throw missingWriter();
   const directory = path.resolve(root, ".superbee");
   const info = await lstat(directory).catch((error) => { if (error.code === "ENOENT") throw refusal(); throw error; });
   if (!info.isDirectory() || info.isSymbolicLink()) throw refusal();
@@ -63,7 +63,7 @@ export async function main(argv, { root = ROOT, bin = pinnedBin(root) } = {}) {
   if (argv.length === 1 && argv[0] === "checkout") {
     const exists = await lstat(directory).catch((error) => { if (error.code === "ENOENT") return null; throw error; });
     if (exists) { await assertHostedWriter({ root, bin }); return 0; }
-    if (!(await lstat(bin).catch(() => null))) throw missingWriter();
+    if (!(await stat(bin).catch(() => null))) throw missingWriter();
     const code = await forward(bin, ["checkout", BUNDLE, "--host", HOST, "--dir", directory], root);
     if (code !== 0) return code;
     await assertHostedWriter({ root, bin });

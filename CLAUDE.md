@@ -56,8 +56,9 @@ bundle, never into a hosted writer checkout.
 - **Two CLIs.** The `superbee` dependency is the documented stable release: readers, exports and
   the CLI reference are checked against it. Writers use the separately pinned `superbee-writer`
   alias. `scripts/content-writer.mjs` runs it for `content:checkout` and `content:sync`, and puts it
-  first on `PATH` as `superbee` and names it in `DOCS_CONTENT_SUPERBEE` for wrapped commands; every
-  repository script that runs the CLI on `.superbee` honors that name, including nested `npm run`.
+  first on `PATH` as `superbee` and names it in `DOCS_CONTENT_SUPERBEE` for wrapped commands. Under
+  that wrapper, every repository script that runs the CLI on `.superbee` honors the name, including
+  nested `npm run`; unwrapped, scripts use the stable CLI.
   Do not touch a writer checkout with any other Superbee CLI: run checks and builds there as
   `npm run content:run -- npm run check`. Writer commands are POSIX-only.
 - **Writing content**, in a separate clean code clone without a `.superbee` folder:
@@ -80,7 +81,8 @@ bundle, never into a hosted writer checkout.
   `scripts/content-writer.mjs`, which refuses unless `.superbee` is this site's registered hosted
   checkout. A write to a reader projection would otherwise be silently lost. Published diagram
   source and SVG change only through `diagram:build`; never edit them in place.
-- **Diagram publication needs `@superbee/docs-tooling` 0.2.5 or newer** (superbee-portal#158). Version 0.2.4 promotes
+- **Diagram publication needs `@superbee/docs-tooling` 0.2.5 or newer** (superbee-portal#158).
+  Version 0.2.4 promotes
   each diagram from a temporary stage file, and a hosted checkout refuses a promote whose source is
   not the target path, so `diagram:build` and `diagram:upgrade-static` fail before sending anything
   and `diagram:rollback` recovers. Newer versions write each file at its checkout path first and

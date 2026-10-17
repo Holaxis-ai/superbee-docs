@@ -19,7 +19,7 @@
     "docs:release:status": "node scripts/release-maintenance.mjs",
     "docs:release:prepare": "node scripts/release-conductor.mjs prepare",
     "docs:release:apply": "node scripts/content-writer.mjs -- node scripts/release-conductor.mjs apply",
-    "docs:release:verify": "node scripts/release-conductor.mjs check",
+    "docs:release:verify": "node scripts/content-writer.mjs -- node scripts/release-conductor.mjs check",
     "deployment:preflight": "node scripts/deployment-preflight.mjs",
     "docs:release:check": "node scripts/release-docs.mjs check",
     "cli-reference:build": "node scripts/content-writer.mjs -- node scripts/cli-reference.mjs build",
