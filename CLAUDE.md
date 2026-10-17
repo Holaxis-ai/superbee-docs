@@ -70,8 +70,7 @@ bundle, never into a hosted writer checkout.
   3. Create a new ordinary file at its final path, then send it with
      `npm run content:run -- superbee promote .superbee/<key> --doc-key <key> --dir .superbee`.
      It delivers at once; the source must already be at that path inside the checkout.
-  4. Publish diagrams with `npm run diagram:build`. This is blocked until the docs-tooling upgrade
-     in the version note below.
+  4. Publish diagrams with `npm run diagram:build`; each promote delivers at once.
   5. `npm run content:sync` once per edit batch. Sync sends exact bytes, keeps hosted MIME types,
      and refuses a stale write with a version conflict that preserves your local bytes.
   Do not run `content:snapshot` or `acquire` on a writer checkout.
@@ -81,13 +80,11 @@ bundle, never into a hosted writer checkout.
   `scripts/content-writer.mjs`, which refuses unless `.superbee` is this site's registered hosted
   checkout. A write to a reader projection would otherwise be silently lost. Published diagram
   source and SVG change only through `diagram:build`; never edit them in place.
-- **Diagram publication needs `@superbee/docs-tooling` 0.2.5 or newer** (superbee-portal#158).
-  Version 0.2.4 promotes
-  each diagram from a temporary stage file, and a hosted checkout refuses a promote whose source is
-  not the target path, so `diagram:build` and `diagram:upgrade-static` fail before sending anything
-  and `diagram:rollback` recovers. Newer versions write each file at its checkout path first and
-  make rollback settle the interrupted promote before restoring the host. Do not hand-place
-  compiled SVG, and do not add a site-specific upload bypass.
+- Diagram publication through a hosted checkout needs `@superbee/docs-tooling` 0.2.5 or newer,
+  which this repository pins. It writes each staged file at its checkout path before promoting it,
+  and `diagram:rollback` settles an interrupted promote before restoring the host; rerun rollback
+  until it succeeds. Sync before `diagram:build`. Do not hand-place compiled SVG, and do not add a
+  site-specific upload bypass.
 - A blob version conflict currently stays held in that checkout: no edit, restore or promote
   clears it. Send any unsent document edits, copy your bytes out, run
   `npm run content:run -- superbee checkout --release .superbee`, then check out again and reapply.

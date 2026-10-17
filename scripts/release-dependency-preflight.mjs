@@ -4,10 +4,26 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { dependencyPreflight as checkMetadata, lockedRegistryPackages } from "./vendor/package-verification/src/preflight.mjs";
 import { verifySnapshotIntegrity } from "./vendor/package-verification/src/snapshot.mjs";
 
+const ALIAS = /^npm:((?:@[^/@]+\/)?[^@]+)@/;
+
 export function preflightPackages(lock, manifest, replacement) {
-  return lockedRegistryPackages(lock, [{ directory: "", manifest }], { allowMetadataOnly: ["wrangler"], replacements: replacement ? [{
+  // The shared selector names a direct dependency by its manifest key. An npm alias (the hosted
+  // content writers' superbee-writer) is checked under the real package name it installs.
+  const aliases = Object.entries(manifest.dependencies ?? {}).filter(([, spec]) => ALIAS.test(spec));
+  const dependencies = Object.fromEntries(Object.entries(manifest.dependencies ?? {}).filter(([, spec]) => !ALIAS.test(spec)));
+  const packages = lockedRegistryPackages(lock, [{ directory: "", manifest: { ...manifest, dependencies } }], { allowMetadataOnly: ["wrangler"], replacements: replacement ? [{
     name: "superbee", version: replacement.version, tarball: replacement.tarballUrl, integrity: replacement.npmIntegrity,
   }] : [] });
+  const selected = new Map(packages.map((pkg) => [`${pkg.name}@${pkg.version}`, pkg]));
+  for (const [key, spec] of aliases) {
+    const name = spec.match(ALIAS)[1];
+    const entry = lock.packages?.[`node_modules/${key}`];
+    if (entry?.name !== name) throw new Error(`package-lock.json does not install ${key} as ${name}`);
+    for (const pkg of lockedRegistryPackages({ packages: { [`node_modules/${name}`]: entry } }, [{ directory: "", manifest: { dependencies: { [name]: entry.version } } }])) {
+      selected.set(`${pkg.name}@${pkg.version}`, pkg);
+    }
+  }
+  return [...selected.values()].sort((a, b) => a.name.localeCompare(b.name) || a.version.localeCompare(b.version));
 }
 
 export async function dependencyPreflight(root, { run, replacement } = {}) {

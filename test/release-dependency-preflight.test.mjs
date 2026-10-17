@@ -17,6 +17,17 @@ test("preflight bounds selection to direct packages and their locked scopes", ()
   assert.equal(preflightPackages({ packages: { "node_modules/wrangler": { version: "1.2.3" } } }, { devDependencies: { wrangler: "1.2.3" } })[0].metadataOnly, true);
 });
 
+test("an npm alias is checked under the real package it installs, beside the stable pin", () => {
+  const manifest = { dependencies: { superbee: "1.2.3", "superbee-writer": "npm:superbee@2.0.0-pre.1" } };
+  const writer = { name: "superbee", version: "2.0.0-pre.1", resolved: "https://registry.npmjs.org/superbee/-/superbee-2.0.0-pre.1.tgz", integrity: "sha512-writer" };
+  const lock = { packages: { "node_modules/superbee": entry("superbee"), "node_modules/superbee-writer": writer } };
+  assert.deepEqual(preflightPackages(lock, manifest).map((pkg) => `${pkg.name}@${pkg.version}`), ["superbee@1.2.3", "superbee@2.0.0-pre.1"]);
+  const replaced = preflightPackages(lock, manifest, { version: "1.2.4", tarballUrl: "https://registry.npmjs.org/superbee/-/superbee-1.2.4.tgz", npmIntegrity: "sha512-next" });
+  assert.deepEqual(replaced.map((pkg) => `${pkg.name}@${pkg.version}`), ["superbee@1.2.4", "superbee@2.0.0-pre.1"]);
+  assert.throws(() => preflightPackages({ packages: { ...lock.packages, "node_modules/superbee-writer": { ...writer, name: "other" } } }, manifest), /does not install superbee-writer as superbee/);
+  assert.throws(() => preflightPackages({ packages: { "node_modules/superbee": entry("superbee") } }, manifest), /does not install superbee-writer/);
+});
+
 async function fixture(t) {
   const root = await mkdtemp(path.join(os.tmpdir(), "docs-preflight-"));
   t.after(() => rm(root, { recursive: true, force: true }));
