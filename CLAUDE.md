@@ -47,20 +47,36 @@ bundle, never into a hosted writer checkout.
 - Production's environment-bound acquire job alone has OIDC permission. `DOCS_HOSTED_APP_ID` must
   identify the existing read-only app; missing configuration fails closed. There is no Git fallback.
   Exports are retained for 30 days. If none remain, dispatch the production workflow and retry.
-- For document authoring, use a separate clean code clone without a `.superbee` folder, then run
+- Git no longer tracks content: `.superbee/` is ignored. It is either a reader projection or a
+  writer checkout, never a source of truth. Rollback uses hosted history, not Git.
+- **Writing content.** Use a separate clean code clone without a `.superbee` folder, then run
   `npm run content:checkout`. It binds this exact workspace/bundle through the public CLI. Use normal
   Superbee document verbs with `--dir .superbee`, then `npm run content:sync` once per edit batch.
   Existing folders are preserved and must already be registered to the exact target. Read acquisition
   refuses any checkout marker, so it cannot overwrite unsent edits. Run builds directly on a writer
   checkout; do not run `content:snapshot` or `acquire` there.
-- **Final removal of the Git content copy is pending platform non-document writes.** The current
-  hosted checkout supports document sync but refuses blob/reserved/convention promotion; consequently
-  `diagram:build`, static upgrade/rollback and recipe changes cannot yet publish through that path.
-  Keep the tracked copy as migration evidence; do not edit or merge new content there. Complete the
-  shared platform write capability before deleting it. Do not add a site-specific upload bypass.
-- `freshness-baseline.json` freezes Git commit times against exact document bytes. Keep it across
-  cutover; do not regenerate it after content leaves Git. Later hosted edits carry their own clock.
-  Release review/reuse receipts include the full ignored content tree as well as Git inputs.
+- Every content-writing script (`docs:release*` writers, `cli-reference:build`, `diagram:build`,
+  `diagram:upgrade-static`, `diagram:rollback`) runs through `scripts/content-writer.mjs`, which
+  refuses unless `.superbee` is this site's registered hosted checkout. A write to a reader
+  projection would otherwise be silently lost.
+- Ordinary files (Mermaid source, SVG, View HTML, images) sync like documents: edit the file in
+  place, then `npm run content:sync`. Sync sends exact bytes, keeps the hosted MIME type and
+  refuses a stale write with a version conflict that preserves your local bytes. A new file is
+  sent with `superbee promote .superbee/<key> --doc-key <key> --dir .superbee`, which delivers at
+  once; the source must already be at that path inside the checkout.
+- **Diagram publication waits for a `@superbee/docs-tooling` fix.** Version 0.2.4 promotes each
+  diagram from a temporary stage file, and a hosted checkout refuses a promote whose source is not
+  the target path, so `diagram:build` and `diagram:upgrade-static` fail before sending anything.
+  `diagram:rollback` recovers the interrupted apply. Do not hand-place compiled SVG, and do not add
+  a site-specific upload bypass. Upgrade docs-tooling once it stages bytes at the checkout path.
+- A blob version conflict currently stays held in that checkout: no edit, restore or promote
+  clears it. Copy your bytes out, run `superbee checkout --release .superbee` after sending any
+  unsent document edits, check out again and reapply. A send that never reached the host can
+  likewise stay `unknown`; keep the receipt and recover the same way.
+- `freshness-baseline.json` freezes Git commit times against exact document bytes, regenerated
+  from Git immediately before the content left it. Keep it; it cannot be regenerated now. Later
+  hosted edits carry their own clock. Release review/reuse receipts include the full ignored
+  content tree as well as Git inputs.
 
 ## Diagrams do not render from Markdown
 
@@ -77,7 +93,8 @@ npm run portal:preview
 ```
 
 `diagram:build` compiles declared Mermaid source at build time, promotes the exact source and
-admitted static SVG into the public bundle, and writes the exact v3 publication receipt.
+admitted static SVG to the hosted bundle through the writer checkout, and writes the exact v3
+publication receipt, which lands in Git by pull request. See the docs-tooling caveat above.
 `diagram:check` recompiles to verify safety and accessibility, then rejects source-bound projection
 or exact source/SVG/receipt drift without requiring browser geometry to be byte-identical across
 operating systems. Retained View HTML and registrations are legacy predecessor evidence only; the

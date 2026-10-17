@@ -13,3 +13,4 @@ deploy/
 
 # Hosted content checkout or verified CI reader projection (never a Git content source).
 /.superbee/
+.superbee/
