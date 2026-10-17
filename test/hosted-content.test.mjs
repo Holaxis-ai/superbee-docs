@@ -103,6 +103,13 @@ test("without a bearer, export runs the pinned CLI with the person's session and
   };
   assert.equal(exportPath({}), "cli");
   assert.equal(exportPath({ SUPERBEE_ACCESS_TOKEN: "" }), "cli");
+  // A blank bearer is absent: the CLI runs, and sees no SUPERBEE_ACCESS_TOKEN at all.
+  for (const blank of [" ", "  \t\n "]) {
+    assert.equal(exportPath({ SUPERBEE_ACCESS_TOKEN: blank }), "cli");
+    const env = { SUPERBEE_ACCESS_TOKEN: blank, SUPERBEE_HOST: "https://elsewhere.example", HOME: "/h" };
+    assert.deepEqual(await exportHosted({ to: "/x", env, run: fake(ok), fetch: () => assert.fail("no request with a blank bearer") }), ok);
+    assert.deepEqual(calls.at(-1).env, { SUPERBEE_HOST: "https://elsewhere.example", HOME: "/h" });
+  }
   assert.deepEqual(await exportHosted({ to: "/x", env: {}, run: fake(ok), fetch: () => assert.fail("no request without a bearer") }), ok);
   assert.deepEqual(calls.at(-1).args.slice(1), ["export", HOSTED_CONTENT.bundle, "--host", HOSTED_CONTENT.gateway, "--to", "/x", "--json"]);
   assert.match(calls.at(-1).args[0], /node_modules\/superbee\/dist\/superbee\.mjs$/u);
@@ -473,6 +480,21 @@ test("the library's typed failures become the existing user-facing failures, nev
   assert.match(libraryFailure(new HostedCarrierError("denied")), /\(auth\): no credential/);
   const { parent, error } = await libraryExport(exportArchive(SITE), { answer: () => { throw Object.assign(new Error("x"), { name: "Oops" }); } });
   try { assert.equal(error.message.includes(TOKEN), false); } finally { await rm(parent, { recursive: true, force: true }); }
+  // A placement failure on a host-chosen path that carries the bearer's text is redacted too.
+  const long = `${TOKEN}/${"a".repeat(297)}.md`;
+  const placed = await libraryExport(exportArchive({ ...SITE, [long]: "# l\n" }));
+  try {
+    assert.ok(placed.error, "a 300-character segment cannot be placed");
+    assert.match(placed.error.message, /^hosted export of holaxis-sites\/superbee-docs from https:\/\/mcp\.getsuperbee\.com failed/);
+    assert.match(placed.error.message, /\(placement: ENAMETOOLONG\)/);
+    assert.equal(placed.error.message.includes(TOKEN), false);
+    assert.equal(placed.error.cause, undefined);
+    assert.equal(placed.error.exit, 1);
+    assert.deepEqual(await readdir(placed.parent), [], "nothing is written");
+  } finally { await rm(placed.parent, { recursive: true, force: true }); }
+  // A refusal from materializeExport itself (an OKF edition it does not place) is wrapped, not raw.
+  assert.match(libraryFailure(new ExportArchiveError("unsupported_format", "the exported OKF edition is not supported")), /\(verification: unsupported_format\)/);
+  assert.match(libraryFailure(Object.assign(new Error(`ENAMETOOLONG: open '/t/${TOKEN}'`), { code: "ENAMETOOLONG", syscall: "open" })), /\(placement: ENAMETOOLONG\)/);
   // A verifier message naming a path that carries the bearer's text is redacted.
   const leaky = `guides/${TOKEN}.md`;
   const tampered = await libraryExport(exportArchive({ ...SITE, [leaky]: "# t\n" }, { tamper: leaky }));

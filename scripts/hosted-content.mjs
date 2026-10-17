@@ -98,9 +98,9 @@ function superbeeCommand(env) {
   return [process.execPath, [bin]];
 }
 
-/** Which export path runs: a bearer in the environment is a workload's ("library"); none is a person's ("cli"). */
+/** Which export path runs: a bearer in the environment is a workload's ("library"); none, or a blank one, is a person's ("cli"). */
 export function exportPath(env) {
-  return env.SUPERBEE_ACCESS_TOKEN ? "library" : "cli";
+  return env.SUPERBEE_ACCESS_TOKEN?.trim() ? "library" : "cli";
 }
 
 /**
@@ -110,7 +110,10 @@ export function exportPath(env) {
  */
 export async function exportHosted({ to, env = process.env, run = spawnSync, fetch } = {}) {
   if (!to) fail("export needs --to <new folder>");
-  const receipt = exportPath(env) === "library" ? await exportThroughLibrary({ to, env, fetch }) : exportThroughCli({ to, env, run });
+  if (exportPath(env) === "library") return checkReceipt(await exportThroughLibrary({ to, env, fetch }));
+  // A blank bearer is no bearer: the CLI sees the environment as if it were unset.
+  const { SUPERBEE_ACCESS_TOKEN: blank, ...unset } = env;
+  const receipt = exportThroughCli({ to, env: blank === undefined ? env : unset, run });
   return checkReceipt(receipt);
 }
 
@@ -159,31 +162,37 @@ export async function exportThroughLibrary({ to, env, fetch }) {
     // A new error carrying no `cause`, so nothing from the transport reaches a log unredacted.
     fail(redact(libraryFailure(error), token));
   }
-  const receipt = checkReceipt({
-    export: "created",
-    bundle_id: verified.source.bundleId,
-    host: client.target.origin,
-    revision: verified.source.revision,
-    exported_at: verified.exportedAt,
-    documents: verified.counts.documents,
-    reserved: verified.counts.reserved,
-    blobs: verified.counts.blobs,
-    bytes: verified.bytes,
-    root_index: verified.entries.some((entry) => entry.path === "index.md"),
-  });
-  // The folder rule, applied to the verified entries so a refused export never creates `to`.
-  checkExportPaths(verified.entries.map((entry) => entry.path));
-  const parent = path.dirname(target);
-  await mkdir(parent, { recursive: true });
-  const staged = await materializeExport(verified, parent);
+  // Everything from here names host-chosen paths (and a filesystem error names the whole path), so
+  // every failure is redacted, keeping the specific messages this function raises itself.
   try {
-    await rename(staged, target);
+    const receipt = checkReceipt({
+      export: "created",
+      bundle_id: verified.source.bundleId,
+      host: client.target.origin,
+      revision: verified.source.revision,
+      exported_at: verified.exportedAt,
+      documents: verified.counts.documents,
+      reserved: verified.counts.reserved,
+      blobs: verified.counts.blobs,
+      bytes: verified.bytes,
+      root_index: verified.entries.some((entry) => entry.path === "index.md"),
+    });
+    // The folder rule, applied to the verified entries so a refused export never creates `to`.
+    checkExportPaths(verified.entries.map((entry) => entry.path));
+    const parent = path.dirname(target);
+    await mkdir(parent, { recursive: true });
+    const staged = await materializeExport(verified, parent);
+    try {
+      await rename(staged, target);
+    } catch (error) {
+      await rm(staged, { recursive: true, force: true }).catch(() => {});
+      if (["ENOTEMPTY", "EEXIST", "ENOTDIR"].includes(error.code)) fail(`${to} is no longer empty; nothing was written`);
+      throw error;
+    }
+    return receipt;
   } catch (error) {
-    await rm(staged, { recursive: true, force: true }).catch(() => {});
-    if (["ENOTEMPTY", "EEXIST", "ENOTDIR"].includes(error.code)) fail(`${to} is no longer empty; nothing was written`);
-    throw error;
+    fail(redact(error?.exit !== undefined ? error.message : libraryFailure(error), token));
   }
-  return receipt;
 }
 
 const redact = (message, token) => (token ? message.split(token).join("[redacted]") : message);
@@ -214,6 +223,7 @@ export function libraryFailure(error) {
     return `${what} (source changed): the bundle kept changing while it was exported; ${nothing}`;
   }
   if (error instanceof ExportArchiveError) return `${what} (verification: ${error.problem}): ${error.message}; ${nothing}`;
+  if (typeof error?.code === "string" && error.syscall) return `${what} (placement: ${error.code}): ${error.message}; ${nothing}`;
   return `${what}: ${error instanceof Error ? `${error.name}: ${error.message}` : String(error)}`;
 }
 
