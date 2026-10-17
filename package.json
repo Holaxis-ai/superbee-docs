@@ -11,6 +11,7 @@
     "content:snapshot": "node scripts/hosted-content.mjs snapshot",
     "content:checkout": "node scripts/content-writer.mjs checkout",
     "content:sync": "node scripts/content-writer.mjs sync",
+    "content:run": "node scripts/content-writer.mjs --",
     "repository-history:ensure": "node scripts/bootstrap-repository-history.mjs",
     "source:sync": "node scripts/sync-source.mjs",
     "docs:release": "node scripts/content-writer.mjs -- node scripts/release-docs.mjs update",

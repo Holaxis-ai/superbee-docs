@@ -51,32 +51,43 @@ bundle, never into a hosted writer checkout.
   writer checkout, never a source of truth. Rollback uses hosted history, not Git. A clone that
   predates this change loses its tracked copy when it pulls; run `content:snapshot` or
   `content:checkout` afterwards. Never pull that change into a clone whose `.superbee` is a writer
-  checkout: sync first, run `superbee checkout --release .superbee`, then pull and check out again.
-- **Writing content.** Use a separate clean code clone without a `.superbee` folder, then run
-  `npm run content:checkout`. It binds this exact workspace/bundle through the public CLI. Use normal
-  Superbee document verbs with `--dir .superbee`, then `npm run content:sync` once per edit batch.
-  Existing folders are preserved and must already be registered to the exact target. Read acquisition
-  refuses any checkout marker, so it cannot overwrite unsent edits. Run builds directly on a writer
-  checkout; do not run `content:snapshot` or `acquire` there.
-- Every content-writing script (`docs:release*` writers, `cli-reference:build`, `diagram:build`,
-  `diagram:upgrade-static`, `diagram:rollback`) runs through `scripts/content-writer.mjs`, which
-  refuses unless `.superbee` is this site's registered hosted checkout. A write to a reader
-  projection would otherwise be silently lost.
-- Ordinary files that no command generates (images, for example) sync like documents: edit the
-  file in place, then `npm run content:sync`. Sync sends exact bytes, keeps the hosted MIME type
-  and refuses a stale write with a version conflict that preserves your local bytes. A new file is
-  sent with `superbee promote .superbee/<key> --doc-key <key> --dir .superbee`, which delivers at
-  once; the source must already be at that path inside the checkout. Published diagram source and
-  SVG change only through `diagram:build`; never edit them in place.
-- **Diagram publication waits for a `@superbee/docs-tooling` fix.** Version 0.2.4 promotes each
-  diagram from a temporary stage file, and a hosted checkout refuses a promote whose source is not
-  the target path, so `diagram:build` and `diagram:upgrade-static` fail before sending anything.
-  `diagram:rollback` recovers the interrupted apply. Do not hand-place compiled SVG, and do not add
-  a site-specific upload bypass. Upgrade docs-tooling once it stages bytes at the checkout path.
+  checkout: sync first, run `npm run content:run -- superbee checkout --release .superbee`, then pull
+  and check out again.
+- **Two CLIs.** The `superbee` dependency is the documented stable release: readers, exports and
+  the CLI reference are checked against it. Writers use the separately pinned `superbee-writer`
+  alias. `scripts/content-writer.mjs` runs it for `content:checkout` and `content:sync`, and puts it
+  first on `PATH` as `superbee` (and names it in `DOCS_CONTENT_SUPERBEE`) for wrapped commands. Do
+  not touch a writer checkout with any other Superbee CLI.
+- **Writing content**, in a separate clean code clone without a `.superbee` folder:
+  1. `npm ci`, then `npm run content:checkout` to bind `.superbee` to this exact workspace and
+     bundle. An existing folder must already be this registered checkout; it is never replaced.
+  2. Edit documents with `npm run content:run -- superbee doc update <id> ... --dir .superbee`
+     (or any other document verb). Edit an ordinary file that no command generates, such as an
+     image, in place.
+  3. Create a new ordinary file at its final path, then send it with
+     `npm run content:run -- superbee promote .superbee/<key> --doc-key <key> --dir .superbee`.
+     It delivers at once; the source must already be at that path inside the checkout.
+  4. Publish diagrams with `npm run diagram:build` (see the version note below).
+  5. `npm run content:sync` once per edit batch. Sync sends exact bytes, keeps hosted MIME types,
+     and refuses a stale write with a version conflict that preserves your local bytes.
+  Run builds directly on a writer checkout; do not run `content:snapshot` or `acquire` there.
+  Read acquisition refuses any checkout marker, so it cannot overwrite unsent edits.
+- Every content-writing script (`content:run`, `docs:release*` writers, `cli-reference:build`,
+  `diagram:build`, `diagram:upgrade-static`, `diagram:rollback`) runs through
+  `scripts/content-writer.mjs`, which refuses unless `.superbee` is this site's registered hosted
+  checkout. A write to a reader projection would otherwise be silently lost. Published diagram
+  source and SVG change only through `diagram:build`; never edit them in place.
+- **Diagram publication needs `@superbee/docs-tooling` 0.2.5 or newer.** Version 0.2.4 promotes
+  each diagram from a temporary stage file, and a hosted checkout refuses a promote whose source is
+  not the target path, so `diagram:build` and `diagram:upgrade-static` fail before sending anything
+  and `diagram:rollback` recovers. Newer versions write each file at its checkout path first and
+  make rollback settle the interrupted promote before restoring the host. Do not hand-place
+  compiled SVG, and do not add a site-specific upload bypass.
 - A blob version conflict currently stays held in that checkout: no edit, restore or promote
-  clears it. Copy your bytes out, run `superbee checkout --release .superbee` after sending any
-  unsent document edits, check out again and reapply. A send that never reached the host can
-  likewise stay `unknown`; keep the receipt and recover the same way.
+  clears it. Send any unsent document edits, copy your bytes out, run
+  `npm run content:run -- superbee checkout --release .superbee`, then check out again and reapply.
+  A send that never reached the host can likewise stay `unknown`; keep the receipt and recover the
+  same way.
 - `freshness-baseline.json` freezes Git commit times against exact document bytes, regenerated
   from Git immediately before the content left it. Keep it; it cannot be regenerated now. Later
   hosted edits carry their own clock. Release review/reuse receipts include the full ignored

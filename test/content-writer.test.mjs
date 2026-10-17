@@ -3,7 +3,7 @@ import { chmod, mkdtemp, mkdir, readFile, realpath, rm, symlink, writeFile } fro
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
-import { assertHostedWriter, main } from "../scripts/content-writer.mjs";
+import { WRITER_BIN_ENV, assertHostedWriter, main } from "../scripts/content-writer.mjs";
 
 async function fixture(t) {
   const root = await realpath(await mkdtemp(path.join(os.tmpdir(), "docs-content-writer-")));
@@ -69,4 +69,16 @@ test("guard refuses symlinked bundle roots before invoking the CLI", async (t) =
   await symlink(f.root, f.directory);
   await assert.rejects(assertHostedWriter(f), /registered hosted checkout/);
   await assert.rejects(readFile(path.join(f.root, "trace.jsonl")), { code: "ENOENT" });
+});
+
+test("wrapped writers see the writer CLI as superbee on PATH and by name", async (t) => {
+  const f = await fixture(t);
+  await mkdir(f.directory);
+  const output = path.join(f.root, "child.json");
+  const code = `const {execFileSync}=require('node:child_process');require('node:fs').writeFileSync(process.argv[1], JSON.stringify({named: process.env.${WRITER_BIN_ENV}, onPath: execFileSync('superbee', ['bundle', 'locate', '--json']).toString()}))`;
+  assert.equal(await main(["--", process.execPath, "-e", code, output], f), 0);
+  const seen = JSON.parse(await readFile(output, "utf8"));
+  assert.equal(seen.named, f.bin);
+  assert.deepEqual(JSON.parse(seen.onPath), f.receipt);
+  assert.deepEqual((await f.trace()).at(-1), ["bundle", "locate", "--json"]);
 });

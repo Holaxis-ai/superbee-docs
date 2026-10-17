@@ -77,6 +77,7 @@ test("consumer uses only public published package surfaces and nested versioned 
   assert.match(import.meta.resolve("@superbee/agent-operations/read-tools"), /\/node_modules\/@superbee\/agent-operations\//);
   assert.equal(consumer.scripts["diagram:build"], "node scripts/content-writer.mjs -- superbee-docs diagram apply --root . --config portal.config.json");
   // Content is hosted and ignored by Git, so every script that writes it must run in the writer checkout.
+  assert.equal(consumer.scripts["content:run"], "node scripts/content-writer.mjs --");
   for (const writer of ["docs:release", "docs:release:archive", "docs:release:apply", "docs:release:finalize",
     "cli-reference:build", "diagram:build", "diagram:upgrade-static", "diagram:rollback"]) {
     assert.match(consumer.scripts[writer], /^node scripts\/content-writer\.mjs -- /, writer);
