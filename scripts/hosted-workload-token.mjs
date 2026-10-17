@@ -17,9 +17,11 @@
 // Fixed here, never from an input (design §10 M3 condition 2): the audience, the gateway and the
 // workspace. The app id comes from the repository variable DOCS_HOSTED_APP_ID; it only names a row, and
 // the row's own claim checks (repository, branch, workflow refs, events, environment) decide.
-// SUPERBEE_HOST is the gateway because an `sbw_` bearer carries no audience: the CLI follows
-// holaxis-sites.getsuperbee.com/.well-known/superbee-workspace to the gateway and requires the pinned
-// host to resolve to that same audience (https://mcp.getsuperbee.com/mcp).
+// SUPERBEE_HOST names the gateway because an `sbw_` bearer carries no audience. The CI export
+// (scripts/hosted-content.mjs) no longer runs a CLI or follows .well-known discovery: it uses
+// @superbee/core's hosted client, which sends the bearer only to that script's constant gateway
+// (the one that minted it, GATEWAY here) and refuses redirects. The script refuses an export
+// whose SUPERBEE_HOST is not exactly that gateway.
 //
 // A transient failure (no answer, a 5xx, 429) is retried twice, 5 s then 20 s apart, each time with
 // a fresh GitHub token (a token's jti is single use); a refusal (4xx with its code) is final.

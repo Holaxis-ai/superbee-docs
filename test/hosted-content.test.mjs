@@ -1,17 +1,28 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
-import { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
+import { lstat, mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 
+import { HostedCarrierError } from "@superbee/core/hosted-client";
+import { ExportArchiveError, HostedExportError } from "@superbee/core/hosted-client/node";
+
 import {
   BASELINE_PATH,
+  BUNDLE_PATH,
   HOSTED_CONTENT,
   checkCounts,
+  checkExport,
+  checkExportPaths,
+  checkReceipt,
   compareTrees,
   exportHosted,
+  exportPath,
+  exportReceipt,
+  exportThroughCli,
+  libraryFailure,
   listFiles,
   materialize,
   materializeSnapshot,
@@ -22,6 +33,7 @@ import {
   withFreshnessBaseline,
 } from "../scripts/hosted-content.mjs";
 import { exchange, run as runWithToken } from "../scripts/hosted-workload-token.mjs";
+import { exportArchive, exportHost, exportPages } from "./hosted-export-fixture.mjs";
 
 async function folder(files) {
   const root = await mkdtemp(path.join(tmpdir(), "superbee-docs-hosted-test-"));
@@ -82,25 +94,52 @@ test("materialize refuses an export that carries configuration, dot entries, lin
   }
 });
 
-test("export names the qualified hosted bundle and explicit host for both sessions and workloads, and checks the receipt", () => {
+test("without a bearer, export runs the pinned CLI with the person's session and checks its receipt", async () => {
   const calls = [];
   const ok = { export: "created", bundle_id: "superbee-docs", host: HOSTED_CONTENT.gateway, revision: 3, documents: 2, reserved: 1, blobs: 0, bytes: 9, root_index: true };
   const fake = (answer, status = 0) => (command, args, options) => {
-    calls.push({ args: args.slice(1), env: options.env });
+    calls.push({ command, args, env: options.env });
     return { status, stdout: JSON.stringify(answer), stderr: "" };
   };
-  assert.deepEqual(exportHosted({ to: "/x", env: {}, run: fake(ok) }), ok);
-  assert.deepEqual(calls.at(-1).args, ["export", HOSTED_CONTENT.bundle, "--host", HOSTED_CONTENT.gateway, "--to", "/x", "--json"]);
-  exportHosted({ to: "/x", env: { SUPERBEE_ACCESS_TOKEN: "sbw_x", SUPERBEE_HOST: HOSTED_CONTENT.gateway }, run: fake(ok) });
-  assert.deepEqual(calls.at(-1).args, ["export", HOSTED_CONTENT.bundle, "--host", HOSTED_CONTENT.gateway, "--to", "/x", "--json"]);
-  assert.throws(() => exportHosted({ to: "/x", env: {}, run: fake({ ...ok, bundle_id: "other" }) }), /no export of superbee-docs/);
-  assert.throws(() => exportHosted({ to: "/x", env: {}, run: fake({ ...ok, documents: 0 }) }), /no documents/);
-  assert.throws(() => exportHosted({ to: "/x", env: {}, run: fake({ error: { message: "denied" } }, 4) }), /exit 4\): denied/);
-  assert.throws(() => exportHosted({ to: "/x", env: {}, run: fake({ ...ok, root_index: false }) }), /no root index/);
-  assert.throws(() => exportHosted({ to: "/x", env: {}, run: fake({ ...ok, host: "https://elsewhere" }) }), /not https:\/\/mcp/);
-  assert.throws(() => exportHosted({ to: "/x", env: { SUPERBEE_ACCESS_TOKEN: "sbw_x", SUPERBEE_HOST: "https://elsewhere" }, run: fake(ok) }), /not https:\/\/mcp/);
+  assert.equal(exportPath({}), "cli");
+  assert.equal(exportPath({ SUPERBEE_ACCESS_TOKEN: "" }), "cli");
+  // A blank bearer is absent: the CLI runs, and sees no SUPERBEE_ACCESS_TOKEN at all.
+  for (const blank of [" ", "  \t\n "]) {
+    assert.equal(exportPath({ SUPERBEE_ACCESS_TOKEN: blank }), "cli");
+    const env = { SUPERBEE_ACCESS_TOKEN: blank, SUPERBEE_HOST: "https://elsewhere.example", HOME: "/h" };
+    assert.deepEqual(await exportHosted({ to: "/x", env, run: fake(ok), fetch: () => assert.fail("no request with a blank bearer") }), ok);
+    assert.deepEqual(calls.at(-1).env, { SUPERBEE_HOST: "https://elsewhere.example", HOME: "/h" });
+  }
+  assert.deepEqual(await exportHosted({ to: "/x", env: {}, run: fake(ok), fetch: () => assert.fail("no request without a bearer") }), ok);
+  assert.deepEqual(calls.at(-1).args.slice(1), ["export", HOSTED_CONTENT.bundle, "--host", HOSTED_CONTENT.gateway, "--to", "/x", "--json"]);
+  assert.match(calls.at(-1).args[0], /node_modules\/superbee\/dist\/superbee\.mjs$/u);
+  // The override replaces the CLI only on this path.
+  await exportHosted({ to: "/x", env: { HOSTED_CONTENT_SUPERBEE: "/local/superbee.mjs" }, run: fake(ok) });
+  assert.equal(calls.at(-1).args[0], "/local/superbee.mjs");
+  await assert.rejects(exportHosted({ to: "/x", env: {}, run: fake({ ...ok, bundle_id: "other" }) }), /no export of superbee-docs/);
+  await assert.rejects(exportHosted({ to: "/x", env: {}, run: fake({ ...ok, documents: 0 }) }), /no documents/);
+  await assert.rejects(exportHosted({ to: "/x", env: {}, run: fake({ error: { message: "denied" } }, 4) }), /exit 4\): denied/);
+  await assert.rejects(exportHosted({ to: "/x", env: {}, run: fake({ ...ok, root_index: false }) }), /no root index/);
+  await assert.rejects(exportHosted({ to: "/x", env: {}, run: fake({ ...ok, host: "https://elsewhere" }) }), /not https:\/\/mcp/);
+  await assert.rejects(exportHosted({ to: "", env: {}, run: fake(ok) }), /needs --to/);
   checkCounts(ok, ["a", "b", "index.md"]);
   assert.throws(() => checkCounts(ok, ["a", "index.md"]), /holds 2 files, but its receipt counts 3/);
+});
+
+test("the library path's receipt invariants refuse what the CLI path's refuse", () => {
+  const ok = { export: "created", bundle_id: "superbee-docs", host: HOSTED_CONTENT.gateway, revision: 3, documents: 2, reserved: 1, blobs: 0, bytes: 9, root_index: true };
+  assert.equal(checkReceipt(ok), ok);
+  for (const [change, message] of [
+    [{ bundle_id: "other" }, /no export of superbee-docs/],
+    [{ export: undefined }, /no export of superbee-docs/],
+    [{ documents: 0 }, /no documents/],
+    [{ root_index: false }, /no root index/],
+    [{ reserved: 0 }, /no root index/],
+    [{ revision: -1 }, /no revision/],
+    [{ bytes: 1.5 }, /no bytes/],
+    [{ host: "https://elsewhere" }, /not https:\/\/mcp/],
+  ]) assert.throws(() => checkReceipt({ ...ok, ...change }), message, JSON.stringify(change));
+  assert.equal(HOSTED_CONTENT.bundle, `${HOSTED_CONTENT.workspace}/${HOSTED_CONTENT.bundleId}`);
 });
 
 const snapshot = (documents) => ({ manifest: { documents } });
@@ -262,37 +301,208 @@ test("materialize refuses a linked source export and leaves it untouched", async
 });
 
 
-test("the pinned CLI selects the workload host without a stored personal session", async () => {
-  const root = await folder({});
-  const trace = path.join(root, "request.json");
-  const preload = path.join(root, "transport.mjs");
-  const token = "sbw_synthetic_docs_workload_token";
+const TOKEN = `sbw_${"t".repeat(43)}`;
+const WORKLOAD = { SUPERBEE_ACCESS_TOKEN: TOKEN, SUPERBEE_HOST: HOSTED_CONTENT.gateway };
+const SITE = { "index.md": "# Docs\n", "guides/a.md": "---\ntype: Guide\n---\n# A\n", "guides/index.md": "# Guides\n", "visuals/x.svg": "<svg/>" };
+
+/** The export folder and receipt.json the library path writes for `archive`, or its refusal. */
+async function libraryExport(archive, { env = WORKLOAD, answer, pages } = {}) {
+  const parent = await folder({});
+  const host = exportHost(archive, { answer, pages });
+  const to = path.join(parent, "export");
   try {
-    // Exercise the shipped CLI's host selection and credential binding, with no local sign-in
-    // and no network. The synthetic host denies the first authenticated request on purpose.
+    const receipt = await exportReceipt(await exportHosted({ to, env, fetch: host.fetch, run: () => assert.fail("no CLI with a bearer") }), to);
+    return { parent, to, receipt, requests: host.requests };
+  } catch (error) {
+    return { parent, to, error, requests: host.requests };
+  }
+}
+
+test("with a bearer, export downloads through the library from the gateway constant only", async () => {
+  assert.equal(exportPath(WORKLOAD), "library");
+  const { parent, to, receipt, requests, error } = await libraryExport(exportArchive(SITE));
+  try {
+    assert.equal(error, undefined);
+    assert.ok(requests.length >= 1);
+    for (const request of requests) {
+      assert.equal(new URL(request.url).origin, HOSTED_CONTENT.gateway);
+      assert.equal(new URL(request.url).pathname, "/sync/v1/export");
+      assert.equal(request.authorization, `Bearer ${TOKEN}`);
+      assert.equal(request.redirect, "error", "a redirect could carry the bearer elsewhere");
+      assert.equal(request.body.bundleId, HOSTED_CONTENT.bundle, "the bundle is qualified by its workspace");
+    }
+    assert.deepEqual(await listFiles(to), ["guides/a.md", "guides/index.md", "index.md", "visuals/x.svg"]);
+    assert.equal(await readFile(path.join(to, "guides/a.md"), "utf8"), SITE["guides/a.md"]);
+    assert.deepEqual(receipt, {
+      schema: RECEIPT_SCHEMA, bundle: HOSTED_CONTENT.bundle, host: HOSTED_CONTENT.gateway, revision: 7,
+      exportedAt: "2026-10-17T12:00:00.000Z", documents: 1, reserved: 2, blobs: 1,
+      bytes: Object.values(SITE).reduce((sum, text) => sum + Buffer.byteLength(text), 0), files: 4,
+      treeDigest: await treeDigest(to, await listFiles(to)),
+    });
+    assert.deepEqual((await readdir(parent)).sort(), ["export"], "no staging folder is left beside the export");
+    // The snapshot consumer accepts exactly this receipt and tree.
+    await writeFile(path.join(parent, "receipt.json"), JSON.stringify(receipt));
+    const bundle = await folder({ "index.md": "old" });
+    try {
+      const placed = await materializeSnapshot({ directory: parent, bundleDir: bundle });
+      assert.equal(placed.treeDigest, receipt.treeDigest);
+    } finally { await rm(bundle, { recursive: true, force: true }); }
+  } finally { await rm(parent, { recursive: true, force: true }); }
+});
+
+test("a paged export is joined page by page into the same tree and receipt as the whole archive", async () => {
+  const whole = await libraryExport(exportArchive(SITE));
+  const paged = await libraryExport(exportArchive(SITE), { pages: exportPages(SITE, 2) });
+  try {
+    assert.equal(whole.error, undefined);
+    assert.equal(paged.error, undefined);
+    assert.deepEqual(paged.requests.map((request) => [request.body.paged, request.body.cursor]), [[true, undefined], [true, "p1"]]);
+    for (const request of paged.requests) assert.equal(request.redirect, "error");
+    assert.deepEqual(paged.receipt, whole.receipt);
+    assert.deepEqual(await compareTrees(paged.to, whole.to), { identical: 4, differ: [], onlyLeft: [], onlyRight: [] });
+    // A page that leaves a gap is refused, and nothing is written.
+    const pages = exportPages(SITE, 1);
+    const gap = await libraryExport(exportArchive(SITE), { pages: [pages[0], pages[2], pages[2], pages[3]] });
+    try {
+      assert.match(gap.error?.message ?? "", /verification: manifest_mismatch/);
+      assert.deepEqual(await readdir(gap.parent), []);
+    } finally { await rm(gap.parent, { recursive: true, force: true }); }
+  } finally { for (const dir of [whole.parent, paged.parent]) await rm(dir, { recursive: true, force: true }); }
+});
+
+test("the library and the pinned CLI write the same tree, tree digest and receipt for the same hosted export", async () => {
+  const archive = exportArchive(SITE);
+  const library = await libraryExport(archive);
+  const root = await folder({});
+  const preload = path.join(root, "transport.mjs");
+  try {
+    assert.equal(library.error, undefined);
+    // The pinned CLI as CI ran it before (a workload bearer), against the same synthetic host.
     await writeFile(preload, `
       import os from "node:os";
       import { syncBuiltinESMExports } from "node:module";
-      import { writeFileSync } from "node:fs";
+      import { exportArchive, exportHost } from ${JSON.stringify(pathToFileURL(path.resolve("test/hosted-export-fixture.mjs")).href)};
       os.homedir = () => ${JSON.stringify(path.join(root, "home"))};
       syncBuiltinESMExports();
-      globalThis.fetch = async (input, init) => {
-        const request = new Request(input, init);
-        writeFileSync(${JSON.stringify(trace)}, JSON.stringify({ url: request.url, authorization: request.headers.get("authorization") }));
-        return new Response(JSON.stringify({ error: "synthetic_denial" }), { status: 403, headers: { "Content-Type": "application/json" } });
-      };
+      globalThis.fetch = exportHost(exportArchive(${JSON.stringify(SITE)})).fetch;
     `);
-    assert.throws(() => exportHosted({
-      to: path.join(root, "export"),
-      env: { ...process.env, SUPERBEE_ACCESS_TOKEN: token, SUPERBEE_HOST: HOSTED_CONTENT.gateway },
+    const to = path.join(root, "export");
+    const cli = exportThroughCli({
+      to, env: { ...process.env, ...WORKLOAD },
       run: (command, args, options) => spawnSync(command, ["--import", pathToFileURL(preload).href, ...args], options),
-    }), /superbee export .* failed/);
-    const request = JSON.parse(await readFile(trace, "utf8"));
-    assert.equal(new URL(request.url).origin, HOSTED_CONTENT.gateway);
-    assert.equal(request.authorization, `Bearer ${token}`);
-  } finally { await rm(root, { recursive: true, force: true }); }
+    });
+    const fromCli = await exportReceipt(checkReceipt(cli), to);
+    assert.deepEqual(library.receipt, fromCli);
+    assert.deepEqual(await compareTrees(library.to, to), { identical: 4, differ: [], onlyLeft: [], onlyRight: [] });
+  } finally { for (const dir of [library.parent, root]) await rm(dir, { recursive: true, force: true }); }
 });
 
+test("a SUPERBEE_HOST other than the gateway constant is refused before the bearer is sent", async () => {
+  for (const host of ["https://elsewhere.example", "https://mcp.getsuperbee.com.evil.example", "http://mcp.getsuperbee.com", undefined]) {
+    const { parent, error, requests } = await libraryExport(exportArchive(SITE), { env: { SUPERBEE_ACCESS_TOKEN: TOKEN, SUPERBEE_HOST: host } });
+    try {
+      assert.match(error?.message ?? "", /not https:\/\/mcp\.getsuperbee\.com; the workload bearer is sent only to/);
+      assert.deepEqual(requests, [], `no request for ${host}`);
+      assert.deepEqual(await readdir(parent), []);
+    } finally { await rm(parent, { recursive: true, force: true }); }
+  }
+});
+
+test("the library path refuses each receipt invariant and the configuration and dot entries", async () => {
+  const cases = [
+    [exportArchive(SITE, { bundleId: "other" }), /verification: wrong_bundle/],
+    [exportArchive({ "index.md": "# Docs\n", "visuals/x.svg": "<svg/>" }), /no documents/],
+    [exportArchive({ "guides/a.md": "# A\n", "guides/index.md": "# G\n" }), /no root index/],
+    [exportArchive({ "guides/a.md": "# A\n" }), /no root index/],
+    [exportArchive({ ...SITE, "assistant/instructions.md": "# x\n" }), /assistant\/ is configuration/],
+    [exportArchive({ ...SITE, ".superbee/checkout.json": "{}" }), /verification: unsafe_path/],
+    [exportArchive({ ...SITE, "guides/.hidden.md": "# h\n" }), /verification: unsafe_path/],
+    [exportArchive(SITE, { tamper: "guides/a.md" }), /verification: manifest_mismatch/],
+  ];
+  for (const [archive, message] of cases) {
+    const { parent, to, error } = await libraryExport(archive);
+    try {
+      assert.match(error?.message ?? "", message);
+      assert.equal(await lstat(to).catch(() => null), null, `${message}: --to is never created`);
+      assert.deepEqual(await readdir(parent), [], "nothing is written for a refused export");
+    } finally { await rm(parent, { recursive: true, force: true }); }
+  }
+  // The pre-check is the folder check's own rule (configuration case-folded, as checkExport folds it).
+  const cased = await libraryExport(exportArchive({ ...SITE, "Assistant/x.md": "# x\n" }));
+  try {
+    assert.match(cased.error?.message ?? "", /Assistant\/ is configuration/);
+    assert.deepEqual(await readdir(cased.parent), []);
+  } finally { await rm(cased.parent, { recursive: true, force: true }); }
+  assert.throws(() => checkExportPaths(["index.md", "assistant/a.md"]), /is configuration/);
+  assert.throws(() => checkExportPaths(["index.md", "a/.b"]), /dot entry/);
+  checkExportPaths(["index.md", "guides/a.md"]);
+  // A dot entry that reached the folder is refused by the folder check as well.
+  const dotted = await folder({ "index.md": "i", "guides/.x.md": "x" });
+  try { await assert.rejects(checkExport(dotted), /dot entry/); } finally { await rm(dotted, { recursive: true, force: true }); }
+  // A non-empty folder or one inside the bundle is refused before any request.
+  const full = await folder({ "keep.md": "k" });
+  try {
+    const host = exportHost(exportArchive(SITE));
+    await assert.rejects(exportHosted({ to: full, env: WORKLOAD, fetch: host.fetch }), /exists; export needs a new folder/);
+    await assert.rejects(exportHosted({ to: path.join(BUNDLE_PATH, "x"), env: WORKLOAD, fetch: host.fetch }), /is inside/);
+    assert.deepEqual(host.requests, []);
+  } finally { await rm(full, { recursive: true, force: true }); }
+});
+
+test("the library's typed failures become the existing user-facing failures, never with the bearer", async () => {
+  const refused = (code, status) => () => Response.json({ error: { code, message: `refused ${TOKEN}`, retryable: false } }, { status });
+  const timeout = () => { throw Object.assign(new Error(`timed out ${TOKEN}`), { name: "AbortError" }); };
+  const cases = [
+    [refused("unauthenticated", 401), /\(auth\): the host refused the workload bearer \(401 unauthenticated\)/],
+    [refused("PERMISSION_DENIED", 403), /\(auth\): the workload bearer may not export/],
+    [refused("bundle_not_found", 404), /\(not found\): no hosted bundle holaxis-sites\/superbee-docs/],
+    [() => Response.json({ error: "not_found" }, { status: 404 }), /\(route not served\): the host does not serve \/sync\/v1\/export/],
+    [timeout, /\(deadline\): no answer within 60 s/],
+    [() => { throw new TypeError(`fetch failed ${TOKEN}`); }, /\(unavailable\)/],
+    [refused("RUNTIME", 500), /\(refused\): the host answered 500 RUNTIME/],
+  ];
+  for (const [answer, message] of cases) {
+    const { parent, error } = await libraryExport(exportArchive(SITE), { answer });
+    try {
+      assert.match(error?.message ?? "", message);
+      assert.match(error.message, /^hosted export of holaxis-sites\/superbee-docs from https:\/\/mcp\.getsuperbee\.com failed/);
+      assert.equal(error.message.includes(TOKEN), false);
+      assert.equal(error.cause, undefined, "no transport error rides along to a log");
+      assert.equal(error.exit, 1);
+      assert.deepEqual(await readdir(parent), []);
+    } finally { await rm(parent, { recursive: true, force: true }); }
+  }
+  // Every typed failure maps, and a message that names the bearer is redacted.
+  assert.match(libraryFailure(new HostedExportError("stopped", "superbee-docs", "x")), /\(deadline\): the export stopped part way/);
+  assert.match(libraryFailure(new HostedExportError("too_large", "superbee-docs", "x", { maximum: 5 })), /\(verification\): the export is larger than 5 bytes/);
+  assert.match(libraryFailure(new HostedExportError("source_changed", "superbee-docs", "x")), /\(source changed\)/);
+  assert.match(libraryFailure(new ExportArchiveError("incomplete", "cut")), /\(verification: incomplete\): cut/);
+  assert.match(libraryFailure(new HostedCarrierError("denied")), /\(auth\): no credential/);
+  const { parent, error } = await libraryExport(exportArchive(SITE), { answer: () => { throw Object.assign(new Error("x"), { name: "Oops" }); } });
+  try { assert.equal(error.message.includes(TOKEN), false); } finally { await rm(parent, { recursive: true, force: true }); }
+  // A placement failure on a host-chosen path that carries the bearer's text is redacted too.
+  const long = `${TOKEN}/${"a".repeat(297)}.md`;
+  const placed = await libraryExport(exportArchive({ ...SITE, [long]: "# l\n" }));
+  try {
+    assert.ok(placed.error, "a 300-character segment cannot be placed");
+    assert.match(placed.error.message, /^hosted export of holaxis-sites\/superbee-docs from https:\/\/mcp\.getsuperbee\.com failed/);
+    assert.match(placed.error.message, /\(placement: ENAMETOOLONG\)/);
+    assert.equal(placed.error.message.includes(TOKEN), false);
+    assert.equal(placed.error.cause, undefined);
+    assert.equal(placed.error.exit, 1);
+    assert.deepEqual(await readdir(placed.parent), [], "nothing is written");
+  } finally { await rm(placed.parent, { recursive: true, force: true }); }
+  // A refusal from materializeExport itself (an OKF edition it does not place) is wrapped, not raw.
+  assert.match(libraryFailure(new ExportArchiveError("unsupported_format", "the exported OKF edition is not supported")), /\(verification: unsupported_format\)/);
+  assert.match(libraryFailure(Object.assign(new Error(`ENAMETOOLONG: open '/t/${TOKEN}'`), { code: "ENAMETOOLONG", syscall: "open" })), /\(placement: ENAMETOOLONG\)/);
+  // A verifier message naming a path that carries the bearer's text is redacted.
+  const leaky = `guides/${TOKEN}.md`;
+  const tampered = await libraryExport(exportArchive({ ...SITE, [leaky]: "# t\n" }, { tamper: leaky }));
+  try {
+    assert.match(tampered.error.message, /verification: manifest_mismatch\): guides\/\[redacted\]\.md does not match/);
+    assert.equal(tampered.error.message.includes(TOKEN), false);
+  } finally { await rm(tampered.parent, { recursive: true, force: true }); }
+});
 
 const trustedRun = {
   id: 42, status: "completed", conclusion: "success", head_branch: "main", event: "workflow_dispatch",
