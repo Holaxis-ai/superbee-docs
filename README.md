@@ -5,7 +5,7 @@ tooling that publishes it as a human site.
 
 ```text
 verified product evidence
-  -> public .superbee bundle
+  -> hosted holaxis-sites/superbee-docs bundle (public content)
   -> one superbee/publication snapshot
   -> codebase-documentation recipe + bundle-native publication model
   -> one Recipe Studio-compiled @superbee/docs-projection projection
@@ -79,7 +79,7 @@ npm run check
 
 `content:snapshot` needs read-only GitHub Actions access through `gh auth login` locally; CI supplies
 its read token. It reuses the last successful main production export without hosted credentials.
-For hosted authoring and the remaining non-document writer cutover, see `CLAUDE.md`.
+Content is not tracked in Git; to write it, use a hosted checkout as described in `CLAUDE.md`.
 
 `npm ci` installs the exact Portal and Superbee packages recorded by the lockfile. The source sync
 keeps an exact Superbee checkout only for source-grounded architecture checks. The Portal build

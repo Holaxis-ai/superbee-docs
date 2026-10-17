@@ -350,7 +350,8 @@ export async function conduct(mode, options, dependencies = {}) {
           await installedIdentity();
         });
         await step("release", () => run(process.execPath, ["scripts/release-docs.mjs", "update", "--manifest", manifestPath,
-          "--superbee-bin", installedBin], root));
+          // A hosted writer checkout is written only by the writer CLI that content-writer names.
+          "--superbee-bin", process.env.DOCS_CONTENT_SUPERBEE || installedBin], root));
         await step("cli-reference", () => run(process.execPath, ["scripts/cli-reference.mjs", "build"], root));
         receipt.applied = await checkoutIdentity(root, run);
         receipt.journeys = journeys;
