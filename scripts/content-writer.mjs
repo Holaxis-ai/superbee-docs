@@ -14,9 +14,11 @@ const BUNDLE = "holaxis-sites/superbee-docs";
 // that readers, exports and the CLI reference are checked against.
 const pinnedBin = (root) => path.join(root, "node_modules", "superbee-writer", "dist", "superbee.mjs");
 export const WRITER_BIN_ENV = "DOCS_CONTENT_SUPERBEE";
+const missingWriter = () => new Error("the pinned writer CLI is not installed (node_modules/superbee-writer); run npm ci");
 const refusal = () => new Error("content writes require this site's registered hosted checkout; use content:checkout in a workspace without an existing .superbee folder");
 
 export async function assertHostedWriter({ root = ROOT, bin = pinnedBin(root) } = {}) {
+  if (!(await lstat(bin).catch(() => null))) throw missingWriter();
   const directory = path.resolve(root, ".superbee");
   const info = await lstat(directory).catch((error) => { if (error.code === "ENOENT") throw refusal(); throw error; });
   if (!info.isDirectory() || info.isSymbolicLink()) throw refusal();
@@ -46,8 +48,10 @@ function forward(command, args, root, env = process.env) {
 async function forwardWithWriter(command, args, root, bin) {
   const shim = await mkdtemp(path.join(tmpdir(), "superbee-docs-writer-"));
   try {
-    await symlink(bin, path.join(shim, "superbee"));
-    const env = { ...process.env, PATH: `${shim}${path.delimiter}${process.env.PATH ?? ""}`, [WRITER_BIN_ENV]: bin };
+    const writer = path.resolve(bin);
+    await symlink(writer, path.join(shim, "superbee"));
+    const PATH = process.env.PATH ? `${shim}${path.delimiter}${process.env.PATH}` : shim;
+    const env = { ...process.env, PATH, [WRITER_BIN_ENV]: writer };
     return await forward(command, args, root, env);
   } finally {
     await rm(shim, { recursive: true, force: true });
@@ -59,6 +63,7 @@ export async function main(argv, { root = ROOT, bin = pinnedBin(root) } = {}) {
   if (argv.length === 1 && argv[0] === "checkout") {
     const exists = await lstat(directory).catch((error) => { if (error.code === "ENOENT") return null; throw error; });
     if (exists) { await assertHostedWriter({ root, bin }); return 0; }
+    if (!(await lstat(bin).catch(() => null))) throw missingWriter();
     const code = await forward(bin, ["checkout", BUNDLE, "--host", HOST, "--dir", directory], root);
     if (code !== 0) return code;
     await assertHostedWriter({ root, bin });

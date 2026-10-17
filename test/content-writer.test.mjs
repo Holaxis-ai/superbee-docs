@@ -82,3 +82,11 @@ test("wrapped writers see the writer CLI as superbee on PATH and by name", async
   assert.deepEqual(JSON.parse(seen.onPath), f.receipt);
   assert.deepEqual((await f.trace()).at(-1), ["bundle", "locate", "--json"]);
 });
+
+test("a missing writer CLI is reported as such, not as an unregistered checkout", async (t) => {
+  const f = await fixture(t);
+  await mkdir(f.directory);
+  const missing = { root: f.root, bin: path.join(f.root, "absent", "superbee.mjs") };
+  await assert.rejects(assertHostedWriter(missing), /writer CLI is not installed/);
+  await assert.rejects(main(["sync"], missing), /writer CLI is not installed/);
+});

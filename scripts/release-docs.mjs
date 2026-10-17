@@ -39,7 +39,7 @@ Options:
 }
 
 function parseOptions(args) {
-  const options = { root: scriptRoot, superbeeBin: "superbee" };
+  const options = { root: scriptRoot, superbeeBin: process.env.DOCS_CONTENT_SUPERBEE || "superbee" };
   for (let index = 0; index < args.length; index++) {
     const flag = args[index];
     if (flag === "-h" || flag === "--help") return { ...options, help: true };
