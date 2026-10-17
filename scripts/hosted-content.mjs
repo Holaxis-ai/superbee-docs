@@ -5,7 +5,8 @@
 //   node scripts/hosted-content.mjs materialize --from <export>  make .superbee exactly the export
 //   node scripts/hosted-content.mjs acquire                      export, then materialize
 //   node scripts/hosted-content.mjs compare [--from <export>]    hosted versus .superbee, file by file
-//   node scripts/hosted-content.mjs baseline [--check]           write or check freshness-baseline.json
+//   node scripts/hosted-content.mjs baseline [--check]           write or check freshness-baseline.json;
+//                                                                retired: it refuses now that content has left Git
 //
 // `export` runs the pinned `superbee export`, which verifies every entry against the host's digest
 // manifest before it writes a file. A person's session needs nothing more; CI wraps the command in

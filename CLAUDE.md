@@ -48,7 +48,10 @@ bundle, never into a hosted writer checkout.
   identify the existing read-only app; missing configuration fails closed. There is no Git fallback.
   Exports are retained for 30 days. If none remain, dispatch the production workflow and retry.
 - Git no longer tracks content: `.superbee/` is ignored. It is either a reader projection or a
-  writer checkout, never a source of truth. Rollback uses hosted history, not Git.
+  writer checkout, never a source of truth. Rollback uses hosted history, not Git. A clone that
+  predates this change loses its tracked copy when it pulls; run `content:snapshot` or
+  `content:checkout` afterwards. Never pull that change into a clone whose `.superbee` is a writer
+  checkout: sync first, run `superbee checkout --release .superbee`, then pull and check out again.
 - **Writing content.** Use a separate clean code clone without a `.superbee` folder, then run
   `npm run content:checkout`. It binds this exact workspace/bundle through the public CLI. Use normal
   Superbee document verbs with `--dir .superbee`, then `npm run content:sync` once per edit batch.
@@ -59,11 +62,12 @@ bundle, never into a hosted writer checkout.
   `diagram:upgrade-static`, `diagram:rollback`) runs through `scripts/content-writer.mjs`, which
   refuses unless `.superbee` is this site's registered hosted checkout. A write to a reader
   projection would otherwise be silently lost.
-- Ordinary files (Mermaid source, SVG, View HTML, images) sync like documents: edit the file in
-  place, then `npm run content:sync`. Sync sends exact bytes, keeps the hosted MIME type and
-  refuses a stale write with a version conflict that preserves your local bytes. A new file is
+- Ordinary files that no command generates (images, for example) sync like documents: edit the
+  file in place, then `npm run content:sync`. Sync sends exact bytes, keeps the hosted MIME type
+  and refuses a stale write with a version conflict that preserves your local bytes. A new file is
   sent with `superbee promote .superbee/<key> --doc-key <key> --dir .superbee`, which delivers at
-  once; the source must already be at that path inside the checkout.
+  once; the source must already be at that path inside the checkout. Published diagram source and
+  SVG change only through `diagram:build`; never edit them in place.
 - **Diagram publication waits for a `@superbee/docs-tooling` fix.** Version 0.2.4 promotes each
   diagram from a temporary stage file, and a hosted checkout refuses a promote whose source is not
   the target path, so `diagram:build` and `diagram:upgrade-static` fail before sending anything.
