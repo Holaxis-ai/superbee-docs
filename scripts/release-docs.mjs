@@ -288,8 +288,27 @@ function documentProjection(options, id) {
   return { metadata, body };
 }
 
+// Hosted storage may reorder frontmatter keys on accept, so metadata compares by content.
+function canonicalJson(value) {
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
 function sameProjection(left, right) {
-  return JSON.stringify(left.metadata) === JSON.stringify(right.metadata) && left.body.equals(right.body);
+  return canonicalJson(left.metadata) === canonicalJson(right.metadata) && left.body.equals(right.body);
+}
+
+// The host restamps `generated` and `superbee_updated_by` to the writing person on accept. A
+// locally regenerated archive carries the automation's provenance instead, so its comparison with
+// the hosted archive skips those fields. Immutable release identity keeps them (sameProjection).
+const HOST_OWNED_PROVENANCE = ["generated", "superbee_updated_by"];
+
+function sameRegeneratedContent(left, right) {
+  const strip = (metadata) => Object.fromEntries(Object.entries(metadata).filter(([key]) => !HOST_OWNED_PROVENANCE.includes(key)));
+  return canonicalJson(strip(left.metadata)) === canonicalJson(strip(right.metadata)) && left.body.equals(right.body);
 }
 
 async function promote(options, scratch, id, bytes, { immutable }) {
@@ -510,7 +529,7 @@ async function check(options) {
   try {
     const { current, releases } = await releaseRows(options);
     const expectedArchive = await normalizeDocument(options, scratch, "normalized/release-index", Buffer.from(releaseArchiveDocument(current, releases)));
-    if (!sameProjection(documentProjection(options, "releases/release-notes"), expectedArchive.projection)) {
+    if (!sameRegeneratedContent(documentProjection(options, "releases/release-notes"), expectedArchive.projection)) {
       throw new Error("releases/release-notes does not match immutable release history");
     }
   } finally {
