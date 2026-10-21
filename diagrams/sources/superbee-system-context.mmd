@@ -3,8 +3,8 @@ flowchart TB
   accDescr {
     A human works through an AI agent host. The host invokes the locally installed Superbee CLI,
     which reads and writes a user-owned bundle. Git and GitHub may share that bundle. The npm
-    registry distributes the CLI. An explicitly bound external source can supply records that the
-    CLI writes into the bundle. Superbee publication captures a read-only snapshot that Portal
+    registry distributes the CLI. An explicitly bound external source can update the fields it owns
+    on existing linked documents, and the CLI records conflicts as Signal documents. Superbee publication captures a read-only snapshot that Portal
     turns into a public site for humans.
   }
 
