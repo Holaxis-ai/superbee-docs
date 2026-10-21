@@ -79,6 +79,9 @@ npm run check
 
 `content:snapshot` needs read-only GitHub Actions access through `gh auth login` locally; CI supplies
 its read token. It reuses the last successful main production export without hosted credentials.
+`check.yml` reads the newest export whose acquire job succeeded instead, so a pull request that
+changes Git and content together can go green before production can build it; reproduce that
+locally with `npm run content:snapshot -- --mode acquired`.
 Content is not tracked in Git; to write it, use a hosted checkout as described in `CLAUDE.md`.
 
 `npm ci` installs the exact Portal and Superbee packages recorded by the lockfile. The source sync

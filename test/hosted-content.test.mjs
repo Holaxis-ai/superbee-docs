@@ -556,7 +556,9 @@ test("CI snapshot in acquired mode selects the acquire job's export even when a 
     { path: ".github/workflows/other.yml" }, { head_repository: { id: 99 } }, { repository: { id: 99 } }]) {
     await assert.rejects(select({ runs: [{ ...buildFailedRun, ...change }] }), refused, JSON.stringify(change));
   }
-  for (const jobs of [[], [{ ...acquireJob, conclusion: "failure" }], [{ ...acquireJob, status: "in_progress" }],
+  assert.equal((await select({ jobs: [acquireJob, { ...acquireJob, name: "build", conclusion: "failure" }] })).runId, 42,
+    "other jobs in the run do not count as acquire");
+  for (const jobs of [[], [{ ...acquireJob, name: "build" }], [{ ...acquireJob, conclusion: "failure" }], [{ ...acquireJob, status: "in_progress" }],
     [acquireJob, acquireJob], [{ ...acquireJob, run_attempt: 2 }], [{ ...acquireJob, completed_at: null }]]) {
     await assert.rejects(select({ runs: [{ ...buildFailedRun, run_attempt: 1 }], jobs }), refused, JSON.stringify(jobs));
   }

@@ -522,14 +522,20 @@ export async function materializeSnapshot({ directory, bundleDir = BUNDLE_PATH }
 
 export async function acquireSnapshot({ env = process.env, bundleDir = BUNDLE_PATH, mode = "published" } = {}) {
   const gh = (args) => execFileSync("gh", args, { encoding: "utf8", env, maxBuffer: 16 << 20 });
-  const selected = await selectSnapshot({
+  const select = () => selectSnapshot({
     mode,
     api: async (endpoint) => JSON.parse(gh(["api", endpoint])),
     isMainAncestor: async (commit) => spawnSync("git", ["-C", ROOT, "merge-base", "--is-ancestor", commit, "origin/main"]).status === 0,
   });
+  const selected = await select();
   const temporary = await mkdtemp(path.join(env.RUNNER_TEMP || tmpdir(), "superbee-docs-snapshot-"));
   try {
     gh(["run", "download", String(selected.runId), "--repo", SNAPSHOT_REPOSITORY, "--name", selected.name, "--dir", temporary]);
+    // The download is by name, so a rerun between selection and download could replace the artifact.
+    const again = await select();
+    if (again.runId !== selected.runId || again.artifactId !== selected.artifactId) {
+      fail("the selected hosted-content export changed during download; retry");
+    }
     return { ...selected, ...await materializeSnapshot({ directory: temporary, bundleDir }) };
   } finally { await rm(temporary, { recursive: true, force: true }); }
 }
@@ -542,7 +548,11 @@ function option(args, name) {
 export async function main(argv, { env = process.env, log = (line) => process.stdout.write(`${line}\n`) } = {}) {
   const [command, ...args] = argv;
   if (command === "snapshot") {
-    const result = await acquireSnapshot({ env, mode: option(args, "--mode") ?? "published" });
+    const known = args.length === 0 || (args.length === 2 && args[0] === "--mode");
+    if (!known || (args[0] === "--mode" && !SNAPSHOT_MODES.includes(args[1]))) {
+      fail(`usage: hosted-content.mjs snapshot [--mode ${SNAPSHOT_MODES.join("|")}]`);
+    }
+    const result = await acquireSnapshot({ env, mode: args[1] ?? "published" });
     if (env.GITHUB_STEP_SUMMARY) {
       await appendFile(env.GITHUB_STEP_SUMMARY, `Hosted content snapshot: ${result.mode} export from verify-production run ${result.runId} (source ${result.sourceCommit}).\n`);
     }
@@ -608,7 +618,7 @@ export async function main(argv, { env = process.env, log = (line) => process.st
     log(`${BASELINE_FILE}: ${value.documents.length} documents`);
     return 0;
   }
-  fail("usage: hosted-content.mjs snapshot | export --to <dir> [--receipt <file>] | materialize --from <dir> [--tree-digest <d>] | acquire | compare [--from <dir>] | baseline [--check]");
+  fail("usage: hosted-content.mjs snapshot [--mode published|acquired] | export --to <dir> [--receipt <file>] | materialize --from <dir> [--tree-digest <d>] | acquire | compare [--from <dir>] | baseline [--check]");
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
