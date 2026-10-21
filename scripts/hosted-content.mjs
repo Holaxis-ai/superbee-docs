@@ -20,7 +20,7 @@
 // `snapshot` lets CI readers reuse a complete successful main production run's public export.
 import { createHash } from "node:crypto";
 import { execFileSync, spawnSync } from "node:child_process";
-import { cp, lstat, mkdir, mkdtemp, readdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
+import { appendFile, cp, lstat, mkdir, mkdtemp, readdir, readFile, realpath, rename, rm, writeFile } from "node:fs/promises";
 import {
   bearerCredentials,
   createHostedClient,
@@ -460,21 +460,44 @@ export const SNAPSHOT_REPOSITORY = "Holaxis-ai/superbee-docs";
 const SNAPSHOT_REPOSITORY_ID = 1349797123;
 const SNAPSHOT_WORKFLOW = ".github/workflows/verify-production.yml";
 
-export async function selectSnapshot({ api, isMainAncestor, now = Date.now() }) {
-  const listing = await api(`repos/${SNAPSHOT_REPOSITORY}/actions/workflows/verify-production.yml/runs?branch=main&status=success&per_page=30`);
+/**
+ * `published` (the default) takes the export of a production run that succeeded end to end: the
+ * content the site serves. `acquired` takes the newest export whose acquire job succeeded, even if a
+ * later job failed: the acquire job verified those bytes against the host's digest manifest, and a
+ * build that waits on a Git change in the same pull request must not hide them from that PR's CI.
+ */
+export const SNAPSHOT_MODES = Object.freeze(["published", "acquired"]);
+
+export async function selectSnapshot({ api, isMainAncestor, now = Date.now(), mode = "published" }) {
+  if (!SNAPSHOT_MODES.includes(mode)) fail(`snapshot mode must be one of ${SNAPSHOT_MODES.join(", ")}`);
+  const filter = mode === "published" ? "&status=success" : "";
+  const listing = await api(`repos/${SNAPSHOT_REPOSITORY}/actions/workflows/verify-production.yml/runs?branch=main${filter}&per_page=30`);
   for (const run of listing.workflow_runs ?? []) {
-    if (run.status !== "completed" || run.conclusion !== "success" || run.head_branch !== "main"
+    if (run.status !== "completed" || (mode === "published" && run.conclusion !== "success") || run.head_branch !== "main"
       || !["schedule", "workflow_dispatch"].includes(run.event) || run.path !== SNAPSHOT_WORKFLOW
       || run.repository?.id !== SNAPSHOT_REPOSITORY_ID || run.head_repository?.id !== SNAPSHOT_REPOSITORY_ID
       || !Number.isSafeInteger(run.id) || !/^[a-f0-9]{40}$/.test(run.head_sha ?? "")) continue;
     if (!await isMainAncestor(run.head_sha)) continue;
+    let acquire;
+    if (mode === "acquired") {
+      const jobs = await api(`repos/${SNAPSHOT_REPOSITORY}/actions/runs/${run.id}/jobs?filter=latest&per_page=100`);
+      const acquired = (jobs.jobs ?? []).filter((job) => job.name === "acquire");
+      if (acquired.length !== 1) continue;
+      [acquire] = acquired;
+      if (acquire.status !== "completed" || acquire.conclusion !== "success"
+        || (run.run_attempt !== undefined && acquire.run_attempt !== run.run_attempt)
+        || !Number.isFinite(Date.parse(acquire.started_at)) || !Number.isFinite(Date.parse(acquire.completed_at))) continue;
+    }
     const artifacts = await api(`repos/${SNAPSHOT_REPOSITORY}/actions/runs/${run.id}/artifacts?per_page=100`);
     const name = `superbee-docs-hosted-content-${run.id}`;
+    // Any job in the run may upload this name; in acquired mode only the acquire job's upload counts.
     const matches = (artifacts.artifacts ?? []).filter((a) => a.name === name && !a.expired
-      && Date.parse(a.expires_at) > now && Number.isSafeInteger(a.id));
-    if (matches.length === 1) return { runId: run.id, sourceCommit: run.head_sha, artifactId: matches[0].id, name };
+      && Date.parse(a.expires_at) > now && Number.isSafeInteger(a.id)
+      && (!acquire || (Date.parse(a.created_at) >= Date.parse(acquire.started_at)
+        && Date.parse(a.created_at) <= Date.parse(acquire.completed_at))));
+    if (matches.length === 1) return { mode, runId: run.id, sourceCommit: run.head_sha, artifactId: matches[0].id, name };
   }
-  fail("no retained verified main hosted-content export; dispatch verify-production.yml on main, then retry");
+  fail(`no retained ${mode === "published" ? "verified" : "acquire-verified"} main hosted-content export; dispatch verify-production.yml on main, then retry`);
 }
 
 /** Check both the receipt identity and every exported byte before changing the local reader tree. */
@@ -497,9 +520,10 @@ export async function materializeSnapshot({ directory, bundleDir = BUNDLE_PATH }
   return { ...await materialize({ from, bundleDir, expectedDigest: receipt.treeDigest }), revision: receipt.revision };
 }
 
-export async function acquireSnapshot({ env = process.env, bundleDir = BUNDLE_PATH } = {}) {
+export async function acquireSnapshot({ env = process.env, bundleDir = BUNDLE_PATH, mode = "published" } = {}) {
   const gh = (args) => execFileSync("gh", args, { encoding: "utf8", env, maxBuffer: 16 << 20 });
   const selected = await selectSnapshot({
+    mode,
     api: async (endpoint) => JSON.parse(gh(["api", endpoint])),
     isMainAncestor: async (commit) => spawnSync("git", ["-C", ROOT, "merge-base", "--is-ancestor", commit, "origin/main"]).status === 0,
   });
@@ -518,7 +542,11 @@ function option(args, name) {
 export async function main(argv, { env = process.env, log = (line) => process.stdout.write(`${line}\n`) } = {}) {
   const [command, ...args] = argv;
   if (command === "snapshot") {
-    log(JSON.stringify(await acquireSnapshot({ env })));
+    const result = await acquireSnapshot({ env, mode: option(args, "--mode") ?? "published" });
+    if (env.GITHUB_STEP_SUMMARY) {
+      await appendFile(env.GITHUB_STEP_SUMMARY, `Hosted content snapshot: ${result.mode} export from verify-production run ${result.runId} (source ${result.sourceCommit}).\n`);
+    }
+    log(JSON.stringify(result));
     return 0;
   }
   if (command === "export") {

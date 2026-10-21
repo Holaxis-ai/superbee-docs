@@ -36,10 +36,10 @@ jobs:
           npm-token: ${{ secrets.SUPERBEE_NPM_READ_TOKEN }}
           preflight-script: ci:dependencies
           ignore-scripts: 'false'
-      - name: Restore public content from a verified main production export
+      - name: Restore content from the newest acquire-verified main production export
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node scripts/hosted-content.mjs snapshot
+        run: node scripts/hosted-content.mjs snapshot --mode acquired
       - run: npm run source:sync
       - name: Bootstrap the exact MkDocs environment
         run: |
