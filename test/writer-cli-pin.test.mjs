@@ -11,13 +11,13 @@ test("the writer pin workflow runs only on dispatch, with read-only defaults", (
   assert.match(header, /\non:\n  workflow_dispatch:\n/u);
   assert.doesNotMatch(header, /pull_request|push:|schedule:/u);
   assert.match(header, /\npermissions:\n  contents: read\n/u);
-  assert.deepEqual(Object.keys(jobs), ["resolve", "open-pull-request"]);
+  assert.deepEqual(Object.keys(jobs), ["resolve", "push-branch"]);
 });
 
 test("both jobs run only from main, the base of the pull request", () => {
   assert.ok(jobs.resolve.includes(`run: test "$GITHUB_REF" = refs/heads/main || { echo "::error::dispatch this workflow from main"; exit 1; }`), "resolve refuses other refs");
   assert.ok(jobs.resolve.indexOf("refs/heads/main") < jobs.resolve.indexOf("actions/checkout"), "before checkout");
-  assert.match(jobs["open-pull-request"], /\n    if: github\.ref == 'refs\/heads\/main' && needs\.resolve\.outputs\.changed == 'true'\n/u);
+  assert.match(jobs["push-branch"], /\n    if: github\.ref == 'refs\/heads\/main' && needs\.resolve\.outputs\.changed == 'true'\n/u);
 });
 
 test("the version is exact and published before any use", () => {
@@ -36,21 +36,24 @@ test("package code runs only in the read-only job", () => {
 });
 
 test("the write job holds no package secret and runs no npm or node", () => {
-  const write = jobs["open-pull-request"];
-  assert.match(write, /permissions:\n      contents: write\n      pull-requests: write\n      actions: write\n/u);
+  const write = jobs["push-branch"];
+  // The organization does not let GitHub Actions create pull requests; a person's session opens it.
+  assert.match(write, /permissions:\n      contents: write\n      actions: write\n    steps:/u);
+  assert.doesNotMatch(workflow, /pull-requests:|gh pr create --base|gh pr merge|gh pr review/u);
   assert.doesNotMatch(write, /secrets\.|setup-node|(?:^|[\s;&|(])(?:npm|npx|node)\s/mu);
   assert.doesNotMatch(write.slice(write.indexOf("download-artifact")), /^\s+path:/mu, "the artifact lands in the checkout root only");
   assert.ok(write.includes("git diff --numstat package.json"), "one-line package.json change");
   assert.match(write, /test "\$changed" = "package-lock\.json package\.json "/u);
-  // A pull request opened with GITHUB_TOKEN triggers no workflow, so the check must be dispatched.
+  // A push made with GITHUB_TOKEN triggers no workflow, so the branch's check must be dispatched.
   assert.match(write, /gh workflow run check\.yml --ref "\$branch"/u);
 });
 
-test("a second dispatch or a refused pull request leaves no stray branch", () => {
-  const write = jobs["open-pull-request"];
+test("a second dispatch refuses an existing branch and the summary tells a person how to open the pull request", () => {
+  const write = jobs["push-branch"];
   assert.ok(write.includes("git ls-remote --exit-code --heads origin"), "existing branch refused");
   assert.ok(write.indexOf("git ls-remote --exit-code --heads origin") < write.indexOf("git push -q origin \"$branch\""), "existing branch refused before push");
-  assert.match(write, /if ! gh pr create [^\n]+; then\n\s+git push -q origin --delete "\$branch"\n/u);
+  assert.ok(write.includes(`gh pr create -R $GITHUB_REPOSITORY --base main --head $branch`), "summary names the pull request command");
+  assert.ok(write.indexOf("gh workflow run check.yml") < write.indexOf("GITHUB_STEP_SUMMARY"), "check dispatched before the summary");
 });
 
 test("check.yml accepts the dispatch the writer pin workflow sends", async () => {
