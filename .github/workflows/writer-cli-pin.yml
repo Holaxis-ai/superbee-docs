@@ -22,12 +22,15 @@ concurrency:
 
 jobs:
   resolve:
+    # The pull request always targets main, so only main's tree may be the base of the change.
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: read
     outputs:
       version: ${{ steps.version.outputs.version }}
+      changed: ${{ steps.move.outputs.changed }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -47,6 +50,7 @@ jobs:
           test "$(npm view "superbee@$V" version)" = "$V" || { echo "::error::superbee@$V is not published"; exit 1; }
           echo "version=$V" >> "$GITHUB_OUTPUT"
       - name: Move the alias without running package code
+        id: move
         env:
           NODE_AUTH_TOKEN: ${{ secrets.SUPERBEE_NPM_READ_TOKEN }}
           V: ${{ steps.version.outputs.version }}
@@ -55,8 +59,21 @@ jobs:
           npm install --ignore-scripts --save-exact --no-audit --no-fund "superbee-writer@npm:superbee@$V"
           test "$(node -p 'require("./package.json").dependencies["superbee-writer"]')" = "npm:superbee@$V"
           changed="$(git diff --name-only | sort | tr '\n' ' ')"
+          if [ -z "$changed" ]; then
+            echo "::notice::superbee-writer is already npm:superbee@$V"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           test "$changed" = "package-lock.json package.json " || { echo "::error::unexpected changes: $changed"; exit 1; }
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+          test "$(git diff --numstat package.json)" = "$(printf '1\t1\tpackage.json')" || { echo "::error::package.json changed more than the alias line"; exit 1; }
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+      - name: Check the moved lockfile against the registry
+        if: steps.move.outputs.changed == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.SUPERBEE_NPM_READ_TOKEN }}
+        run: npm run ci:dependencies
+      - if: steps.move.outputs.changed == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: writer-cli-pin
           path: |
@@ -67,6 +84,7 @@ jobs:
 
   open-pull-request:
     needs: resolve
+    if: github.ref == 'refs/heads/main' && needs.resolve.outputs.changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -86,14 +104,24 @@ jobs:
           set -euo pipefail
           changed="$(git diff --name-only | sort | tr '\n' ' ')"
           test "$changed" = "package-lock.json package.json " || { echo "::error::unexpected changes: $changed"; exit 1; }
+          test "$(git diff --numstat package.json)" = "$(printf '1\t1\tpackage.json')" || { echo "::error::package.json changed more than the alias line"; exit 1; }
           branch="chore/writer-cli-$V"
+          if git ls-remote --exit-code --heads origin "$branch" > /dev/null; then
+            echo "::error::branch $branch already exists; close its pull request or delete it, then dispatch again"
+            exit 1
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git switch -c "$branch"
           git commit -q -am "Pin the writer CLI to superbee $V"
           git push -q origin "$branch"
-          gh pr create --base main --head "$branch" --title "Pin the writer CLI to superbee $V" --body "Moves superbee-writer to npm:superbee@$V. Opened by writer-cli-pin.yml.
+          body="Moves superbee-writer to npm:superbee@$V. Opened by writer-cli-pin.yml.
 
           Before merging, every hosted writer checkout must be synced and then released as CLAUDE.md describes, so no checkout changes CLI underneath it. The stable superbee pin is unchanged; docs:release:finalize owns it."
+          if ! gh pr create --base main --head "$branch" --title "Pin the writer CLI to superbee $V" --body "$body"; then
+            git push -q origin --delete "$branch"
+            echo "::error::could not open the pull request; check that 'Allow GitHub Actions to create and approve pull requests' is enabled for this repository"
+            exit 1
+          fi
           # A pull request opened with GITHUB_TOKEN triggers no workflow; dispatch its check explicitly.
           gh workflow run check.yml --ref "$branch"
