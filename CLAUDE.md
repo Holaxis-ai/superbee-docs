@@ -80,7 +80,7 @@ bundle, never into a hosted writer checkout.
      and refuses a stale write with a version conflict that preserves your local bytes.
   6. Publish once the whole batch is synced and `npm run content:run -- npm run check` passes:
      `gh workflow run verify-production.yml -R Holaxis-ai/superbee-docs --ref main`. Synced edits are
-     not live until a dispatch or a merge to `main` deploys them; the nightly schedule only probes.
+     not live until a dispatch or a merge to `main` deploys them; the daily schedule only probes.
      During a multi-page change, hold docs-repo merges to `main` until the batch is ready, because a
      merge redispatches production with whatever is hosted.
   Do not run `content:snapshot` or `acquire` on a writer checkout.

@@ -294,7 +294,9 @@ preflight failures and verified rollback outcomes. Its daily scheduled run uses 
 not mutate production, so deployment drift is detected against the current exact artifact. Hosted
 edits that are synced but not yet published also make the scheduled probe fail; publish them by
 dispatching the workflow on `main`. Only a dispatch, including the redispatch after a push to
-`main`, deploys.
+`main`, deploys. Retained exports expire after 30 days; if hosted edits stay unpublished
+that long with no dispatch or merge, readers that need a published export fail until production
+runs again.
 
 Cloudflare's repository integration must remain disabled while this workflow is the production
 writer. Enabling both would create two independent activation authorities. The
