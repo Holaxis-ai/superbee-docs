@@ -8,6 +8,7 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "ci:dependencies": "node scripts/release-dependency-preflight.mjs",
     "content:snapshot": "node scripts/hosted-content.mjs snapshot",
     "content:checkout": "node scripts/content-writer.mjs checkout",
     "content:sync": "node scripts/content-writer.mjs sync",

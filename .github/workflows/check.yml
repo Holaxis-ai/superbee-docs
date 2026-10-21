@@ -21,7 +21,6 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          registry-url: "https://registry.npmjs.org"
       - name: Check out the exact shared package verification producer
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -31,13 +30,12 @@ jobs:
           persist-credentials: false
       - name: Verify snapshot against actual pinned producer source
         run: node .deps/package-verification-source/packages/package-verification/export.mjs --source .deps/package-verification-source --target scripts/vendor/package-verification --check
-      - name: Check dependency metadata access before installation
-        run: node scripts/release-dependency-preflight.mjs
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
-      - run: npm ci
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
+      - name: Install locked dependencies through shared registry setup
+        uses: Holaxis-ai/superbee/.github/actions/npm-ci@b6d790b07748ff496c6e53a42ddbe6c6bfd4493d
+        with:
+          npm-token: ${{ secrets.SUPERBEE_NPM_READ_TOKEN }}
+          preflight-script: ci:dependencies
+          ignore-scripts: 'false'
       - name: Restore public content from a verified main production export
         env:
           GH_TOKEN: ${{ github.token }}
