@@ -23,26 +23,39 @@ test("consumer uses only public published package surfaces and nested versioned 
   assert.equal(wrangler.account_id, "454536c8fb003eaa679b986bd11dfe49");
   assert.equal(wrangler.name, "superbee-docs");
   assert.deepEqual(wrangler.routes, [{ pattern: "docs.getsuperbee.com", custom_domain: true }]);
-  assert.deepEqual(consumer.dependencies, {
-    // Restricted peers of the portal-cloudflare agentAccess endpoint; exact pins.
-    "@superbee/agent-operations": "0.1.0-pre.4",
+  // The package set is the contract; exact versions move with releases and must agree with the lockfile.
+  assert.deepEqual(Object.keys(consumer.dependencies).sort(), [
+    // Restricted peers of the portal-cloudflare agentAccess endpoint.
+    "@superbee/agent-operations",
     // The assistant's runtime, a restricted optional peer of portal-cloudflare's assistant option.
-    "@superbee/assistant-runtime": "0.1.0-pre.21",
+    "@superbee/assistant-runtime",
     // The hosted export's client (hosted-client, hosted-client/node, portable-export), and the
-    // single core the overrides give recipe-studio; exact pin.
-    "@superbee/core": "0.2.0-pre.17",
-    "@superbee/docs-mkdocs": "0.2.2",
-    "@superbee/docs-projection": "0.2.5",
-    "@superbee/docs-tooling": "0.2.5",
-    "@superbee/portal": "0.2.13",
-    "@superbee/portal-cloudflare": "0.2.15",
-    "@superbee/portal-docs": "0.2.11",
-    "@superbee/portal-webmcp": "0.3.2",
-    "@superbee/recipe-studio": "0.1.3",
-    superbee: release.version,
+    // single core the overrides give recipe-studio.
+    "@superbee/core",
+    "@superbee/docs-mkdocs",
+    "@superbee/docs-projection",
+    "@superbee/docs-tooling",
+    "@superbee/portal",
+    "@superbee/portal-cloudflare",
+    "@superbee/portal-docs",
+    "@superbee/portal-webmcp",
+    "@superbee/recipe-studio",
+    "superbee",
     // Hosted content writers' own CLI; the stable superbee pin stays the documented release.
-    "superbee-writer": "npm:superbee@0.4.3-pre.23",
-  });
+    "superbee-writer",
+  ]);
+  const lock = await json("package-lock.json");
+  assert.deepEqual(lock.packages[""].dependencies, consumer.dependencies);
+  const exact = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?$/;
+  for (const [name, spec] of Object.entries(consumer.dependencies)) {
+    const alias = /^npm:(superbee)@(.+)$/.exec(spec);
+    const version = alias ? alias[2] : spec;
+    assert.match(version, exact, `${name} is pinned to an exact version`);
+    const locked = lock.packages[`node_modules/${name}`];
+    assert.equal(locked?.version, version, `${name} lockfile entry matches its pin`);
+    if (alias) assert.equal(locked.name, alias[1], `${name} aliases the ${alias[1]} package`);
+  }
+  assert.equal(consumer.dependencies.superbee, release.version);
   assert.equal(consumer.scripts["tools:bootstrap"], undefined);
   assert.equal(
     consumer.scripts["repository-history:ensure"],
