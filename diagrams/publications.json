@@ -103,11 +103,11 @@
       "documentId": "architecture/superbee-system-context",
       "publishedSource": "visuals/sources/superbee-system-context.mmd",
       "publishedSvg": "visuals/diagrams/superbee-system-context.svg",
-      "sourceSha256": "sha256:af9fb2fa0e9bf4babc1b75daa4bc2804c53fc4c6bbe51baa3ee67a6fe1c413a3",
-      "projectionSha256": "sha256:7fa1ab48122cb0c45edc82f9edd3a9548a9fe16c19433d5c3e98f6f9f87ce2b2",
-      "svgSha256": "sha256:0ca7a60fa25403de0fe69951a6242e6c621069da360d3c84cad89cef0c464fa0",
-      "sourceSize": 1317,
-      "svgSize": 25763
+      "sourceSha256": "sha256:2f74df8719d5f5216740c78f05f03e2f613973b0579207cada4d6ce21860a60f",
+      "projectionSha256": "sha256:eb656f4bc9d6aed163e3c06be17253a0e27225b169eea49f7ecc373572102360",
+      "svgSha256": "sha256:dc66559f764e0d4c72e147a5cb6d6da45d045d55bbb1118db671b42b80789b95",
+      "sourceSize": 1528,
+      "svgSize": 27333
     },
     {
       "id": "view-lifecycle-and-trust",
@@ -123,5 +123,5 @@
       "svgSize": 42092
     }
   ],
-  "receiptDigest": "sha256:ec0d7b7c3ac65dbdc7d93f6440533bcb7de04d7abcf20c5043db2c3f404587f5"
+  "receiptDigest": "sha256:a76717eb5e068bc704bdc4bdcd8cbf96dd8c25ac489e5accd486fa45281fb0c6"
 }

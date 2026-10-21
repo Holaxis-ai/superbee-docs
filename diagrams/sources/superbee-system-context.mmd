@@ -3,7 +3,8 @@ flowchart TB
   accDescr {
     A human works through an AI agent host. The host invokes the locally installed Superbee CLI,
     which reads and writes a user-owned bundle. Git and GitHub may share that bundle. The npm
-    registry distributes the CLI. Superbee publication captures a read-only snapshot that Portal
+    registry distributes the CLI. An explicitly bound external source can supply records that the
+    CLI writes into the bundle. Superbee publication captures a read-only snapshot that Portal
     turns into a public site for humans.
   }
 
@@ -13,6 +14,7 @@ flowchart TB
   bundle[("Superbee bundle<br/>user-owned Markdown and blobs")]
   git["Git / GitHub<br/>optional sharing and review"]
   npm["npm registry<br/>CLI distribution"]
+  source["External source<br/>optional, explicitly bound"]
   publication["superbee/publication<br/>exact read-only snapshot"]
   portal["Superbee Portal<br/>human publication adapter"]
   site["Public documentation site<br/>inspectable bundle and Views"]
@@ -20,6 +22,7 @@ flowchart TB
   human -->|"directs work through"| host
   host -->|"invokes structured commands"| cli
   npm -->|"distributes the installed package"| cli
+  source -->|"is read, after explicit binding, by"| cli
   cli -->|"reads and writes"| bundle
   bundle -->|"may be shared and reviewed through"| git
   bundle -->|"is captured by"| publication

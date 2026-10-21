@@ -11,7 +11,7 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const sourceRoot = resolve(root, ".deps/source");
 const pin = {
   repository: "https://github.com/Holaxis-ai/superbee.git",
-  commit: "069a42092f39d8261ccd4322c0dc7ff5488aa2c8",
+  commit: "cc1faac02f224ef593075f825252800cdc35a59b",
 };
 
 await ensureCompleteRepositoryHistory(root);
