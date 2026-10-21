@@ -41,7 +41,7 @@ test("consumer uses only public published package surfaces and nested versioned 
     "@superbee/recipe-studio": "0.1.3",
     superbee: release.version,
     // Hosted content writers' own CLI; the stable superbee pin stays the documented release.
-    "superbee-writer": "npm:superbee@0.4.3-pre.9",
+    "superbee-writer": "npm:superbee@0.4.3-pre.23",
   });
   assert.equal(consumer.scripts["tools:bootstrap"], undefined);
   assert.equal(
