@@ -516,7 +516,7 @@ test("CI snapshot selects only a retained export from a successful trusted main 
     api: async (endpoint) => endpoint.includes("/artifacts?") ? { artifacts: [artifact] } : { workflow_runs: [run] },
     isMainAncestor: async () => ancestor,
   });
-  assert.deepEqual(await select(), { runId: 42, sourceCommit: "a".repeat(40), artifactId: 123, name: retainedArtifact.name });
+  assert.deepEqual(await select(), { mode: "published", runId: 42, sourceCommit: "a".repeat(40), artifactId: 123, name: retainedArtifact.name });
   for (const change of [{ event: "pull_request" }, { conclusion: "failure" }, { status: "in_progress" },
     { head_branch: "feature" }, { path: ".github/workflows/other.yml" }, { head_repository: { id: 99 } },
     { repository: { id: 99 } }]) await assert.rejects(select({ ...trustedRun, ...change }), /no retained verified main/);
@@ -524,6 +524,76 @@ test("CI snapshot selects only a retained export from a successful trusted main 
     await assert.rejects(select(trustedRun, { ...retainedArtifact, ...change }), /no retained verified main/);
   }
   await assert.rejects(select(trustedRun, retainedArtifact, false), /no retained verified main/);
+});
+
+const acquireJob = {
+  name: "acquire", status: "completed", conclusion: "success", run_attempt: 1,
+  started_at: "2026-10-21T18:03:28Z", completed_at: "2026-10-21T18:04:01Z",
+};
+const acquiredArtifact = { ...retainedArtifact, created_at: "2026-10-21T18:03:58Z" };
+// The October 21 shape: acquire verified the export, then the build failed on a Git change in review.
+const buildFailedRun = { ...trustedRun, conclusion: "failure", run_attempt: 1 };
+
+test("CI snapshot in acquired mode selects the acquire job's export even when a later job failed", async () => {
+  const select = ({ runs = [buildFailedRun], jobs = [acquireJob], artifact = acquiredArtifact, ancestor = true, endpoints = [] } = {}) => selectSnapshot({
+    mode: "acquired",
+    api: async (endpoint) => {
+      endpoints.push(endpoint);
+      if (endpoint.includes("/jobs?")) return { jobs: typeof jobs === "function" ? jobs(endpoint) : jobs };
+      if (endpoint.includes("/artifacts?")) return { artifacts: [typeof artifact === "function" ? artifact(endpoint) : artifact] };
+      return { workflow_runs: runs };
+    },
+    isMainAncestor: async () => ancestor,
+  });
+  const endpoints = [];
+  assert.deepEqual(await select({ endpoints }), { mode: "acquired", runId: 42, sourceCommit: "a".repeat(40), artifactId: 123, name: retainedArtifact.name });
+  assert.equal(endpoints[0].includes("status=success"), false, "acquired mode must list failed runs");
+  assert.ok(endpoints.some((endpoint) => endpoint.includes("/runs/42/jobs?filter=latest")), "acquired mode reads the latest attempt's jobs");
+  assert.deepEqual((await select({ runs: [trustedRun] })).runId, 42, "a fully successful run qualifies too");
+
+  const refused = /no retained acquire-verified main/;
+  for (const change of [{ event: "pull_request" }, { status: "in_progress" }, { head_branch: "feature" },
+    { path: ".github/workflows/other.yml" }, { head_repository: { id: 99 } }, { repository: { id: 99 } }]) {
+    await assert.rejects(select({ runs: [{ ...buildFailedRun, ...change }] }), refused, JSON.stringify(change));
+  }
+  assert.equal((await select({ jobs: [acquireJob, { ...acquireJob, name: "build", conclusion: "failure" }] })).runId, 42,
+    "other jobs in the run do not count as acquire");
+  for (const jobs of [[], [{ ...acquireJob, name: "build" }], [{ ...acquireJob, conclusion: "failure" }], [{ ...acquireJob, status: "in_progress" }],
+    [acquireJob, acquireJob], [{ ...acquireJob, run_attempt: 2 }], [{ ...acquireJob, completed_at: null }]]) {
+    await assert.rejects(select({ runs: [{ ...buildFailedRun, run_attempt: 1 }], jobs }), refused, JSON.stringify(jobs));
+  }
+  for (const created_at of ["2026-10-21T18:03:27Z", "2026-10-21T18:04:02Z", undefined]) {
+    await assert.rejects(select({ artifact: { ...acquiredArtifact, created_at } }), refused, `artifact created ${created_at}`);
+  }
+  await assert.rejects(select({ artifact: { ...acquiredArtifact, expired: true } }), refused);
+  await assert.rejects(select({ ancestor: false }), refused);
+
+  // A newer run whose acquire failed falls through to the older run whose acquire succeeded.
+  const older = { ...buildFailedRun, id: 41 };
+  const picked = await select({
+    runs: [buildFailedRun, older],
+    jobs: (endpoint) => [endpoint.includes("/runs/42/") ? { ...acquireJob, conclusion: "failure" } : acquireJob],
+    artifact: (endpoint) => ({ ...acquiredArtifact, name: `superbee-docs-hosted-content-${endpoint.includes("/runs/41/") ? 41 : 42}` }),
+  });
+  assert.equal(picked.runId, 41);
+});
+
+test("CI snapshot refuses an unknown mode and published mode still refuses a failed run", async () => {
+  await assert.rejects(selectSnapshot({ mode: "latest", api: async () => ({}), isMainAncestor: async () => true }), /snapshot mode must be one of/);
+  await assert.rejects(selectSnapshot({
+    api: async (endpoint) => endpoint.includes("/artifacts?") ? { artifacts: [acquiredArtifact] } : { workflow_runs: [buildFailedRun] },
+    isMainAncestor: async () => true,
+  }), /no retained verified main/);
+});
+
+test("check.yml reads the acquire-verified export on every event; the published-site workflows keep the default", async () => {
+  const read = (name) => readFile(`.github/workflows/${name}`, "utf8");
+  assert.match(await read("check.yml"), /hosted-content\.mjs snapshot --mode acquired\n/);
+  assert.match(await read("assistant-eval.yml"),
+    /hosted-content\.mjs snapshot --mode \$\{\{ github\.event_name == 'pull_request' && 'acquired' \|\| 'published' \}\}\n/);
+  for (const name of ["release-documentation-freshness.yml", "architecture-freshness.yml"]) {
+    assert.match(await read(name), /hosted-content\.mjs snapshot\n/, name);
+  }
 });
 
 test("snapshot receipt and complete content bytes are checked before replacing the reader tree", async () => {

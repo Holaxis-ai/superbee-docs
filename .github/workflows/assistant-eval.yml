@@ -51,7 +51,7 @@ jobs:
         if: steps.key.outputs.present == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: node scripts/hosted-content.mjs snapshot
+        run: node scripts/hosted-content.mjs snapshot --mode ${{ github.event_name == 'pull_request' && 'acquired' || 'published' }}
       - if: steps.key.outputs.present == 'true'
         run: npm run portal:build
       # The cap stops runaway spend; size it from assistant-eval.json after the first live run.

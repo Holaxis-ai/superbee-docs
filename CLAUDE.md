@@ -43,6 +43,8 @@ bundle, never into a hosted writer checkout.
   the retained export of a successful main `verify-production.yml` run, validates its identity,
   counts and full tree digest, and materializes a reader projection. No workload token reaches PRs.
   The snapshot is the last verified production content revision, not necessarily the latest edit.
+  `check.yml` passes `--mode acquired`: the newest main run whose acquire job verified its export,
+  even when that run's build failed waiting on a Git change under review.
   Run the production workflow on main to verify and publish newer hosted edits.
 - Production's environment-bound acquire job alone has OIDC permission. `DOCS_HOSTED_APP_ID` must
   identify the existing read-only app; missing configuration fails closed. There is no Git fallback.
