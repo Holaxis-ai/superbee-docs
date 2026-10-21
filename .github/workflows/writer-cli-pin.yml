@@ -1,0 +1,99 @@
+name: Move the writer CLI pin
+
+# Opens a pull request that moves the superbee-writer alias to one published superbee version
+# (default: npm next). The orchestrator dispatches it after confirming its own hosted writer
+# checkouts are synced and released. The stable superbee pin moves only through
+# docs:release:finalize. Package code runs only in the read-only job; the job that holds write
+# permissions runs no npm or package code.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Exact superbee version for superbee-writer; empty uses npm next"
+        required: false
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: writer-cli-pin
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+      - name: Resolve the exact published version
+        id: version
+        env:
+          REQUESTED: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          V="${REQUESTED:-$(npm view superbee dist-tags.next)}"
+          [[ "$V" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?$ ]] || { echo "::error::not an exact version: $V"; exit 1; }
+          test "$(npm view "superbee@$V" version)" = "$V" || { echo "::error::superbee@$V is not published"; exit 1; }
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+      - name: Move the alias without running package code
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.SUPERBEE_NPM_READ_TOKEN }}
+          V: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          npm install --ignore-scripts --save-exact --no-audit --no-fund "superbee-writer@npm:superbee@$V"
+          test "$(node -p 'require("./package.json").dependencies["superbee-writer"]')" = "npm:superbee@$V"
+          changed="$(git diff --name-only | sort | tr '\n' ' ')"
+          test "$changed" = "package-lock.json package.json " || { echo "::error::unexpected changes: $changed"; exit 1; }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: writer-cli-pin
+          path: |
+            package.json
+            package-lock.json
+          if-no-files-found: error
+          retention-days: 1
+
+  open-pull-request:
+    needs: resolve
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: write
+      actions: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: writer-cli-pin
+      - name: Commit, open the pull request, and dispatch its check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ needs.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          changed="$(git diff --name-only | sort | tr '\n' ' ')"
+          test "$changed" = "package-lock.json package.json " || { echo "::error::unexpected changes: $changed"; exit 1; }
+          branch="chore/writer-cli-$V"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$branch"
+          git commit -q -am "Pin the writer CLI to superbee $V"
+          git push -q origin "$branch"
+          gh pr create --base main --head "$branch" --title "Pin the writer CLI to superbee $V" --body "Moves superbee-writer to npm:superbee@$V. Opened by writer-cli-pin.yml.
+
+          Before merging, every hosted writer checkout must be synced and then released as CLAUDE.md describes, so no checkout changes CLI underneath it. The stable superbee pin is unchanged; docs:release:finalize owns it."
+          # A pull request opened with GITHUB_TOKEN triggers no workflow; dispatch its check explicitly.
+          gh workflow run check.yml --ref "$branch"
