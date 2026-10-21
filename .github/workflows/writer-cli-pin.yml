@@ -22,8 +22,6 @@ concurrency:
 
 jobs:
   resolve:
-    # The pull request always targets main, so only main's tree may be the base of the change.
-    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -32,6 +30,9 @@ jobs:
       version: ${{ steps.version.outputs.version }}
       changed: ${{ steps.move.outputs.changed }}
     steps:
+      # The pull request always targets main, so only main's tree may be the base of the change.
+      - name: Require a dispatch from main
+        run: test "$GITHUB_REF" = refs/heads/main || { echo "::error::dispatch this workflow from main"; exit 1; }
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false

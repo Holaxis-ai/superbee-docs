@@ -15,7 +15,8 @@ test("the writer pin workflow runs only on dispatch, with read-only defaults", (
 });
 
 test("both jobs run only from main, the base of the pull request", () => {
-  assert.match(jobs.resolve, /\n    if: github\.ref == 'refs\/heads\/main'\n/u);
+  assert.ok(jobs.resolve.includes(`run: test "$GITHUB_REF" = refs/heads/main || { echo "::error::dispatch this workflow from main"; exit 1; }`), "resolve refuses other refs");
+  assert.ok(jobs.resolve.indexOf("refs/heads/main") < jobs.resolve.indexOf("actions/checkout"), "before checkout");
   assert.match(jobs["open-pull-request"], /\n    if: github\.ref == 'refs\/heads\/main' && needs\.resolve\.outputs\.changed == 'true'\n/u);
 });
 
@@ -47,6 +48,7 @@ test("the write job holds no package secret and runs no npm or node", () => {
 
 test("a second dispatch or a refused pull request leaves no stray branch", () => {
   const write = jobs["open-pull-request"];
+  assert.ok(write.includes("git ls-remote --exit-code --heads origin"), "existing branch refused");
   assert.ok(write.indexOf("git ls-remote --exit-code --heads origin") < write.indexOf("git push -q origin \"$branch\""), "existing branch refused before push");
   assert.match(write, /if ! gh pr create [^\n]+; then\n\s+git push -q origin --delete "\$branch"\n/u);
 });
