@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { promisify } from "node:util";
@@ -11,7 +11,10 @@ const script = path.resolve("scripts/documentation-impact.mjs");
 
 test("documentation trigger records are valid operational records", async () => {
   const result = JSON.parse((await run(process.execPath, [script, "check"])).stdout);
-  assert.deepEqual(result, { ok: true, command: "documentation impact check", records: 42 });
+  // Every trigger file must parse as a record; the count grows with the documentation.
+  const records = (await readdir(".superbee/maintenance/documentation-triggers")).filter((file) => file.endsWith(".md")).length;
+  assert.ok(records > 0);
+  assert.deepEqual(result, { ok: true, command: "documentation impact check", records });
 });
 
 test("source changes and product events resolve affected reader pages", async () => {
