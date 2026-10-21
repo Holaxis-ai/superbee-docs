@@ -63,7 +63,7 @@
     "@superbee/portal-docs": "0.2.11",
     "@superbee/portal-webmcp": "0.3.2",
     "@superbee/recipe-studio": "0.1.3",
-    "superbee": "0.4.2",
+    "superbee": "0.4.3",
     "superbee-writer": "npm:superbee@0.4.3-pre.23"
   },
   "devDependencies": {

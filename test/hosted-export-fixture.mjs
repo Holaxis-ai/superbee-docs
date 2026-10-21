@@ -88,7 +88,16 @@ export function exportHost(archive, { answer, pages } = {}) {
     requests.push({ url: request.url, authorization: request.headers.get("authorization"), redirect: request.redirect, body });
     const replaced = answer?.(request, body);
     if (replaced) return replaced;
-    const route = new URL(request.url).pathname;
+    const { origin, pathname: route } = new URL(request.url);
+    // The pinned CLI resolves --host through RFC 9728 protected-resource metadata; the library does not.
+    if (route.startsWith("/.well-known/oauth-protected-resource")) {
+      return Response.json({
+        resource: `${origin}/mcp`,
+        authorization_servers: ["https://issuer.example.test/"],
+        bearer_methods_supported: ["header"],
+        superbee_cli_client_id: "fixture-cli-client",
+      });
+    }
     // The pinned CLI asks who the bearer is before it exports; the library does not.
     if (route === "/sync/v1/whoami") {
       return Response.json({ principalId: "workload-1", tenantIds: ["tenant-1"], workspaces: [{ tenantId: "tenant-1", slug: "holaxis-sites" }] });
