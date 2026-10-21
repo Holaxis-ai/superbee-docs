@@ -185,7 +185,9 @@ test("the workflow separates build from credentials and serializes durable recon
   assert.equal((workflow.match(/name: superbee-docs-portal-\$\{\{ github\.sha \}\}/gu) ?? []).length, 2);
   assert.match(workflow, /name: superbee-docs-portal-\$\{\{ github\.sha \}\}[\s\S]+overwrite: true/u);
   assert.doesNotMatch(workflow, /superbee-docs-portal-\$\{\{ github\.sha \}\}-\$\{\{ github\.run_attempt \}\}/u);
-  assert.match(workflow, /RECONCILIATION_MODE: deploy\n/u);
+  // Only a dispatch (including the redispatch after a push to main) publishes; the schedule only probes.
+  assert.ok(workflow.includes("RECONCILIATION_MODE: ${{ github.event_name == 'schedule' && 'probe' || 'deploy' }}\n"), "scheduled runs probe");
+  assert.equal((workflow.match(/RECONCILIATION_MODE:/gu) ?? []).length, 1);
   assert.match(workflow, /if: always\(\)[\s\S]+cloudflare-reconciliation-receipt\.json[\s\S]+production-verification-receipt\.json/u);
   assert.match(workflow, /git fetch --no-tags origin main[\s\S]+--observed-commit/u);
   assert.equal((workflow.match(/CLOUDFLARE_API_TOKEN:/gu) ?? []).length, 2);
