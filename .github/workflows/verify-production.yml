@@ -161,7 +161,8 @@ jobs:
         continue-on-error: true
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          RECONCILIATION_MODE: deploy
+          # Scheduled runs only compare live production with the exact artifact; publishing is a dispatch or a merge.
+          RECONCILIATION_MODE: ${{ github.event_name == 'schedule' && 'probe' || 'deploy' }}
         run: >-
           node scripts/reconcile-cloudflare.mjs
           --mode "$RECONCILIATION_MODE"
