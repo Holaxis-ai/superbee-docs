@@ -31,7 +31,7 @@ jobs:
       - name: Verify snapshot against actual pinned producer source
         run: node .deps/package-verification-source/packages/package-verification/export.mjs --source .deps/package-verification-source --target scripts/vendor/package-verification --check
       - name: Install locked dependencies through shared registry setup
-        uses: Holaxis-ai/superbee/.github/actions/npm-ci@34840f1d5e35169083c0c2ea8e2e806cf969db6e
+        uses: Holaxis-ai/superbee/.github/actions/npm-ci@b6d790b07748ff496c6e53a42ddbe6c6bfd4493d
         with:
           npm-token: ${{ secrets.SUPERBEE_NPM_READ_TOKEN }}
           preflight-script: ci:dependencies
