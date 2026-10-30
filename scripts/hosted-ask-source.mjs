@@ -70,6 +70,7 @@ function caller(bearer, request = fetch) {
       fail(`${route}: no answer from hosted`);
     }
     const text = await response.text();
+    if (text.length > 64 * 1024) fail(`${route}: an answer larger than 64 KiB`);
     let value = null;
     try { value = JSON.parse(text); } catch {}
     if (!response.ok) {

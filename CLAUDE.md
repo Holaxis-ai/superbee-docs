@@ -46,8 +46,10 @@ bundle, never into a hosted writer checkout.
   `check.yml` passes `--mode acquired`: the newest main run whose acquire job verified its export,
   even when that run's build failed waiting on a Git change under review.
   Run the production workflow on main to verify and publish newer hosted edits.
-- Production's environment-bound acquire job alone has OIDC permission. `DOCS_HOSTED_APP_ID` must
-  identify the existing read-only app; missing configuration fails closed. There is no Git fallback.
+- Production's environment-bound acquire and ask-source jobs alone have OIDC permission. ask-source
+  installs nothing and publishes the deployed artifact to hosted as Ask Superbee's source (off until
+  `DOCS_ASK_SOURCE_ENABLED` is `true`). `DOCS_HOSTED_APP_ID` must identify the workspace's docs app;
+  missing configuration fails closed. There is no Git fallback.
   Exports are retained for 30 days. If none remain, dispatch the production workflow and retry.
 - Git no longer tracks content: `.superbee/` is ignored. It is either a reader projection or a
   writer checkout, never a source of truth. Rollback uses hosted history, not Git. A clone that
