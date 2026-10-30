@@ -182,7 +182,8 @@ test("the workflow separates build from credentials and serializes durable recon
   assert.match(workflow, /cron: "17 9 \* \* \*"/u);
   assert.match(workflow, /actions\/upload-artifact@[0-9a-f]{40}[\s\S]+path: dist/u);
   assert.match(workflow, /actions\/download-artifact@[0-9a-f]{40}[\s\S]+path: dist/u);
-  assert.equal((workflow.match(/name: superbee-docs-portal-\$\{\{ github\.sha \}\}/gu) ?? []).length, 2);
+  // Uploaded by build, downloaded by reconcile and by ask-source (the same artifact hosted keeps).
+  assert.equal((workflow.match(/name: superbee-docs-portal-\$\{\{ github\.sha \}\}/gu) ?? []).length, 3);
   assert.match(workflow, /name: superbee-docs-portal-\$\{\{ github\.sha \}\}[\s\S]+overwrite: true/u);
   assert.doesNotMatch(workflow, /superbee-docs-portal-\$\{\{ github\.sha \}\}-\$\{\{ github\.run_attempt \}\}/u);
   // Only a dispatch (including the redispatch after a push to main) publishes; the schedule only probes.

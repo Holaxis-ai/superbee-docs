@@ -213,12 +213,26 @@ test("the workload token client runs one command with the bearer and without Git
   await assert.rejects(exchange({ app, oidc: jwt, request: elsewhere }), /not https:\/\/holaxis-sites/);
 });
 
-test("only the acquire job can mint an OIDC token, in its environment, with no install scripts", async () => {
+test("only the acquire and ask-source jobs can mint an OIDC token, in their environment, with no install scripts", async () => {
   const workflow = await readFile(".github/workflows/verify-production.yml", "utf8");
   const body = workflow.slice(workflow.indexOf("\njobs:\n"));
   const jobs = Object.fromEntries(body.split(/\n(?=  [a-z-]+:\n)/u).slice(1).map((block) => [block.match(/^  ([a-z-]+):/u)[1], block]));
-  assert.deepEqual(Object.keys(jobs), ["redispatch", "acquire", "build", "reconcile"]);
-  assert.equal(workflow.match(/^ +id-token: write$/gmu).length, 1);
+  assert.deepEqual(Object.keys(jobs), ["redispatch", "acquire", "build", "reconcile", "ask-source"]);
+  assert.equal(workflow.match(/^ +id-token: write$/gmu).length, 2);
+  // ask-source (board design one-ask-public-mode) installs nothing and runs only the two
+  // dependency-free scripts on the artifact build produced; it is off until the variable is set.
+  assert.match(jobs["ask-source"], /id-token: write/u);
+  assert.match(jobs["ask-source"], /environment: holaxis-sites-docs\n/u);
+  assert.doesNotMatch(jobs["ask-source"], /npm (ci|install)|run: npm/u);
+  assert.match(jobs["ask-source"], /vars\.DOCS_ASK_SOURCE_ENABLED == 'true'/u);
+  assert.match(jobs["ask-source"], /github\.event_name == 'workflow_dispatch'/u);
+  assert.match(
+    jobs["ask-source"],
+    /run: node scripts\/hosted-workload-token\.mjs exec -- node scripts\/hosted-ask-source\.mjs publish --artifact dist\n/u,
+  );
+  for (const script of ["scripts/hosted-workload-token.mjs", "scripts/hosted-ask-source.mjs"])
+    for (const [, specifier] of (await readFile(script, "utf8")).matchAll(/^import .* from "([^"]+)";$/gmu))
+      assert.ok(specifier.startsWith("node:") || specifier === "./hosted-workload-token.mjs", `${script} imports ${specifier}`);
   assert.match(jobs.acquire, /id-token: write/u);
   assert.match(jobs.acquire, /environment: holaxis-sites-docs\n/u);
   assert.match(jobs.acquire, /npm ci --ignore-scripts\n/u);
