@@ -25,6 +25,10 @@ into this repository or its `.superbee/` bundle.
   entry, and `scripts/reconcile-cloudflare.mjs` binds the Docs target and immutable provenance. Never
   hand-edit generated `_redirects` or `_headers`, add a file to the inventory-exact `dist` artifact,
   or treat a bare Wrangler command as deployment agreement.
+- The repository owns service-binding properties as well as binding names. Dashboard configuration
+  deployments are not evidence that those properties survived a credential edit. After one, verify
+  `/__superbee/assistant/v1/config` and reapply the declared configuration through native
+  reconciliation if the shared assistant is unavailable. Never restore a retired local fallback.
 - Page freshness is a derived publication fact, never hand-authored display text. `Last updated`
   means the document's OKF meaningful-change clock when one exists; otherwise it is the frozen last commit
   time for the exact source bytes in `freshness-baseline.json`. `Last verified` is reserved
