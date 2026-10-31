@@ -184,42 +184,23 @@ test("wrangler.jsonc and the Worker agree on the binding names, the limit and th
   }
 });
 
-// The assistant ships switched off: without SUPERBEE_ASSISTANT_ENABLED="true" and the provider key,
-// every assistant route answers 404 and pages are unaffected. The Worker exports the Durable Object
-// class wrangler.jsonc binds, and the instructions document the block names is in the bundle.
-test("the assistant is wired but off until the owner turns it on", async () => {
+// The former local assistant cannot be re-enabled by stale settings or credentials. Its class is
+// deliberately deleted; only the service binding may answer assistant requests.
+test("the local assistant is retired and missing Hosted bindings fail closed", async () => {
   const worker = await import(`../scripts/cloudflare-worker.mjs?instance=${instance += 1}`);
-  const { ASSISTANT } = await import("../scripts/assistant-config.mjs");
-  assert.equal(typeof worker.SuperbeeAssistant, "function");
-  const wrangler = JSON.parse((await readFile("wrangler.jsonc", "utf8")).replace(/^\s*\/\/.*$/gmu, ""));
-  assert.deepEqual(wrangler.durable_objects.bindings, [{ name: "SUPERBEE_ASSISTANT", class_name: "SuperbeeAssistant" }]);
-  assert.ok(wrangler.migrations.some((row) => row.new_sqlite_classes?.includes("SuperbeeAssistant")));
+  const wrangler = JSON.parse(await readFile("wrangler.jsonc", "utf8"));
+  assert.equal("SuperbeeAssistant" in worker, false);
+  assert.deepEqual(wrangler.durable_objects?.bindings ?? [], []);
+  assert.deepEqual(wrangler.migrations.at(-1), {
+    tag: "superbee-assistant-retired-v2", deleted_classes: ["SuperbeeAssistant"],
+  });
   assert.ok(wrangler.assets.run_worker_first.includes("/__superbee/assistant/*"));
-  const instructions = await readFile(ASSISTANT.instructions, "utf8");
-  assert.match(instructions, /^---\ntype: Assistant Instructions\n/u);
-  assert.ok(new TextEncoder().encode(instructions).byteLength < 8192);
-  const env = environment();
+  const env = { ...environment(), SUPERBEE_ASSISTANT_ENABLED: "true", ANTHROPIC_API_KEY: "unused-dummy-key" };
   const config = await worker.default.fetch(new Request("https://docs.getsuperbee.com/__superbee/assistant/v1/config"), env);
-  assert.equal(config.status, 404);
-  const page = await worker.default.fetch(new Request("https://docs.getsuperbee.com/"), env);
-  assert.equal(page.status, 200);
-  // The flag alone is not enough: without the key it stays off.
-  const flagged = { ...environment(), SUPERBEE_ASSISTANT_ENABLED: "true", SUPERBEE_ASSISTANT: ledgerOnly() };
-  const fresh = (await import(`../scripts/cloudflare-worker.mjs?instance=${instance += 1}`)).default;
-  assert.equal((await fresh.fetch(new Request("https://docs.getsuperbee.com/__superbee/assistant/v1/config"), flagged)).status, 404);
-  // With the flag and a key it answers, for this bundle.
-  const on = { ...flagged, ANTHROPIC_API_KEY: "test-key" };
-  const live = (await import(`../scripts/cloudflare-worker.mjs?instance=${instance += 1}`)).default;
-  const answered = await live.fetch(new Request("https://docs.getsuperbee.com/__superbee/assistant/v1/config"), on);
-  assert.equal(answered.status, 200);
-  assert.equal((await answered.json()).bundleId, "superbee-docs");
+  assert.equal(config.status, 503);
+  assert.deepEqual(await config.json(), { ok: false, refused: "assistant_unavailable" });
+  assert.equal((await worker.default.fetch(new Request("https://docs.getsuperbee.com/"), env)).status, 200);
 });
-
-/** A Durable Object namespace whose only stub answers the ledger's status and secret, as a fresh ledger would. */
-function ledgerOnly() {
-  const reply = (op) => Response.json(op === "secret" ? { secret: "0".repeat(64) } : { status: "available", day: {}, month: {} });
-  return { idFromName: (name) => name, get: () => ({ fetch: async (request) => reply(new URL(request.url).pathname.slice(1)) }) };
-}
 
 // Ask Superbee runs in hosted (board design one-ask-public-mode): with the SUPERBEE_ASK binding every
 // assistant route goes to hosted's PublicSiteAsk entrypoint unchanged; pages and agent routes do not.

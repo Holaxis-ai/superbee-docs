@@ -1,4 +1,4 @@
-/* Ask Superbee: Sonnet 5.5 at low effort on a $150 monthly budget. The Worker and the eval read this block. */
+/* Golden-question evaluation only; the production Worker does not import this configuration. */
 export const ASSISTANT = Object.freeze({
   bundleId: "superbee-docs",
   instructions: "assistant/instructions.md",

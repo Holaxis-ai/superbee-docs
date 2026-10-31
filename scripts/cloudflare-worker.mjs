@@ -1,12 +1,9 @@
 /* The host-neutral runtime stays package-owned; this file only gives Wrangler a stable entry. */
 
-import { createCloudflarePortalHandler, SuperbeeAssistant } from "@superbee/portal-cloudflare";
+import { createCloudflarePortalHandler } from "@superbee/portal-cloudflare";
 
 import { AGENT_RATE_LIMIT, AGENT_RATE_LIMIT_BINDING, AGENT_SECRET_BINDING } from "./agent-access-config.mjs";
-import { ASSISTANT } from "./assistant-config.mjs";
 import { HOSTED_ASK_BINDING, HOSTED_ASK_PREFIX } from "./hosted-ask-config.mjs";
-
-export { SuperbeeAssistant };
 
 /*
  * Remote agent access: a read-only MCP endpoint at /mcp and the same tools as a GET/POST API under
@@ -28,21 +25,22 @@ const portal = createCloudflarePortalHandler({
     secretBinding: AGENT_SECRET_BINDING,
     rateLimit: AGENT_RATE_LIMIT,
   },
-  assistant: ASSISTANT,
 });
 
 /*
  * Ask Superbee is answered by hosted (board design one-ask-public-mode): with the SUPERBEE_ASK
  * service binding, every assistant route goes to hosted's PublicSiteAsk entrypoint unchanged, so the
- * page, the panel and the visitor cookie stay same-origin. Without it the local assistant answers,
- * as before; it stays registered until its Durable Object class is deleted, so existing
- * conversations still expire on their own alarms.
+ * page, the panel and the visitor cookie stay same-origin. A missing binding fails closed: this
+ * Worker no longer runs an assistant or accepts a provider credential of its own.
  */
 export default {
   fetch(request, env, ctx) {
-    const hosted = env?.[HOSTED_ASK_BINDING];
-    if (hosted && typeof hosted.fetch === "function" && new URL(request.url).pathname.startsWith(HOSTED_ASK_PREFIX))
+    if (new URL(request.url).pathname.startsWith(HOSTED_ASK_PREFIX)) {
+      const hosted = env?.[HOSTED_ASK_BINDING];
+      if (!hosted || typeof hosted.fetch !== "function")
+        return Response.json({ ok: false, refused: "assistant_unavailable" }, { status: 503 });
       return hosted.fetch(request);
+    }
     return portal.fetch(request, env, ctx);
   },
 };
