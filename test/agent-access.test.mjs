@@ -220,3 +220,34 @@ function ledgerOnly() {
   const reply = (op) => Response.json(op === "secret" ? { secret: "0".repeat(64) } : { status: "available", day: {}, month: {} });
   return { idFromName: (name) => name, get: () => ({ fetch: async (request) => reply(new URL(request.url).pathname.slice(1)) }) };
 }
+
+// Ask Superbee runs in hosted (board design one-ask-public-mode): with the SUPERBEE_ASK binding every
+// assistant route goes to hosted's PublicSiteAsk entrypoint unchanged; pages and agent routes do not.
+test("assistant routes go to hosted's PublicSiteAsk when the service binding is present", async () => {
+  const { HOSTED_ASK_BINDING, HOSTED_ASK_SERVICE } = await import("../scripts/hosted-ask-config.mjs");
+  const wrangler = JSON.parse((await readFile("wrangler.jsonc", "utf8")).replace(/^\s*\/\/.*$/gmu, ""));
+  assert.deepEqual(wrangler.services, [{ binding: HOSTED_ASK_BINDING, ...HOSTED_ASK_SERVICE }]);
+  const forwarded = [];
+  const hosted = {
+    fetch: async (request) => {
+      forwarded.push(request);
+      return Response.json({ ok: true, from: "hosted" });
+    },
+  };
+  const env = { ...environment(), [HOSTED_ASK_BINDING]: hosted };
+  const worker = (await import(`../scripts/cloudflare-worker.mjs?instance=${instance += 1}`)).default;
+  const request = new Request("https://docs.getsuperbee.com/__superbee/assistant/v1/start", {
+    method: "POST",
+    headers: { Origin: "https://docs.getsuperbee.com", "Content-Type": "application/json", "CF-Connecting-IP": "203.0.113.9" },
+    body: "{}",
+  });
+  const answer = await worker.fetch(request, env);
+  assert.deepEqual(await answer.json(), { ok: true, from: "hosted" });
+  assert.equal(forwarded.length, 1);
+  assert.equal(forwarded[0], request, "the request is forwarded as it came, headers and body included");
+  // Pages and the agent endpoint are still the site's own: nothing else reaches hosted.
+  await worker.fetch(new Request("https://docs.getsuperbee.com/"), env);
+  await worker.fetch(new Request("https://docs.getsuperbee.com/api/v1/openapi.json"), env);
+  await worker.fetch(new Request("https://docs.getsuperbee.com/__superbee/assistantx"), env);
+  assert.equal(forwarded.length, 1);
+});

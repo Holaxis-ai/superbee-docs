@@ -29,6 +29,14 @@
       "/__superbee/assistant/*"
     ]
   },
+  "services": [
+    {
+      "binding": "SUPERBEE_ASK",
+      "service": "superbee-product-app",
+      "entrypoint": "PublicSiteAsk",
+      "props": { "workspace": "holaxis-sites", "site": "superbee-docs" }
+    }
+  ],
   "durable_objects": { "bindings": [{ "name": "SUPERBEE_ASSISTANT", "class_name": "SuperbeeAssistant" }] },
   "migrations": [{ "tag": "superbee-assistant-v1", "new_sqlite_classes": ["SuperbeeAssistant"] }],
   "ratelimits": [
