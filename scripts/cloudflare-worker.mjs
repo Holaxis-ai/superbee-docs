@@ -4,6 +4,7 @@ import { createCloudflarePortalHandler, SuperbeeAssistant } from "@superbee/port
 
 import { AGENT_RATE_LIMIT, AGENT_RATE_LIMIT_BINDING, AGENT_SECRET_BINDING } from "./agent-access-config.mjs";
 import { ASSISTANT } from "./assistant-config.mjs";
+import { HOSTED_ASK_BINDING, HOSTED_ASK_PREFIX } from "./hosted-ask-config.mjs";
 
 export { SuperbeeAssistant };
 
@@ -14,7 +15,7 @@ export { SuperbeeAssistant };
  * binding, run_worker_first) and the AGENT_IP_HASH_SECRET Worker secret; without the binding it
  * switches itself off with one warning, so a missing piece never breaks a page.
  */
-export default createCloudflarePortalHandler({
+const portal = createCloudflarePortalHandler({
   agentAccess: {
     bundleId: "superbee-docs",
     server: {
@@ -29,3 +30,19 @@ export default createCloudflarePortalHandler({
   },
   assistant: ASSISTANT,
 });
+
+/*
+ * Ask Superbee is answered by hosted (board design one-ask-public-mode): with the SUPERBEE_ASK
+ * service binding, every assistant route goes to hosted's PublicSiteAsk entrypoint unchanged, so the
+ * page, the panel and the visitor cookie stay same-origin. Without it the local assistant answers,
+ * as before; it stays registered until its Durable Object class is deleted, so existing
+ * conversations still expire on their own alarms.
+ */
+export default {
+  fetch(request, env, ctx) {
+    const hosted = env?.[HOSTED_ASK_BINDING];
+    if (hosted && typeof hosted.fetch === "function" && new URL(request.url).pathname.startsWith(HOSTED_ASK_PREFIX))
+      return hosted.fetch(request);
+    return portal.fetch(request, env, ctx);
+  },
+};
