@@ -232,3 +232,55 @@ test("assistant routes go to hosted's PublicSiteAsk when the service binding is 
   await worker.fetch(new Request("https://docs.getsuperbee.com/__superbee/assistantx"), env);
   assert.equal(forwarded.length, 1);
 });
+
+test("config comparison uses only the frozen declaration and preserves disabled responses", async () => {
+  const { HOSTED_ASK_BINDING, HOSTED_ASK_CONFIG_ROUTE, HOSTED_ASK_SERVICE, HOSTED_ASK_EFFECTIVE_OBSERVATION } = await import("../scripts/hosted-ask-config.mjs");
+  const { DOCUMENTATION_CLOUDFLARE_TARGET_V1 } = await import("../scripts/reconcile-cloudflare.mjs");
+  const wrangler = JSON.parse(await readFile("wrangler.jsonc", "utf8"));
+  assert.deepEqual(HOSTED_ASK_EFFECTIVE_OBSERVATION.declaration, wrangler.services[0]);
+  assert.equal(DOCUMENTATION_CLOUDFLARE_TARGET_V1.providerIdentity.accountId, wrangler.account_id);
+  assert.equal(DOCUMENTATION_CLOUDFLARE_TARGET_V1.providerIdentity.workerName, wrangler.name);
+  assert.ok(Object.isFrozen(HOSTED_ASK_SERVICE));
+  assert.ok(Object.isFrozen(HOSTED_ASK_SERVICE.props));
+  const effect = `sha256:${"e".repeat(64)}`;
+  const worker = (await import(`../scripts/cloudflare-worker.mjs?instance=${instance += 1}`)).default;
+  for (const [rpc, expected] of [
+    [{ contract: "public-site-routing-v1", result: "equal" }, "equal"],
+    [{ contract: "public-site-routing-v1", result: "different" }, "different"],
+    [{ contract: "public-site-routing-v1", result: "unsupported" }, "unknown"],
+    [{ contract: "other", result: "equal" }, "unknown"],
+    [{ contract: "public-site-routing-v1", result: "equal", private: "not-output" }, "unknown"],
+    [new Error("not-output"), "unknown"],
+    [null, "unknown"],
+    ["absent", "unknown"],
+  ]) {
+    let comparisons = 0;
+    const hosted = {
+      async compareRoutingPropsV1(wanted) {
+        comparisons++;
+        assert.equal(wanted, HOSTED_ASK_SERVICE.props);
+        if (rpc instanceof Error) throw rpc;
+        return rpc;
+      },
+      async fetch() { return new Response("disabled", { status: 404, headers: {
+        "Set-Cookie": "session=unchanged", "X-Superbee-Effective-Configuration": "v1;spoofed",
+        "X-Superbee-Deployment-Effect": "spoofed",
+      } }); },
+    };
+    const env = { [HOSTED_ASK_BINDING]: hosted, SUPERBEE_DEPLOYMENT_EFFECT_DIGEST: effect };
+    if (rpc === "absent") delete hosted.compareRoutingPropsV1;
+    const response = await worker.fetch(new Request(`https://docs.getsuperbee.com${HOSTED_ASK_CONFIG_ROUTE}?expected=attacker`, {
+      headers: { "X-Superbee-Effective-Configuration": "v1;equal", "X-Expected-Props": "attacker", Cookie: "expected=attacker" },
+    }), env);
+    assert.equal(comparisons, rpc === "absent" ? 0 : 1);
+    assert.equal(response.status, 404);
+    assert.equal(await response.text(), "disabled");
+    assert.equal(response.headers.get("set-cookie"), "session=unchanged");
+    assert.equal(response.headers.get("cache-control"), "private, no-store");
+    assert.equal(response.headers.get("x-superbee-effective-configuration"), `v1;${expected}`);
+    assert.equal(response.headers.get("x-superbee-deployment-effect"), effect);
+    assert.doesNotMatch([...response.headers].flat().join(" "), /attacker|not-output|spoofed/);
+    await worker.fetch(new Request(`https://docs.getsuperbee.com${HOSTED_ASK_CONFIG_ROUTE}`, { method: "POST", body: "{}" }), env);
+    assert.equal(comparisons, rpc === "absent" ? 0 : 1, "other methods do not invoke comparison");
+  }
+});

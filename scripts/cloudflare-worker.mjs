@@ -1,9 +1,9 @@
 /* The host-neutral runtime stays package-owned; this file only gives Wrangler a stable entry. */
 
-import { createCloudflarePortalHandler } from "@superbee/portal-cloudflare";
+import { createCloudflarePortalHandler, forwardCloudflareServiceV1 } from "@superbee/portal-cloudflare";
 
 import { AGENT_RATE_LIMIT, AGENT_RATE_LIMIT_BINDING, AGENT_SECRET_BINDING } from "./agent-access-config.mjs";
-import { HOSTED_ASK_BINDING, HOSTED_ASK_PREFIX } from "./hosted-ask-config.mjs";
+import { HOSTED_ASK_BINDING, HOSTED_ASK_PREFIX, HOSTED_ASK_CONFIG_ROUTE, observeHostedAskBinding } from "./hosted-ask-config.mjs";
 
 /*
  * Remote agent access: a read-only MCP endpoint at /mcp and the same tools as a GET/POST API under
@@ -39,7 +39,11 @@ export default {
       const hosted = env?.[HOSTED_ASK_BINDING];
       if (!hosted || typeof hosted.fetch !== "function")
         return Response.json({ ok: false, refused: "assistant_unavailable" }, { status: 503 });
-      return hosted.fetch(request);
+      return forwardCloudflareServiceV1(request, env, {
+        configRoute: HOSTED_ASK_CONFIG_ROUTE,
+        observe: () => observeHostedAskBinding(hosted),
+        fetch: () => hosted.fetch(request),
+      });
     }
     return portal.fetch(request, env, ctx);
   },

@@ -11,3 +11,21 @@ export const HOSTED_ASK_SERVICE = Object.freeze({
   entrypoint: "PublicSiteAsk",
   props: Object.freeze({ workspace: "holaxis-sites", site: "superbee-docs" }),
 });
+export const HOSTED_ASK_CONFIG_ROUTE = `${HOSTED_ASK_PREFIX}v1/config`;
+export const HOSTED_ASK_EFFECTIVE_OBSERVATION = Object.freeze({
+  route: HOSTED_ASK_CONFIG_ROUTE,
+  protocol: "effective-configuration-v1",
+  declaration: Object.freeze({ binding: HOSTED_ASK_BINDING, ...HOSTED_ASK_SERVICE }),
+  omittedServiceEnvironment: "production",
+});
+
+/** Only the server-owned declaration reaches RPC; public requests never supply expectations. */
+export async function observeHostedAskBinding(hosted) {
+  try {
+    const value = await hosted.compareRoutingPropsV1(HOSTED_ASK_SERVICE.props);
+    if (!value || typeof value !== "object"
+      || Object.keys(value).length !== 2 || !Object.hasOwn(value, "contract") || !Object.hasOwn(value, "result")
+      || value.contract !== "public-site-routing-v1") return "unknown";
+    return value.result === "equal" || value.result === "different" ? value.result : "unknown";
+  } catch { return "unknown"; }
+}

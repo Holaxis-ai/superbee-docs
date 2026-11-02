@@ -13,6 +13,7 @@ import {
   inspectCloudflareDesiredState,
   reconcileCloudflarePortal,
 } from "@superbee/portal-cloudflare/reconcile";
+import { HOSTED_ASK_EFFECTIVE_OBSERVATION } from "./hosted-ask-config.mjs";
 
 export const DOCUMENTATION_CLOUDFLARE_TARGET_V1 = Object.freeze({
   cwd: ".",
@@ -22,6 +23,7 @@ export const DOCUMENTATION_CLOUDFLARE_TARGET_V1 = Object.freeze({
   targetId: "cloudflare:workers:superbee-docs:production",
   wranglerConfigPath: "wrangler.jsonc",
   wrapperPath: "scripts/cloudflare-worker.mjs",
+  providerIdentity: Object.freeze({ accountId: "454536c8fb003eaa679b986bd11dfe49", workerName: "superbee-docs" }),
 });
 
 export const DOCUMENTATION_RECONCILIATION_FAILURE_V1 =
@@ -115,6 +117,7 @@ export async function reconcileDocumentationCloudflareV1({
       mode,
       target,
       provenance,
+      effectiveObservation: HOSTED_ASK_EFFECTIVE_OBSERVATION,
       ...(mode === "deploy" ? {
         expectedDesiredCommit: commit,
         observedDesiredCommit: observed,
