@@ -11,6 +11,7 @@ import {
   inspectDocumentationCloudflareDesiredStateV1,
   reconcileDocumentationCloudflareV1,
 } from "../scripts/reconcile-cloudflare.mjs";
+import { HOSTED_ASK_EFFECTIVE_OBSERVATION, HOSTED_ASK_SERVICE } from "../scripts/hosted-ask-config.mjs";
 
 const COMMIT = "a".repeat(40);
 const REPOSITORY = "Holaxis-ai/superbee-docs";
@@ -48,6 +49,7 @@ test("Docs binds the exact artifact, host assembly, target, and immutable proven
       targetId: "cloudflare:workers:superbee-docs:production",
       wranglerConfigPath: "wrangler.jsonc",
       wrapperPath: "scripts/cloudflare-worker.mjs",
+      providerIdentity: { accountId: "454536c8fb003eaa679b986bd11dfe49", workerName: "superbee-docs" },
     });
   } finally {
     await rm(root, { recursive: true, force: true });
@@ -77,6 +79,9 @@ test("successful reconciliation persists the package receipt and exact activatio
     assert.equal(observed.target.staticAssetsDirectory, "deploy");
     assert.equal(observed.expectedDesiredCommit, COMMIT);
     assert.equal(observed.observedDesiredCommit, COMMIT);
+    assert.equal(observed.effectiveObservation, HOSTED_ASK_EFFECTIVE_OBSERVATION);
+    assert.equal(observed.effectiveObservation.declaration.props, HOSTED_ASK_SERVICE.props);
+    assert.ok(Object.isFrozen(observed.effectiveObservation.declaration.props));
     assert.deepEqual(JSON.parse(await readFile(path.join(root, "receipts/cloudflare.json"), "utf8")), receipt);
   } finally {
     await rm(root, { recursive: true, force: true });
