@@ -250,6 +250,7 @@ test("config comparison uses only the frozen declaration and preserves disabled 
     [{ contract: "public-site-routing-v1", result: "unsupported" }, "unknown"],
     [{ contract: "other", result: "equal" }, "unknown"],
     [{ contract: "public-site-routing-v1", result: "equal", private: "not-output" }, "unknown"],
+    [Object.assign([], { contract: "public-site-routing-v1", result: "equal" }), "unknown"],
     [new Error("not-output"), "unknown"],
     [null, "unknown"],
     ["absent", "unknown"],

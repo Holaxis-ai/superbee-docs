@@ -23,7 +23,7 @@ export const HOSTED_ASK_EFFECTIVE_OBSERVATION = Object.freeze({
 export async function observeHostedAskBinding(hosted) {
   try {
     const value = await hosted.compareRoutingPropsV1(HOSTED_ASK_SERVICE.props);
-    if (!value || typeof value !== "object"
+    if (!value || typeof value !== "object" || Array.isArray(value)
       || Object.keys(value).length !== 2 || !Object.hasOwn(value, "contract") || !Object.hasOwn(value, "result")
       || value.contract !== "public-site-routing-v1") return "unknown";
     return value.result === "equal" || value.result === "different" ? value.result : "unknown";
