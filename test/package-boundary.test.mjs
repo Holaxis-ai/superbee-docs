@@ -242,7 +242,7 @@ test("built site preserves documentation, View, diagram, discovery, and presenta
   assert.match(sharingPage, /Repository-creation permission is irrelevant/);
   assert.match(sharingPage, /Please keep.*as an outside collaborator/s);
   assert.match(sharingPage, /GitHub: restricting repository creation in an organization/);
-  assert.doesNotMatch(sharingPage, /https:\/\/docs\.github\.com\/en\/organizations\/managing-organization-settings\/restricting-repository-creation-in-your-organization/);
+  assert.match(sharingPage, /<a [^>]*href="https:\/\/docs\.github\.com\/en\/organizations\/managing-organization-settings\/restricting-repository-creation-in-your-organization"[^>]*>GitHub: restricting repository creation in an organization<\/a>/);
   assert.match(firstWorkspacePage, /publishes <code>board<\/code> into an existing remote repository/);
   assert.match(firstWorkspacePage, /leaves both facts unknown/);
   assert.match(handoffPage, /Ask an agent to prepare the handoff/);
