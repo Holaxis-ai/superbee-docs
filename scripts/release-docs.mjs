@@ -165,8 +165,9 @@ ${input.recovery}
 `;
 }
 
-// A literal pipe ends a Markdown table cell, even inside a code span, unless it is escaped.
-const tableCode = (value) => `\`${String(value).replace(/\|/g, "\\|")}\``;
+// A literal pipe ends a Markdown table cell, even inside a code span, unless it is escaped. A
+// backslash is escaped too, so one already in the value cannot cancel the pipe's escape.
+const tableCode = (value) => `\`${String(value).replace(/[\\|]/g, "\\$&")}\``;
 
 export function sourceDocument(input) {
   return `---
