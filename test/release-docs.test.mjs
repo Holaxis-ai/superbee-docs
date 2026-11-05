@@ -177,3 +177,13 @@ https://registry.npmjs.org/superbee/-/superbee-1.2.3.tgz
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("release source tables escape pipes so a Node range stays in one cell", async () => {
+  const { sourceDocument, validateInput } = await import("../scripts/release-docs.mjs");
+  const manifest = validateInput({ ...input("1.2.3"), nodeRequirement: "^22 || ^24", supportedPlatforms: ["Node ^22 || ^24"] });
+  const rows = sourceDocument(manifest).split("\n").filter((line) => /^\| (Node requirement|supported platforms) /.test(line));
+  assert.deepEqual(rows, [
+    "| Node requirement | `^22 \\|\\| ^24` |",
+    "| supported platforms | `Node ^22 \\|\\| ^24` |",
+  ]);
+});

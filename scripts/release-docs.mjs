@@ -165,7 +165,10 @@ ${input.recovery}
 `;
 }
 
-function sourceDocument(input) {
+// A literal pipe ends a Markdown table cell, even inside a code span, unless it is escaped.
+const tableCode = (value) => `\`${String(value).replace(/\|/g, "\\|")}\``;
+
+export function sourceDocument(input) {
   return `---
 type: Source
 title: ${yaml(`Superbee ${input.version} release evidence`)}
@@ -186,8 +189,8 @@ superbee_updated_by: ${yaml("release-docs-automation")}
 | npm tarball | \`${input.tarballUrl}\` |
 | source tag | \`${input.sourceTag}\` |
 | source commit | \`${input.sourceCommit}\` |
-| Node requirement | \`${input.nodeRequirement}\` |
-| supported platforms | ${input.supportedPlatforms.map((value) => `\`${value}\``).join(", ")} |
+| Node requirement | ${tableCode(input.nodeRequirement)} |
+| supported platforms | ${input.supportedPlatforms.map(tableCode).join(", ")} |
 
 # Public authorities
 
