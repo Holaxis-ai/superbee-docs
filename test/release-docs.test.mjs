@@ -186,4 +186,6 @@ test("release source tables escape pipes so a Node range stays in one cell", asy
     "| Node requirement | `^22 \\|\\| ^24` |",
     "| supported platforms | `Node ^22 \\|\\| ^24` |",
   ]);
+  const backslash = validateInput({ ...input("1.2.3"), nodeRequirement: "^22 \\| ^24" });
+  assert.ok(sourceDocument(backslash).includes("| Node requirement | `^22 \\\\\\| ^24` |"), "a backslash in the value cannot cancel the pipe's escape");
 });
