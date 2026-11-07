@@ -213,37 +213,79 @@ test("the workload token client runs one command with the bearer and without Git
   await assert.rejects(exchange({ app, oidc: jwt, request: elsewhere }), /not https:\/\/holaxis-sites/);
 });
 
-test("only the acquire and ask-source jobs can mint an OIDC token, in their environment, with no install scripts", async () => {
-  const workflow = await readFile(".github/workflows/verify-production.yml", "utf8");
+function workflowJobs(workflow) {
   const body = workflow.slice(workflow.indexOf("\njobs:\n"));
-  const jobs = Object.fromEntries(body.split(/\n(?=  [a-z-]+:\n)/u).slice(1).map((block) => [block.match(/^  ([a-z-]+):/u)[1], block]));
+  return Object.fromEntries(body.split(/\n(?=  [a-z-]+:\n)/u).slice(1).map((block) => [block.match(/^  ([a-z-]+):/u)[1], block]));
+}
+function literalStep(workflow, name) {
+  const lines = workflow.slice(workflow.indexOf(`      - name: ${name}\n`)).split("\n");
+  const start = lines.findIndex((line) => line === "        run: |");
+  assert.ok(start >= 0, name);
+  const result = [];
+  for (const line of lines.slice(start + 1)) {
+    if (line && !line.startsWith("          ")) break;
+    result.push(line.slice(10));
+  }
+  return result.join("\n");
+}
+
+test("one fixed environment-bound leaf acquires the complete Read and Site profile for both operations", async () => {
+  const workflow = await readFile(".github/workflows/verify-production.yml", "utf8");
+  const leaf = await readFile(".github/workflows/hosted-workload.yml", "utf8"), jobs = workflowJobs(workflow);
   assert.deepEqual(Object.keys(jobs), ["redispatch", "acquire", "build", "reconcile", "ask-source"]);
-  assert.equal(workflow.match(/^ +id-token: write$/gmu).length, 2);
-  // ask-source (board design one-ask-public-mode) installs nothing and runs only the two
-  // dependency-free scripts on the artifact build produced; it is off until the variable is set.
-  assert.match(jobs["ask-source"], /id-token: write/u);
-  assert.match(jobs["ask-source"], /environment: holaxis-sites-docs\n/u);
-  assert.doesNotMatch(jobs["ask-source"], /npm (ci|install)|run: npm/u);
+  for (const [id, mode] of [["acquire", "export"], ["ask-source", "ask-source"]]) {
+    assert.match(jobs[id], /uses: \.\/\.github\/workflows\/hosted-workload\.yml/u);
+    assert.match(jobs[id], new RegExp(`mode: ${mode}\\n`, "u"));
+    assert.match(jobs[id], /id-token: write/u);
+    assert.doesNotMatch(jobs[id], /runs-on:|steps:|DOCS_HOSTED_APP_ID/u);
+  }
+  assert.match(jobs.acquire, /github\.event_name != 'push'/u);
   assert.match(jobs["ask-source"], /vars\.DOCS_ASK_SOURCE_ENABLED == 'true'/u);
   assert.match(jobs["ask-source"], /github\.event_name == 'workflow_dispatch'/u);
-  assert.match(
-    jobs["ask-source"],
-    /run: node scripts\/hosted-workload-token\.mjs exec -- node scripts\/hosted-ask-source\.mjs publish --artifact dist\n/u,
-  );
-  for (const script of ["scripts/hosted-workload-token.mjs", "scripts/hosted-ask-source.mjs"])
-    for (const [, specifier] of (await readFile(script, "utf8")).matchAll(/^import .* from "([^"]+)";$/gmu))
-      assert.ok(specifier.startsWith("node:") || specifier === "./hosted-workload-token.mjs", `${script} imports ${specifier}`);
-  assert.match(jobs.acquire, /id-token: write/u);
-  assert.match(jobs.acquire, /environment: holaxis-sites-docs\n/u);
-  assert.match(jobs.acquire, /npm ci --ignore-scripts\n/u);
-  assert.match(jobs.acquire, /github\.event_name != 'push'/u);
-  assert.match(jobs.acquire, /node scripts\/hosted-workload-token\.mjs exec -- \\\n\s+node scripts\/hosted-content\.mjs export /u);
-  assert.match(workflow.slice(0, workflow.indexOf("jobs:")), /permissions:\n  contents: read\n/u);
-  assert.doesNotMatch(jobs.build, /hosted-workload-token|id-token:/u);
-  const names = (await readdir(".github/workflows")).filter((name) => name !== "verify-production.yml");
-  for (const name of names) {
-    assert.doesNotMatch(await readFile(path.join(".github/workflows", name), "utf8"), /id-token|DOCS_HOSTED_APP_ID/u, name);
+  assert.match(jobs["ask-source"], /needs\.reconcile\.result == 'success'/u);
+  assert.doesNotMatch(jobs["ask-source"], /secrets:/u);
+  assert.match(leaf, /name: hosted workload\n/u);
+  assert.match(leaf, /environment: holaxis-sites-docs\n/u);
+  assert.match(leaf, /registry-url: "https:\/\/registry\.npmjs\.org"/u);
+  assert.equal(leaf.match(/id-token: write/gu).length, 1);
+  assert.match(leaf, /if: inputs\.mode == 'export'\n +run: npm ci --ignore-scripts/u);
+  assert.equal(leaf.match(/NODE_AUTH_TOKEN: \$\{\{ secrets\.NPM_READ_TOKEN \}\}/gu).length, 1);
+  assert.match(leaf, /NPM_CONFIG_USERCONFIG: \/dev\/null/u);
+  assert.doesNotMatch(workflow + leaf, /secrets: inherit|DOCS_HOSTED_APP_ID/u);
+  const intent = JSON.parse(await readFile("config/hosted-workload-request.json", "utf8"));
+  assert.deepEqual(intent, { version: 1, displayName: "Superbee docs site publisher", events: ["schedule", "workflow_dispatch"], bundles: { "superbee-docs": "read" }, sites: ["superbee-docs"] });
+  assert.equal(leaf.match(/workload exec --request-file config\/hosted-workload-request\.json/gu).length, 2);
+  assert.equal(leaf.match(/--url https:\/\/holaxis-sites\.getsuperbee\.com --workspace holaxis-sites --host https:\/\/mcp\.getsuperbee\.com/gu).length, 2);
+  assert.match(leaf, /name: superbee-docs-portal-\$\{\{ github\.sha \}\}/u);
+  assert.doesNotMatch(leaf, /run-id:|artifact-id:|inputs\.(?:command|host|workspace|artifact|run|commit)/u);
+  assert.ok(leaf.indexOf("Require the fixed caller") < leaf.indexOf("workload exec"));
+  const names = (await readdir(".github/workflows")).filter((name) => !["verify-production.yml", "hosted-workload.yml"].includes(name));
+  for (const name of names) assert.doesNotMatch(await readFile(path.join(".github/workflows", name), "utf8"), /id-token|DOCS_HOSTED_APP_ID/u, name);
+});
+
+test("the leaf refuses foreign callers and unknown modes before any workload exchange", async () => {
+  const leaf = await readFile(".github/workflows/hosted-workload.yml", "utf8");
+  const script = literalStep(leaf, "Require the fixed caller and finite operation before acquiring access");
+  const valid = { GITHUB_REPOSITORY: "Holaxis-ai/superbee-docs", GITHUB_REF: "refs/heads/main", GITHUB_WORKFLOW_REF: "Holaxis-ai/superbee-docs/.github/workflows/verify-production.yml@refs/heads/main", GITHUB_EVENT_NAME: "workflow_dispatch", WORKLOAD_MODE: "export", ASK_SOURCE_ENABLED: "true" };
+  for (const change of [{}, { WORKLOAD_MODE: "ask-source" }, { GITHUB_EVENT_NAME: "schedule" }, { WORKLOAD_MODE: "unknown" }, { WORKLOAD_MODE: "export; echo injected" }, { GITHUB_REPOSITORY: "other/repo" }, { GITHUB_REF: "refs/heads/other" }, { GITHUB_WORKFLOW_REF: "Holaxis-ai/superbee-docs/.github/workflows/other.yml@refs/heads/main" }, { GITHUB_EVENT_NAME: "push" }, { WORKLOAD_MODE: "ask-source", GITHUB_EVENT_NAME: "schedule" }, { WORKLOAD_MODE: "ask-source", ASK_SOURCE_ENABLED: "false" }]) {
+    const result = spawnSync("bash", ["-c", script], { env: { ...valid, ...change }, encoding: "utf8" });
+    assert.equal(result.status === 0, Object.keys(change).length === 0 || Object.keys(change).length === 1 && ["ask-source", "schedule"].includes(Object.values(change)[0]), JSON.stringify(change));
   }
+});
+
+test("pending public workload admission cannot create an export or advertise its digest", async () => {
+  const leaf = await readFile(".github/workflows/hosted-workload.yml", "utf8");
+  const script = literalStep(leaf, "Export the hosted content, verified against the host's digest manifest");
+  const root = await mkdtemp(path.join(tmpdir(), "docs-workload-pending-"));
+  try {
+    const cli = path.join(root, "superbee"), output = path.join(root, "output"), summary = path.join(root, "summary");
+    await writeFile(cli, "#!/bin/sh\necho 'workload_approval_pending' >&2\nexit 2\n", { mode: 0o755 });
+    await writeFile(output, ""); await writeFile(summary, "");
+    const result = spawnSync("bash", ["-c", script], { env: { PATH: process.env.PATH, RUNNER_TEMP: root, DOCS_WORKLOAD_CLI: cli, GITHUB_OUTPUT: output, GITHUB_STEP_SUMMARY: summary }, encoding: "utf8" });
+    assert.equal(result.status, 2); assert.equal(await readFile(output, "utf8"), ""); assert.equal(await readFile(summary, "utf8"), "");
+    await assert.rejects(lstat(path.join(root, "hosted", "export")), { code: "ENOENT" });
+    await assert.rejects(lstat(path.join(root, "hosted", "receipt.json")), { code: "ENOENT" });
+  } finally { await rm(root, { recursive: true, force: true }); }
 });
 
 test("materialize checks the handed-over digest and leaves the old folder whole when it refuses", async () => {
@@ -521,7 +563,7 @@ test("the library's typed failures become the existing user-facing failures, nev
 const trustedRun = {
   id: 42, status: "completed", conclusion: "success", head_branch: "main", event: "workflow_dispatch",
   path: ".github/workflows/verify-production.yml", head_sha: "a".repeat(40),
-  repository: { id: 1349797123 }, head_repository: { id: 1349797123 },
+  repository: { id: 1349797123 }, head_repository: { id: 1349797123 }, run_attempt: 1,
 };
 const retainedArtifact = { id: 123, name: "superbee-docs-hosted-content-42", expired: false, expires_at: "2099-01-01T00:00:00Z" };
 
@@ -629,4 +671,36 @@ test("snapshot receipt and complete content bytes are checked before replacing t
     assert.equal(placed.revision, 3);
     assert.deepEqual(await listFiles(bundle), ["guides/a.md", "index.md"]);
   } finally { for (const dir of [root, bundle]) await rm(dir, { recursive: true, force: true }); }
+});
+
+test("nested acquire exports outrank older published runs without confusing the two snapshot modes", async () => {
+  const older = { ...trustedRun, id: 41, head_sha: "b".repeat(40) };
+  const nested = { ...acquireJob, name: "acquire / hosted workload" };
+  const api = async (endpoint) => {
+    if (endpoint.includes("/jobs?")) return { jobs: [endpoint.includes("/runs/41/") ? acquireJob : nested] };
+    if (endpoint.includes("/artifacts?")) return { artifacts: [{ ...acquiredArtifact, name: `superbee-docs-hosted-content-${endpoint.includes("/runs/41/") ? 41 : 42}` }] };
+    return { workflow_runs: endpoint.includes("status=success") ? [older] : [buildFailedRun, older] };
+  };
+  const options = { api, isMainAncestor: async () => true };
+  assert.equal((await selectSnapshot({ ...options, mode: "acquired" })).runId, 42);
+  assert.equal((await selectSnapshot({ ...options, mode: "published" })).runId, 41);
+  for (const jobs of [
+    [{ ...nested, name: "ask-source / hosted workload" }],
+    [{ ...nested, name: "acquire / hosted workload extra" }],
+    [{ ...nested, name: "foreign / acquire / hosted workload" }],
+    [nested, acquireJob], [nested, nested],
+    [{ ...nested, run_attempt: 2 }], [{ ...nested, run_attempt: undefined }],
+    [{ ...nested, conclusion: "failure" }],
+  ]) {
+    await assert.rejects(selectSnapshot({ mode: "acquired", isMainAncestor: async () => true, api: async (endpoint) => {
+      if (endpoint.includes("/jobs?")) return { jobs };
+      if (endpoint.includes("/artifacts?")) return { artifacts: [acquiredArtifact] };
+      return { workflow_runs: [buildFailedRun] };
+    } }), /no retained acquire-verified main/u, JSON.stringify(jobs));
+  }
+  for (const run_attempt of [undefined, 0, "1"]) await assert.rejects(selectSnapshot({ mode: "acquired", isMainAncestor: async () => true, api: async (endpoint) => {
+    if (endpoint.includes("/jobs?")) return { jobs: [nested] };
+    if (endpoint.includes("/artifacts?")) return { artifacts: [acquiredArtifact] };
+    return { workflow_runs: [{ ...buildFailedRun, run_attempt }] };
+  } }), /no retained acquire-verified main/u);
 });

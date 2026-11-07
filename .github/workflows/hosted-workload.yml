@@ -1,0 +1,108 @@
+name: Docs hosted workload
+
+on:
+  workflow_call:
+    inputs:
+      mode:
+        type: string
+        required: true
+    secrets:
+      NPM_READ_TOKEN:
+        required: false
+    outputs:
+      tree_digest:
+        value: ${{ jobs.workload.outputs.tree_digest }}
+
+permissions:
+  contents: read
+
+jobs:
+  workload:
+    # Native API provenance contract: the caller's acquire job is "acquire / hosted workload".
+    name: hosted workload
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: holaxis-sites-docs
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      tree_digest: ${{ steps.export.outputs.tree_digest }}
+    steps:
+      - name: Require the fixed caller and finite operation before acquiring access
+        env:
+          WORKLOAD_MODE: ${{ inputs.mode }}
+          ASK_SOURCE_ENABLED: ${{ vars.DOCS_ASK_SOURCE_ENABLED }}
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = Holaxis-ai/superbee-docs
+          test "$GITHUB_REF" = refs/heads/main
+          test "$GITHUB_WORKFLOW_REF" = Holaxis-ai/superbee-docs/.github/workflows/verify-production.yml@refs/heads/main
+          case "$GITHUB_EVENT_NAME" in schedule|workflow_dispatch) ;; *) exit 2 ;; esac
+          case "$WORKLOAD_MODE" in
+            export) ;;
+            ask-source) test "$GITHUB_EVENT_NAME" = workflow_dispatch; test "$ASK_SOURCE_ENABLED" = true ;;
+            *) exit 2 ;;
+          esac
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          registry-url: "https://registry.npmjs.org"
+      # Only export needs the existing SDK dependency graph; no lifecycle script receives OIDC.
+      - if: inputs.mode == 'export'
+        run: npm ci --ignore-scripts
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
+      - name: Provision the exact public workload CLI outside the repository graph
+        working-directory: ${{ runner.temp }}
+        env:
+          NODE_AUTH_TOKEN: ''
+          NPM_CONFIG_USERCONFIG: /dev/null
+        run: |
+          set -euo pipefail
+          cli_root="$RUNNER_TEMP/docs-workload-cli"
+          test ! -e "$cli_root"
+          mkdir -p "$cli_root"
+          curl --fail --silent --show-error --proto '=https' --tlsv1.2 \
+            https://registry.npmjs.org/superbee/-/superbee-0.4.4-pre.13.tgz -o "$cli_root/cli.tgz"
+          echo "9920a850aea0a0e17530fb16886a6ec4e3c42730f914df42f68d8aa4a06eb01c  $cli_root/cli.tgz" | sha256sum --check --status
+          npm install --prefix "$cli_root" --no-package-lock --ignore-scripts --registry=https://registry.npmjs.org/ "$cli_root/cli.tgz"
+          echo "70368958d8043603c0078710869ced63c3c9d301db481ece91c8c93eb89a647d  $cli_root/node_modules/superbee/dist/superbee.mjs" | sha256sum --check --status
+          printf 'DOCS_WORKLOAD_CLI=%s\n' "$cli_root/node_modules/.bin/superbee" >> "$GITHUB_ENV"
+      - name: Export the hosted content, verified against the host's digest manifest
+        if: inputs.mode == 'export'
+        id: export
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/hosted"
+          "$DOCS_WORKLOAD_CLI" workload exec --request-file config/hosted-workload-request.json \
+            --url https://holaxis-sites.getsuperbee.com --workspace holaxis-sites --host https://mcp.getsuperbee.com -- \
+            node scripts/hosted-content.mjs export --to "$RUNNER_TEMP/hosted/export" --receipt "$RUNNER_TEMP/hosted/receipt.json"
+          echo "tree_digest=$(jq -r .treeDigest "$RUNNER_TEMP/hosted/receipt.json")" >> "$GITHUB_OUTPUT"
+          jq -r '"## Hosted content\n- bundle: `\(.bundle)`\n- revision: \(.revision), exported \(.exportedAt)\n- \(.documents) documents, \(.blobs) other files\n- tree: `\(.treeDigest)`"' \
+            "$RUNNER_TEMP/hosted/receipt.json" >> "$GITHUB_STEP_SUMMARY"
+      - name: Hand the verified export to the build
+        if: inputs.mode == 'export'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: superbee-docs-hosted-content-${{ github.run_id }}
+          path: ${{ runner.temp }}/hosted
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 30
+      - name: Restore the exact completed Portal artifact
+        if: inputs.mode == 'ask-source'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: superbee-docs-portal-${{ github.sha }}
+          path: dist
+      - name: Publish the artifact to hosted as Ask Superbee's source
+        if: inputs.mode == 'ask-source'
+        run: >-
+          "$DOCS_WORKLOAD_CLI" workload exec --request-file config/hosted-workload-request.json
+          --url https://holaxis-sites.getsuperbee.com --workspace holaxis-sites --host https://mcp.getsuperbee.com --
+          node scripts/hosted-ask-source.mjs publish --artifact dist
