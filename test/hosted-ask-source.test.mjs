@@ -102,3 +102,27 @@ test("a restricted artifact, a changed file, a stray digest, a bad bearer or a r
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("Ask source uses the same full workload request and only the current reconciled artifact", async () => {
+  const { readFile } = await import("node:fs/promises");
+  const caller = await readFile(".github/workflows/verify-production.yml", "utf8");
+  const job = caller.slice(caller.indexOf("\n  ask-source:\n"));
+  assert.match(job, /needs: reconcile/u);
+  assert.match(job, /needs\.reconcile\.result == 'success'/u);
+  assert.match(job, /vars\.DOCS_ASK_SOURCE_ENABLED == 'true'/u);
+  assert.match(job, /github\.event_name == 'workflow_dispatch'/u);
+  assert.match(job, /uses: \.\/\.github\/workflows\/hosted-workload\.yml/u);
+  assert.doesNotMatch(job, /secrets:|DOCS_HOSTED_APP_ID/u);
+  const leaf = await readFile(".github/workflows/hosted-workload.yml", "utf8");
+  assert.match(leaf, /name: superbee-docs-portal-\$\{\{ github\.sha \}\}/u);
+  assert.doesNotMatch(leaf, /run-id:|site-activate|site-deactivate|inputs\.(?:artifact|run|commit|site)/u);
+  const command = leaf.slice(leaf.indexOf("      - name: Publish the artifact"));
+  assert.match(command, /if: inputs\.mode == 'ask-source'/u);
+  assert.match(command, /workload exec --request-file config\/hosted-workload-request\.json/u);
+  assert.match(command, /node scripts\/hosted-ask-source\.mjs publish --artifact dist/u);
+  assert.doesNotMatch(command, /NODE_AUTH_TOKEN|NPM_READ_TOKEN|CLOUDFLARE|npm install/u);
+  assert.deepEqual(JSON.parse(await readFile("config/hosted-workload-request.json", "utf8")), {
+    version: 1, displayName: "Superbee docs site publisher", events: ["schedule", "workflow_dispatch"],
+    bundles: { "superbee-docs": "read" }, sites: ["superbee-docs"],
+  });
+});

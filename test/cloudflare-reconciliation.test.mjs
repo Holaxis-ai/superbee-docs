@@ -187,8 +187,18 @@ test("the workflow separates build from credentials and serializes durable recon
   assert.match(workflow, /cron: "17 9 \* \* \*"/u);
   assert.match(workflow, /actions\/upload-artifact@[0-9a-f]{40}[\s\S]+path: dist/u);
   assert.match(workflow, /actions\/download-artifact@[0-9a-f]{40}[\s\S]+path: dist/u);
-  // Uploaded by build, downloaded by reconcile and by ask-source (the same artifact hosted keeps).
-  assert.equal((workflow.match(/name: superbee-docs-portal-\$\{\{ github\.sha \}\}/gu) ?? []).length, 3);
+  // Uploaded by build, downloaded by reconcile and the actual called Ask-source leaf.
+  const leaf = await readFile(".github/workflows/hosted-workload.yml", "utf8");
+  const askJob = workflow.slice(workflow.indexOf("\n  ask-source:\n"));
+  assert.match(askJob, /uses: \.\/\.github\/workflows\/hosted-workload\.yml/u);
+  assert.match(askJob, /with:\n +mode: ask-source\n/u);
+  const restored = leaf.slice(leaf.indexOf("      - name: Restore the exact completed Portal artifact"), leaf.indexOf("      - name: Publish the artifact"));
+  assert.match(restored, /if: inputs\.mode == 'ask-source'/u);
+  assert.match(restored, /actions\/download-artifact@[0-9a-f]{40}/u);
+  assert.match(restored, /name: superbee-docs-portal-\$\{\{ github\.sha \}\}\n +path: dist/u);
+  assert.doesNotMatch(restored, /run-id:|artifact-ids:/u);
+  assert.equal((workflow.match(/name: superbee-docs-portal-\$\{\{ github\.sha \}\}/gu) ?? []).length, 2);
+  assert.equal((leaf.match(/name: superbee-docs-portal-\$\{\{ github\.sha \}\}/gu) ?? []).length, 1);
   assert.match(workflow, /name: superbee-docs-portal-\$\{\{ github\.sha \}\}[\s\S]+overwrite: true/u);
   assert.doesNotMatch(workflow, /superbee-docs-portal-\$\{\{ github\.sha \}\}-\$\{\{ github\.run_attempt \}\}/u);
   // Only a dispatch (including the redispatch after a push to main) publishes; the schedule only probes.

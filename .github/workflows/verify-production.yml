@@ -14,8 +14,8 @@ concurrency:
   group: superbee-docs-cloudflare-production
   cancel-in-progress: false
 
-# Only the environment-bound acquire job can mint a hosted read token. Other workflows
-# reuse its public export after this complete main production run succeeds (30-day retention).
+# The fixed environment-bound workload leaf acquires access for export and Ask source.
+# Other workflows reuse its public export (30-day retention) without OIDC.
 # Push events redispatch because the workload app admits only dispatch and schedule.
 jobs:
   redispatch:
@@ -32,48 +32,14 @@ jobs:
 
   acquire:
     if: github.ref == 'refs/heads/main' && github.event_name != 'push'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    environment: holaxis-sites-docs
     permissions:
       contents: read
       id-token: write
-    outputs:
-      tree_digest: ${{ steps.export.outputs.tree_digest }}
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 22
-          cache: npm
-          registry-url: "https://registry.npmjs.org"
-      # This job can mint an OIDC token, so no dependency install script runs here.
-      - run: npm ci --ignore-scripts
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
-      - name: Export the hosted content, verified against the host's digest manifest
-        id: export
-        env:
-          DOCS_HOSTED_APP_ID: ${{ vars.DOCS_HOSTED_APP_ID }}
-        run: |
-          set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/hosted"
-          node scripts/hosted-workload-token.mjs exec -- \
-            node scripts/hosted-content.mjs export --to "$RUNNER_TEMP/hosted/export" --receipt "$RUNNER_TEMP/hosted/receipt.json"
-          echo "tree_digest=$(jq -r .treeDigest "$RUNNER_TEMP/hosted/receipt.json")" >> "$GITHUB_OUTPUT"
-          jq -r '"## Hosted content\n- bundle: `\(.bundle)`\n- revision: \(.revision), exported \(.exportedAt)\n- \(.documents) documents, \(.blobs) other files\n- tree: `\(.treeDigest)`"' \
-            "$RUNNER_TEMP/hosted/receipt.json" >> "$GITHUB_STEP_SUMMARY"
-      - name: Hand the verified export to the build
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
-          # One name per run (not per attempt): re-running only build must find acquire's export.
-          name: superbee-docs-hosted-content-${{ github.run_id }}
-          path: ${{ runner.temp }}/hosted
-          if-no-files-found: error
-          overwrite: true
-          retention-days: 30
+    uses: ./.github/workflows/hosted-workload.yml
+    with:
+      mode: export
+    secrets:
+      NPM_READ_TOKEN: ${{ secrets.NPM_READ_TOKEN }}
 
   build:
     needs: acquire
@@ -211,27 +177,9 @@ jobs:
       ${{ !cancelled() && github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'
       && vars.DOCS_ASK_SOURCE_ENABLED == 'true' && needs.reconcile.result == 'success' }}
     needs: reconcile
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment: holaxis-sites-docs
     permissions:
       contents: read
       id-token: write
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          ref: ${{ github.sha }}
-          persist-credentials: false
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version: 22
-      - name: Restore the exact completed Portal artifact
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: superbee-docs-portal-${{ github.sha }}
-          path: dist
-      # This job can mint an OIDC token: no dependency is installed and no site code runs here.
-      - name: Publish the artifact to hosted as Ask Superbee's source
-        env:
-          DOCS_HOSTED_APP_ID: ${{ vars.DOCS_HOSTED_APP_ID }}
-        run: node scripts/hosted-workload-token.mjs exec -- node scripts/hosted-ask-source.mjs publish --artifact dist
+    uses: ./.github/workflows/hosted-workload.yml
+    with:
+      mode: ask-source

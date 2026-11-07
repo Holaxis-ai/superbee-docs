@@ -50,10 +50,18 @@ bundle, never into a hosted writer checkout.
   `check.yml` passes `--mode acquired`: the newest main run whose acquire job verified its export,
   even when that run's build failed waiting on a Git change under review.
   Run the production workflow on main to verify and publish newer hosted edits.
-- Production's environment-bound acquire and ask-source jobs alone have OIDC permission. ask-source
-  installs nothing and publishes the deployed artifact to hosted as Ask Superbee's source (off until
-  `DOCS_ASK_SOURCE_ENABLED` is `true`). `DOCS_HOSTED_APP_ID` must identify the workspace's docs app;
-  missing configuration fails closed. There is no Git fallback.
+- Production's acquire and ask-source jobs call one fixed environment-bound reusable workload leaf.
+  Both request the same complete Docs Read + Site intent through the public temporary
+  `superbee@0.4.4-pre.13` CLI, with lifecycle scripts disabled and pinned package/binary digests.
+  The SDK still owns full-tree export verification; the stable CLI and writer alias are unchanged.
+  The leaf uses the resolved workload app identity, not `DOCS_HOSTED_APP_ID`. A pending request
+  starts no child: a workspace administrator approves the supported Read + Site replacement,
+  then a fresh job retries. Replacing the old profile revokes its app, so reverting source to an
+  old explicit app ID alone is not a recovery plan; reconcile the current app/profile first.
+  Ask source installs only that public CLI and publishes the exact deployed artifact after the
+  normal production gates (off until `DOCS_ASK_SOURCE_ENABLED` is `true`). The normal dispatch
+  may deploy Cloudflare Docs and completing a Site release changes its public Ask-source pointer.
+  It does not activate Hosted serving. No Git fallback exists.
   Exports are retained for 30 days. If none remain, dispatch the production workflow and retry.
 - Git no longer tracks content: `.superbee/` is ignored. It is either a reader projection or a
   writer checkout, never a source of truth. Rollback uses hosted history, not Git. A clone that

@@ -459,6 +459,8 @@ async function writeJson(file, value) {
 export const SNAPSHOT_REPOSITORY = "Holaxis-ai/superbee-docs";
 const SNAPSHOT_REPOSITORY_ID = 1349797123;
 const SNAPSHOT_WORKFLOW = ".github/workflows/verify-production.yml";
+// Native job names are provenance: direct retained exports and the one fixed reusable leaf.
+const SNAPSHOT_ACQUIRE_JOBS = new Set(["acquire", "acquire / hosted workload"]);
 
 /**
  * `published` (the default) takes the export of a production run that succeeded end to end: the
@@ -480,12 +482,13 @@ export async function selectSnapshot({ api, isMainAncestor, now = Date.now(), mo
     if (!await isMainAncestor(run.head_sha)) continue;
     let acquire;
     if (mode === "acquired") {
+      if (!Number.isSafeInteger(run.run_attempt) || run.run_attempt < 1) continue;
       const jobs = await api(`repos/${SNAPSHOT_REPOSITORY}/actions/runs/${run.id}/jobs?filter=latest&per_page=100`);
-      const acquired = (jobs.jobs ?? []).filter((job) => job.name === "acquire");
+      const acquired = (jobs.jobs ?? []).filter((job) => SNAPSHOT_ACQUIRE_JOBS.has(job.name));
       if (acquired.length !== 1) continue;
       [acquire] = acquired;
       if (acquire.status !== "completed" || acquire.conclusion !== "success"
-        || (run.run_attempt !== undefined && acquire.run_attempt !== run.run_attempt)
+        || acquire.run_attempt !== run.run_attempt
         || !Number.isFinite(Date.parse(acquire.started_at)) || !Number.isFinite(Date.parse(acquire.completed_at))) continue;
     }
     const artifacts = await api(`repos/${SNAPSHOT_REPOSITORY}/actions/runs/${run.id}/artifacts?per_page=100`);

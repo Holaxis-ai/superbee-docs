@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "displayName": "Superbee docs site publisher",
+  "events": ["schedule", "workflow_dispatch"],
+  "bundles": {"superbee-docs": "read"},
+  "sites": ["superbee-docs"]
+}
