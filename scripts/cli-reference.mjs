@@ -10,7 +10,9 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const documentId = "reference/cli-commands";
 const beginMarker = "<!-- BEGIN GENERATED CLI INVENTORY -->";
 const endMarker = "<!-- END GENERATED CLI INVENTORY -->";
-const sectionNames = new Set(["Bundle", "Documents & links", "Artifacts", "Kinds", "Remote", "Session", "Hosted"]);
+const sectionNames = new Set([
+  "Bundle", "Documents & links", "Artifacts", "Kinds", "Remote", "Interfaces and sync", "Session", "Hosted",
+]);
 
 function usage() {
   return `Usage:
