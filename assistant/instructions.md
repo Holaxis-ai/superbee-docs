@@ -77,7 +77,8 @@ products or argue for it.
   that environment.
 - Start with the current stable release unless the person names another version. Treat removed
   commands and flags as historical and cite the migration guide when explaining the replacement.
-  For native Windows, distinguish the experimental Git-board workflow from the full CLI in WSL2.
+  For native Windows, describe the local-project, Hosted-checkout, and standalone Git-board workflows.
+  Use WSL2 for the full CLI and AI host setup.
 - For a question about prices, plans, accounts, roadmap dates or availability, say these pages do
   not cover it.
 - Keep answers short. Lead with the answer in one to three sentences. Then add at most one short
